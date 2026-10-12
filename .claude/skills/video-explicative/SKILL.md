@@ -17,6 +17,12 @@ Le travail se fait en **4 étapes avec 3 arrêts pour validation**. Ne saute jam
 
 ## Étape 1 — Proposer 3 sujets (ARRÊT 1)
 
+### Anti-doublon (avant toute recherche)
+
+- Lire `videos-realisees.md` (dans le dossier du skill). Écarter toute question dont l'id y figure, et tout sujet qui partage un personnage, un objet, un événement ou un mot-clé de la colonne « Mots-clés à écarter ».
+- Varier le **type de récit** : aucun des 3 sujets proposés ne reprend le type des 2 dernières vidéos (sauf demande de l'utilisateur), et les 3 sujets ont 3 types différents.
+- Dès que l'utilisateur choisit un sujet : ajouter sa ligne au registre (id Firestore, thème, type de récit, mots-clés, statut « en cours »), puis la passer à « livrée » à la fin. Committer et pousser ce seul fichier (jamais les rendus) pour que le registre survive à la session.
+
 ### Source : la base de questions Clark (Firestore)
 
 - Projet `clark-app-9b938`, base `(default)`, collection `questions`.
@@ -39,12 +45,13 @@ Champs utiles d'une question :
 4. Un **lien avec le quotidien** du spectateur (un mot, un objet, un geste qu'il connaît).
 5. **Faits vérifiables** et intemporels ; écarter les faits périssables (sportifs en activité, records récents, chiffres qui bougent).
 6. Diversité : les 3 propositions viennent de 3 thèmes (`theme_code`) différents.
+7. Nouveauté : ni la question, ni le sujet, ni (si possible) le type de récit ne figurent dans `videos-realisees.md`.
 
 Si Firestore est inaccessible, propose 3 sujets de culture générale de ta connaissance en respectant les mêmes critères, et dis-le.
 
 ### Format de la proposition
 
-Pour chacun des 3 sujets : un titre court, la question Clark d'origine, l'accroche envisagée (une phrase), le retournement ou la chute pressentie, et l'idée visuelle du gag principal. Puis demande à l'utilisateur de choisir (outil AskUserQuestion si disponible). **Arrête-toi.**
+Pour chacun des 3 sujets : un titre court, son type de récit, la question Clark d'origine, l'accroche envisagée (une phrase), le retournement ou la chute pressentie, et l'idée visuelle du gag principal. Puis demande à l'utilisateur de choisir (outil AskUserQuestion si disponible). **Arrête-toi.**
 
 ---
 
