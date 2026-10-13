@@ -75,6 +75,11 @@
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
 - Animal lointain qui flotte dans le ciel ou sur la toile (pas de relief sous ses pieds) ; faune qui attire l'œil pendant le geste clé.
 - Rideau qui bouge pendant un gag ou sur un mot-clé ; raccord de rideau faux à la coupe (plan qui ne commence pas dans l'état où le précédent finit) → toujours `M.rideau(t)` + `rideau.json`, jamais un rideau codé à la main.
+- Cue de `rideau.json` posée au mauvais instant (un `change` P4 → P5 écrit à 49,4 au lieu de 39,4) → `rideau.json` est en temps **global** : un instant local `t` du plan N s'écrit `(N−1)×10 + t` ; vérifier chaque cue par ce calcul et contre le tableau de la fiche.
+- Bruitage placé sur un mot-clé **dès la fiche** (« pleine » 6,0–6,6 avec un `objet_pose` à 6,05) → à l'écriture de la fiche, caler chaque bruitage hors des fenêtres de mots-clés, juste après le mot.
+- Accessoire qui surgit à la coupe (balance absente à la fin du plan 1, présente au début du plan 2) → tout objet dont le plan suivant a besoin est déjà en place dans la dernière image du plan précédent.
+- Geste clé coupé par un rideau à demi fermé (officier arrêté à x 120, salut caché par le pan) → avec une cue `demi`, garder le personnage et son geste dans la bande restée visible (x ≥ 240).
+- Changement de décor à vue qui découvre le noir des coulisses (toile de rivière qui remonte avant que la cuisine ne soit descendue : bande sombre sur un mot-clé) → une toile de fond peinte est déjà en place derrière l'ancien décor ; seuls les éléments du nouveau descendent ou montent.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.

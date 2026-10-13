@@ -37,3 +37,19 @@ ACCESSOIRES  : POU.boite(x,y,s,{ouvre, contenu 'putrescible'|'papiers'|'verre'|'
 DÉCORS       : POU.K.rue (poser à 540 ; POU.RUE.portes [210,540,870], POU.RUE.cinq, POU.RUE.corniches), POU.K.cafe, gueridon, chaise, morris
 ```
 Réglages éprouvés : marionnettes à `s` 0,9–0,95 (≈ 480–500 px) ; boîtes du tri à 1,1 (3 de front) ou 0,88 (5 de front) avec `bande` (la boîte est entièrement teintée) ; tas d'ordures à 1,35 avec étirement vertical 1,35 ; rats à 1,4–1,5 ; main moderne à 1,5 ; journal à 1,29. Bras levé « brandir » : armF_up ≈ −2,0, armF_lo ≈ −0,85. Un inconnu « dans l'ombre » : préfet sans bicorne assombri à 70 %, découpé au bord de la boîte (voir le plan 1 de la vidéo).
+
+## `teflon.js` — « Le Téflon, un frigo raté » (DuPont 1938 → Tefal 1954), espace `M.tef`
+Livré le 13/10/2026, contrôlé plan par plan (aucun retour d'Alexis à ce jour) : Roy Plunkett (blouse, lunettes de protection front/yeux, main sur le crâne perplexe, révérence de théâtre), officier (casquette à insigne rond, salut main ouverte), Marc Grégoire (bob de pêcheur, moustache, `brandir`, `fier`), Colette (boucles, poing sur la hanche, `tendre`), frigo « Monitor Top » 1938 SANS visage qui joue avec sa porte, sa sueur, ses gouttes, son tremblement et sa penche, bouteille de gaz (robinet à volant, coupée pleine de poudre), balance de Roberval sans graduation, poêles `alu`/`teflon` avec œuf `colle`/`glisse` (retournement), labo 1938 et paillasse à étau.
+Dans `S.init` : `TEF.init();` (pré-rend `TEF.K` = labo, paillasse, mors, poele{alu,teflon}). Lire l'en-tête-index de `teflon.js` avant usage (options exactes).
+
+```
+MARIONNETTES : TEF.plunkett / officier / marc / colette (pose,x,y,s,o) — toujours par l'enveloppe ; pose.tenu/tenuB 'rien'|'bouteille'|'scie'|'spatule'|
+               'flacon'|'bocal'|'poele'|'canne'|'pinceau', tenuO/tenuBO, deuxMains ; plunkett : goggles, teteMain, reverence ; officier : salut ;
+               marc : brandir, fier ; colette : hanche, hancheB, tendre. TEF.pt(r,'bec'|'pointe'|'scion'|'robinet'|…) = point écran de l'objet tenu.
+ACCESSOIRES  : TEF.frigo(x,y,s,{porte,sueur,gouttes,tremble,penche,givre,t}) (o.t obligatoire) ; TEF.bouteille({etat,robinet,poudre}) ; TEF.balance({pente}) ;
+               TEF.scie, TEF.tas({taille}), TEF.spatule({charge,glisse}), TEF.bocal({poudre,acide,vapeur}), TEF.flacon({niveau,filet,filetY}),
+               TEF.poele({modele,oeuf,oeufDx,oeufDy,oeufFlip,retourne,sens}), TEF.canne, TEF.pinceau
+DÉCORS       : TEF.K.labo (plein écran), TEF.K.paillasse (M.flat à TEF.PAILLASSE.cx sur ST.back ; étau en TEF.PAILLASSE.etau), TEF.K.mors (après la bouteille serrée),
+               TEF.K.poele.teflon / alu (pour M.hung)
+```
+Réglages éprouvés : marionnettes à `s` 0,9 (Colette 0,88), frigo à 1 posé sur `ST.back` à x ≈ 770 ; balance à 0,6 sur la paillasse (x 400) ; garder un personnage à x ≥ 240 quand le rideau est à demi fermé (cue `demi`), sinon son geste est coupé. Passage d'un objet de main en main : `objetB` ≈ −0,4 pour écarter la canne du champ.
