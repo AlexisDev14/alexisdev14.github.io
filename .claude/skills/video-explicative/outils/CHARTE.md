@@ -4,7 +4,7 @@
 
 ## 1. Format
 - 1080 × 1920, 30 im/s, 10,0 s par plan (300 images), H.264 yuv420p + AAC stéréo 192 kb/s.
-- Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.**
+- Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
 
 ## 2. Le théâtre (fourni par le kit, ne pas redessiner)
 - Petit théâtre de papier vu de face, caméra fixe : cadre de scène en bois sombre et moulures dorées, lambrequin de velours à franges, rampe de lampes à huile (flammes qui vacillent), coquille du souffleur, plancher en lattes avec **deux fentes** (arrière `ST.slotB`, avant `ST.slotF`) d'où sortent les tiges.
@@ -67,6 +67,10 @@
 - Objet trop gros qui écrase la scène (fromage géant) ; part découpée en bloc informe → une part se lit comme un **coin triangulaire** pointe vers le centre, faces coupées couleur pâte ; ustensile mal dessiné (couteau qui ressemble à une spatule) → lame effilée + manche distinct, sans tige.
 - Objet mal tenu (gobelet tenu par le bord, couché, ouverture vers l'extérieur) → la main **entoure le corps** de l'objet, ouverture vers le haut ou vers la bouche quand il boit ; objet posé qui flotte ou cache les jambes.
 - Changement de posture trop abrupt (se rasseoir « d'un bond », reprise du travail sèche) → enchaîner par étapes lisibles (se tourner, se pencher, s'asseoir, reprendre les mains au travail) sur 0,8–1,2 s, avec anticipation et ralenti en fin de geste.
+- Coude ou épaule cassés (avant-bras qui ne raccorde pas au bras, manche qui se détache quand le bras est plié ou levé) → bras et avant-bras se recouvrent sur une **articulation ronde**, rivet au centre du pivot ; tester les flexions de 0 à 2,4 rad dans les deux sens au casting.
+- Objets d'une même série qui se confondent (conteneurs du tri distingués par un simple liseré) → chaque objet **entièrement** de sa couleur, nettement différente (ex. vert éteint / ocre / bleu ardoise).
+- Éléments clés trop petits en vignette (tas d'ordures en bande au ras du sol, rats minuscules, boîtes cachées par un meuble) → dimensionner pour le téléphone : l'objet du mot-clé se lit en 1 s, dégagé, à ≥ 120 px.
+- Caricature ou dessin dans l'image qui n'associe pas clairement le personnage à son objet → montrer le personnage reconnaissable (barbe, chapeau) DANS ou AVEC l'objet.
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
 - Animal lointain qui flotte dans le ciel ou sur la toile (pas de relief sous ses pieds) ; faune qui attire l'œil pendant le geste clé.
 - Rideau qui bouge pendant un gag ou sur un mot-clé ; raccord de rideau faux à la coupe (plan qui ne commence pas dans l'état où le précédent finit) → toujours `M.rideau(t)` + `rideau.json`, jamais un rideau codé à la main.
