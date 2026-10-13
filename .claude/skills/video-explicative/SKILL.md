@@ -188,24 +188,41 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).
      - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
-- **Prompt de couverture** (miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Validé par l'utilisateur : **rideau rouge fermé en fond, l'objet emblématique du sujet seul devant (pas de personnage), un titre accrocheur dans le tiers haut**, le tout **dans la DA de la vidéo** (carton découpé plat, pas de rendu réaliste) et un titre en **lettres de papier doré découpées, style affiche de théâtre XIXᵉ** (pas de serif classique fin). C'est la seule image où du texte est permis. Prompt **en anglais**, titre en français entre guillemets, **court** (4 à 7 mots : les générateurs écrivent mal les titres longs), sur ce modèle :
+- **Prompt de couverture** (miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Validé par l'utilisateur : **rideau rouge fermé en fond, l'objet emblématique du sujet seul devant (pas de personnage), un titre accrocheur dans le tiers haut**, **le rideau à la couleur du thème Clark de la question** (tableau ci-dessous), l'objet **posé** sur le plancher (pas de tige, pas en lévitation), le tout **dans la DA de la vidéo** (carton découpé plat, pas de rendu réaliste) et un titre en **lettres de papier doré découpées, style affiche de théâtre XIXᵉ** (pas de serif classique fin). C'est la seule image où du texte est permis. Prompt **en anglais**, titre en français entre guillemets, **court** (4 à 7 mots : les générateurs écrivent mal les titres longs), sur ce modèle :
   ```
   Flat cut-paper illustration in the style of a 19th-century paper toy theatre, vertical 9:16, elegant and minimalist.
   NOT photographic, NOT 3D: matte layered cardstock, flat colour areas, crisp die-cut edges with a thin white border,
   fine engraving-style hatching for shading, visible paper grain, small soft drop shadows between paper layers.
-  Background: only a closed theatre curtain drawn as flat painted paper — deep muted crimson, stylised regular vertical
-  folds in two or three tones, a thin aged-gold fringe at the bottom; no proscenium, no stage frame, no landscape,
-  no audience, no characters.
-  In front of the curtain, in the lower half, standing on a simple flat strip of dark wooden floorboards:
-  [L'OBJET EMBLÉMATIQUE SEUL, simplifié en carton découpé : formes nettes, aplats, couleurs sourdes, brass paper-fastener
-  rivets if it has parts], with a slim wooden rod going down into a slot in the floor, lit by a soft warm spotlight.
+  Background: only a closed theatre curtain drawn as flat painted paper — [COULEUR DU THÈME : nom + hex primary]
+  with darker folds [hex dark], stylised regular vertical folds in two or three tones, a thin aged-gold fringe at the
+  bottom; no proscenium, no stage frame, no landscape, no audience, no characters.
+  In front of the curtain, in the lower half: [L'OBJET EMBLÉMATIQUE SEUL, simplifié en carton découpé : formes nettes,
+  aplats, couleurs sourdes, brass paper-fastener rivets if it has parts], resting firmly and flat on a simple strip of
+  dark wooden floorboards, with a soft contact shadow under it — no rod, no stick, no stand, not floating —
+  lit by a soft warm spotlight.
   In the upper third, the French title, exactly: "[TITRE]", made of letters hand-cut from gold paper, in the style of
   a 19th-century wood-type theatre playbill (bold condensed slab-serif capitals), each letter very slightly uneven and
   casting a tiny shadow on the curtain, centered on two or three lines, perfectly spelled with French accents.
-  Palette strictly muted: crimson, ivory, ochre, midnight blue, aged gold. Centered, uncluttered, gentle vignette,
+  Palette strictly muted: the theme colour, ivory, ochre, aged gold. Centered, uncluttered, gentle vignette,
   fine paper grain. No other text, no logo, no watermark.
   ```
-  Négatif : `photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
+  Couleur du rideau = `theme_code` de la question choisie (Firestore `questions/<id>.theme_code`, noté dans le registre). Source : app Clark, `packages/shared/src/constants/themeVisuals.ts` (à relire si le dépôt `AlexisDev14/clark` est disponible, les couleurs peuvent changer) :
+
+  | Code | Thème | primary | dark | Dans le prompt |
+  |---|---|---|---|---|
+  | HIST | Histoire & politique | #7C2D12 | #5B1A0E | deep terracotta brick red |
+  | GEO | Géographie & monde | #15803D | #14532D | forest green |
+  | SCI | Sciences & technologie | #06B6D4 | #0E7490 | laboratory cyan (muted) |
+  | ART | Arts & littérature | #C026D3 | #86198F | ink magenta |
+  | MUS | Musique, cinéma & TV | #7C3AED | #5B21B6 | velvet violet |
+  | POP | Culture pop & médias | #FCAF3C | #92560B | golden amber |
+  | SPORT | Sports & jeux | #F97316 | #C2410C | pitch orange |
+  | VIE | Vie quotidienne | #EC4899 | #BE185D | vivid rose pink (muted) |
+  | ECO | Affaires, économie & société | #334155 | #0F172A | slate graphite |
+  | LANG | Langue, culture & religions | #4D7C0F | #365314 | sage olive green |
+  | ACTU | Actualités | #DC2626 | #991B1B | bright red |
+
+  Négatif : `rod, stick, pole, stand, floating, levitating, red curtain (si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
 - Passe le sujet à « livrée » dans `videos-realisees.md`.
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas.
