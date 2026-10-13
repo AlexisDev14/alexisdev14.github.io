@@ -194,7 +194,7 @@ Pas de nouveau rendu complet. Vérifie seulement :
   NOT photographic, NOT 3D: matte layered cardstock, flat colour areas, crisp die-cut edges with a thin white border,
   fine engraving-style hatching for shading, visible paper grain, small soft drop shadows between paper layers.
   Background: only a closed theatre curtain drawn as flat painted paper — [COULEUR DU THÈME : nom + hex primary]
-  with darker folds [hex dark], stylised regular vertical folds in two or three tones, a thin aged-gold fringe at the
+  with darker folds [hex dark] — the curtain is NOT red, NOT crimson (sauf thème rouge) — stylised regular vertical folds in two or three tones, a thin aged-gold fringe at the
   bottom; no proscenium, no stage frame, no landscape, no audience, no characters.
   In front of the curtain, in the lower half: [L'OBJET EMBLÉMATIQUE SEUL, simplifié en carton découpé : formes nettes,
   aplats, couleurs sourdes, brass paper-fastener rivets if it has parts], resting firmly and flat on a simple strip of
@@ -222,7 +222,7 @@ Pas de nouveau rendu complet. Vérifie seulement :
   | LANG | Langue, culture & religions | #4D7C0F | #365314 | sage olive green |
   | ACTU | Actualités | #DC2626 | #991B1B | bright red |
 
-  Négatif : `rod, stick, pole, stand, floating, levitating, red curtain (si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
+  Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
 - Passe le sujet à « livrée » dans `videos-realisees.md`.
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas.
