@@ -2,7 +2,7 @@
 # Prépare le dossier d'un plan pour le rendu.  Usage : construire.sh <dossier_video>/pN ["titre"]
 #  - crée scene.js / timeline.js / mixage.py à partir des gabarits s'ils n'existent pas ;
 #  - copie le kit (outils/kit/marionnettes.js), la bibliothèque commune (outils/bibliotheque/*.js),
-#    la conduite du rideau (<dossier_video>/rideau.json → rideau.js) et les personnages de la vidéo (<dossier_video>/persos.js) ;
+#    la conduite du rideau (<dossier_video>/rideau.json → rideau.js), les raccords (<dossier_video>/raccords/*.js → raccords.js) et les personnages de la vidéo (<dossier_video>/persos.js) ;
 #  - écrit index.html et vérifie la syntaxe de chaque fichier.
 set -e
 OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
@@ -14,7 +14,9 @@ cat "$OUT"/bibliotheque/*.js > "$P/bibliotheque.js"            # personnages val
 NUM=$(echo "$N" | grep -o '[0-9]\+' | head -1); NUM=${NUM:-1}
 if [ -f "$V/rideau.json" ]; then cp "$V/rideau.json" "$P/rideau.json"; R=$(cat "$V/rideau.json"); else R='null'; rm -f "$P/rideau.json"; fi
 printf 'M.PLAN = %s;\nM.RIDEAU = (function (j) { return j ? M.conduite(j.cues, j) : null; })(%s);\n' "$NUM" "$R" > "$P/rideau.js"
+# raccords entre plans : chaque plan écrit son état final dans <dossier_video>/raccords/pN.js ; tous sont réunis ici (M.RACC.pN)
+{ echo "M.RACC = M.RACC || {};"; cat "$V"/raccords/*.js 2>/dev/null || true; } > "$P/raccords.js"
 if [ -f "$V/persos.js" ]; then cp "$V/persos.js" "$P/persos.js"; else echo "// (pas de bibliothèque propre à la vidéo)" > "$P/persos.js"; fi
 sed "s/__TITRE__/${2:-$N}/" "$OUT/modele.html" > "$P/index.html"
-for f in marionnettes.js bibliotheque.js rideau.js persos.js timeline.js scene.js; do node -e "new Function(require('fs').readFileSync('$P/$f','utf8'))" || { echo "ERREUR de syntaxe : $P/$f"; exit 1; }; done
+for f in marionnettes.js bibliotheque.js rideau.js raccords.js persos.js timeline.js scene.js; do node -e "new Function(require('fs').readFileSync('$P/$f','utf8'))" || { echo "ERREUR de syntaxe : $P/$f"; exit 1; }; done
 echo "$N prêt"

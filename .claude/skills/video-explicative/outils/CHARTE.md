@@ -44,6 +44,7 @@
 
 ## 6. Cadrage TikTok
 - Action importante (visages, gags, objets clés) entièrement dans **x 60–930, y 150–1430**.
+- **Lisibilité téléphone** : la vidéo se regarde petite. L'objet de chaque mot-clé (≥ 120 px, contrasté) se lit en 1 s sur la planche réduite ; rien de clé derrière un meuble, un personnage ou un chapeau ; les objets d'une même série ont chacun une couleur entière distincte.
 - y > 1430 : plancher, rampe, souffleur seulement (sous-titres). x > 930 : décor seulement (boutons). Coin haut gauche (x < 220, y < 220) calme (logo).
 
 ## 7. Bruitages (voir `sfx_lib.py`)

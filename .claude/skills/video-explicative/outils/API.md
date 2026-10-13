@@ -151,6 +151,11 @@ Petites silhouettes de carton, fonctions pures de t, à dessiner **avant `M.draw
 
 `kind` (`M.BETES`) : `chamois bouquetin cerf biche vache cheval mouton chevre renard loup lapin`. Échelles : au fond (crête) `s` 0,25–0,4 ; prairie intermédiaire 0,4–0,6. Poser les pieds **sur** un relief dessiné (crête de colline, bord de prairie, rive), jamais en l'air sur la toile du ciel.
 
+## 4d. Raccords entre plans — `<video>/raccords/pN.js`
+Chaque plan **écrit son état final** (ce que le plan suivant doit reprendre à 0 s) dans `<video>/raccords/pN.js`, et seulement ce fichier : `M.RACC.p3 = { prefet:{x:190, s:0.93, dir:1}, boites:[{x:575, s:1.1, bande:'vert'}, …], ciel:'paris', … };`
+`construire.sh` réunit tous ces fichiers dans le `raccords.js` de chaque plan (chargé avant `persos.js`). Le plan N+1 **lit** `M.RACC['p' + (M.PLAN - 1)]` pour placer son image 0 au lieu de recopier des valeurs à la main ; si le plan N est corrigé, il suffit de relancer `construire.sh` et `produire.sh` du plan N+1.
+Contenu utile : positions, échelles, sens (`dir`), poses finales (angles importants), état des objets (couvercles, contenus), décor et ciel, personnages encore en scène.
+
 ## 5. Matériel interne exposé pour personnages propres : `M.X`
 `M.X = { legPts(th=1), armPts(len=98), forePts(kind), foreTuck(), NAP_HEAD, AR_HEAD, GR_HEAD, earPaint(x,y), eye(f,x,y,sz=1), brow(f,x,y,col,lw), mouth(f,x,y,col), handPaint(skin,kind), HAND_OPEN, HAND_FIST }`
 - `legPts(th)` : jambe de profil, hanche en (0,−12), pied en y ≈ 237, bout du pied vers +x ; peindre bottes/chaussettes par un rectangle `y ≥ 214` dans le `paint`.
