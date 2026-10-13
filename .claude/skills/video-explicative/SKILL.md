@@ -190,17 +190,18 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
 - **Prompt de couverture** (illustration sobre et élégante pour la miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Rédigé **en anglais** (les générateurs d'images comprennent mieux l'anglais), sur ce modèle :
   ```
-  Elegant minimalist vertical cover illustration, 9:16. A small antique paper puppet theatre seen from the front:
-  dark carved wooden proscenium with aged gold mouldings, deep red velvet curtains drawn to the sides, warm oil-lamp footlights.
-  On stage, [LE PERSONNAGE OU L'OBJET EMBLÉMATIQUE, 1 seul sujet principal, décrit précisément : silhouette de profil,
-  couleurs, expression, objet du gag] in front of a painted cardboard backdrop of [LE LIEU / L'ÉPOQUE].
-  Rod-puppet craft: die-cut paper with thin white edge, visible brass rivets at the joints, a slim wooden rod going down
-  into a floor slot, fine engraving hatching, paper and canvas texture, soft spotlight with floating dust.
-  Muted vintage palette: midnight blue, faded green, ochre, ivory, blood red, aged gold. Centered, uncluttered composition,
-  generous empty space in the upper third for a title, gentle vignette, fine grain, refined and sober.
+  Elegant minimalist vertical cover illustration, 9:16. Background: only a closed deep red velvet theatre curtain
+  filling the whole frame, soft vertical folds, warm light pooling in the centre and fading to darkness at the edges.
+  No proscenium, no stage frame, no landscape, no backdrop, no audience.
+  In front of the curtain, in the lower half: [L'ÉLÉMENT PRINCIPAL, 1 seul sujet (personnage et/ou objet emblématique),
+  décrit précisément : silhouette de profil, couleurs, expression, objet du gag], lit by a single soft spotlight.
+  Paper rod-puppet craft: die-cut paper with thin white edge, visible brass rivets at the joints, a slim wooden rod
+  going down out of frame, fine engraving hatching, paper texture, soft drop shadow on the velvet.
+  Muted vintage palette: ivory, ochre, aged gold against the red velvet. Centered, uncluttered composition,
+  the upper third left as empty curtain for a title, gentle vignette, fine grain, refined and sober.
   No text, no letters, no numbers, no logo, no watermark.
   ```
-  Négatif (si le générateur en accepte un) : `text, letters, typography, logo, watermark, 3D render, plastic, glossy, anime, cartoon style, photorealistic, clutter, extra limbs, deformed hands`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Un seul sujet, le décor reconnaissable, le tiers haut libre pour le titre.
+  Négatif (si le générateur en accepte un) : `text, letters, typography, logo, watermark, landscape, stage frame, proscenium, audience seats, 3D render, plastic, glossy, anime, cartoon style, photorealistic, clutter, extra limbs, deformed hands`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). **Fond = rideau fermé uniquement** (ni cadre de scène, ni paysage, ni public), l'élément principal devant, le tiers haut libre pour le titre.
 - Passe le sujet à « livrée » dans `videos-realisees.md`.
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas.
