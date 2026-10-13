@@ -163,5 +163,17 @@ Pas de nouveau rendu complet. Vérifie seulement :
   - sous-titres sur 2 lignes au maximum, vers 65–72 % de la hauteur, avec le mot de la chute en couleur ;
   - vidéo complète à −14 LUFS, crête à −1 dBFS ;
   - carton de fin et logo en haut à gauche.
+- **Dépôt sur le Drive Clark** (connecteur Google Drive, chercher « Google_Drive » avec ToolSearch) :
+  1. Dossier parent : « Vidéos » à la racine du Drive Clark (id `1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_` ; s'il a disparu, le retrouver avec `search_files` : `parentId = 'root' and title = 'Vidéos'`).
+  2. Y créer un dossier au nom du sujet (ex. « Arc de triomphe »), avec `create_file` et `contentMimeType` = `application/vnd.google-apps.folder`.
+  3. Y créer le fichier texte `<Sujet> — script et publication.txt` (`contentMimeType: text/plain`, `disableConversionToGoogleType: true`). Il contient :
+     - un **titre** accrocheur (≤ 80 caractères) ;
+     - une **description piquante** (2 à 3 phrases dans le ton satirique de la vidéo, avec la chute en clin d'œil, un emoji au plus) ;
+     - **5 hashtags** (le thème, le personnage, le sujet, puis #culturegenerale et un tag large) ;
+     - le **script** plan par plan ;
+     - la liste des fichiers vidéo et le rappel des réglages de montage.
+
+     Modèle : le fichier « Arc de triomphe — script et publication.txt ».
+  4. **Les 6 vidéos** : le connecteur Drive n'accepte un fichier que recopié en entier dans l'appel (base64). C'est impossible pour des MP4 de plusieurs Mo, donc ne pas essayer. Les vidéos restent livrées dans la conversation, et tu dis à l'utilisateur de les glisser dans le dossier (donne son lien). Si un outil permettant d'envoyer un fichier local sur Drive devient disponible, l'utiliser pour y déposer `p1_final.mp4` … `p6_final.mp4`.
 - Passe le sujet à « livrée » dans `videos-realisees.md`, committe ce fichier et pousse-le.
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur (et committe-le), pour qu'il ne revienne pas.
