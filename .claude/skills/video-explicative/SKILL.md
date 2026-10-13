@@ -174,6 +174,11 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - la liste des fichiers vidéo et le rappel des réglages de montage.
 
      Modèle : le fichier « Arc de triomphe — script et publication.txt ».
-  4. **Les 6 vidéos** : le connecteur Drive n'accepte un fichier que recopié en entier dans l'appel (base64). C'est impossible pour des MP4 de plusieurs Mo, donc ne pas essayer. Les vidéos restent livrées dans la conversation, et tu dis à l'utilisateur de les glisser dans le dossier (donne son lien). Si un outil permettant d'envoyer un fichier local sur Drive devient disponible, l'utiliser pour y déposer `p1_final.mp4` … `p6_final.mp4`.
+  4. **Les 6 vidéos** : `python3 -I OUTILS/drive_envoi.py "<Sujet>" - <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4`.
+     - Le script retrouve le dossier du sujet dans « Vidéos » et y dépose les fichiers, en envoi « resumable ».
+     - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
+     - Le script peut aussi envoyer le fichier texte lui-même : il suffit de remplacer `-` par son chemin, ce qui évite l'étape 3.
+     - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).
+     - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
 - Passe le sujet à « livrée » dans `videos-realisees.md`, committe ce fichier et pousse-le.
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur (et committe-le), pour qu'il ne revienne pas.

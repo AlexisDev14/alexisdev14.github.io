@@ -1,5 +1,5 @@
 # Envoi d'une vidéo terminée sur le Drive Clark : dossier « <Sujet> » dans « Vidéos », 6 plans MP4 + fichier texte.
-# Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt> <p1_final.mp4> … <p6_final.mp4>
+# Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <p6_final.mp4>   (« - » : pas de fichier texte)
 # Identifiants : secret réseau « GOOGLE_DRIVE » (type Body parameter, site oauth2.googleapis.com, chemin /token,
 # paramètres client_id, client_secret, refresh_token) injecté par le proxy dans la demande de jeton :
 # ce script n'a jamais connaissance de ces valeurs, seulement du jeton d'accès (valable 1 h) renvoyé par Google.
@@ -47,6 +47,6 @@ if __name__ == '__main__':
     sujet, texte, videos = sys.argv[1], sys.argv[2], sys.argv[3:]
     tok = jeton()
     d = dossier(tok, sujet, VIDEOS)
-    envoyer(tok, texte, d, 'text/plain')
+    if texte != '-': envoyer(tok, texte, d, 'text/plain')
     for v in videos: envoyer(tok, v, d, 'video/mp4')
     print(f'dossier : https://drive.google.com/drive/folders/{d}')
