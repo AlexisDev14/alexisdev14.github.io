@@ -22,6 +22,7 @@ EFFETS : REB.jet, REB.coulee, REB.vapeur, REB.bulle.   AIDES : REB.pose, wink, t
 DÉCORS : REB.init() (dans S.init) remplit REB.K = { aravis{aube,couchant}, prairie, sapinL, sapinR, colline, collineCrete, cuisine{fond,montagnes,montagnesChaud,rebord}, table, tableBois, chalet, chateau, chateauBalcon }
   + constantes REB.FEN, TABLE, TABLEBOIS, CHALET, CHATEAU, CHEMIN, SEAU, GOB, POT, MOULE, PLAT, PANIER, TABOURET, CLA.
 ```
+**Vache tête de face (préférée par l'utilisateur, à utiliser par défaut)** : `REB.vacheF(pose,x,y,s,o)` / `REB.vacheTeteF(...)` (`CH.vacheF`, `CH.vacheTeteF`) : corps de profil, tête parfaitement de face (`REB.VUE_FACE = 'A'`) ; même API de pose (humeur, lid/lidF/lidB, REB.wink, face.mouth dont 'o', ang.jaw/earN/earF, clarine/clarineK ; `ang.head` = petite inclinaison, `pose.tq` ignoré). Tête ≈ 60 px plus haute (cornes) à l'échelle 0,74 : prévoir la place sous les fenêtres, tables et lambrequin.
 Réglages éprouvés : vache de profil `s` 0,75–0,9 (fente avant), `pose.humeur` −1 (très contente, yeux plissés) … 1 (fâchée, sourcil en V) ; éviter `tq` entre 0,3 et 0,6 ; `clarineK` 1,3 quand la clarine porte le gag. Couteau et fourchette : `rod:false` (ils volent). Avant d'utiliser une pièce, lire son en-tête dans `reblochon.js` (options exactes).
 
 ## `poubelle.js` — « Monsieur Poubelle » (Paris, 1883 → aujourd'hui), espace `M.pou`

@@ -1831,3 +1831,264 @@
   REB.trayon = function (r, i) { const T = [[-30, 90], [-10, 94], [10, 94], [28, 88]]; return r.w('pis', T[i][0], T[i][1]); };
 
 })();
+
+// ---- Vache TÊTE DE FACE (validée par l'utilisateur, à préférer à la tête de profil) ----
+// vache_face.js — PROTOTYPE : la vache Abondance avec la TÊTE DE FACE (corps de profil inchangé), comme un dessin de presse.
+// Chargé APRÈS la bibliothèque / persos.js (réutilise M.chars.vache / vacheTete pour le corps, l'encolure, le collier et la clarine).
+// Aucun texte, lettre ni chiffre. Déterministe.
+//
+//   CH.vacheF, CH.vacheTeteF   : variante A — tête parfaitement de face (symétrique)
+//   CH.vacheF3, CH.vacheTeteF3 : variante B — tête de 3/4 face (tournée vers le sens de marche, +x local)
+//   REB.vacheF(pose,x,y,s,o) / REB.vacheTeteF(pose,x,y,s,o) : comme REB.vache / REB.vacheTete ; o.vue = 'A' | 'B' (défaut REB.VUE_FACE)
+//   API de pose IDENTIQUE : humeur -1..1, lid (œil « proche » : clin d'œil, REB.wink), lidF (autre œil), lidB, face.mouth 'n'|'smile'|'tight'|'grr'|'o',
+//   clarine/clarineK, ang.head (petite inclinaison + hochement : négatif = museau relevé), ang.jaw (rumine : mâchoire qui glisse ; > 0,15 : bouche ouverte, meugle),
+//   ang.earN/earF (oreilles qui frémissent), ang.hornN/hornF. pose.tq est ignoré (toujours de face).
+(function () {
+  'use strict';
+  const { fillPts, strokePts, dot, hatch, shade, lerp, clamp, smooth } = M;
+  const TAU = M.TAU, PI = Math.PI;
+  const REB = M.reb, CH = M.chars, Q = REB.Q, G = REB.geo;
+  const { ell, ribbon, bez } = G;
+  const cx_ = () => M.ctx();
+  const C = { ac: Q.acajou, acD: Q.acajouD, acL: Q.acajouL, iv: Q.ivoire, ivD: Q.ivoireD, ivL: Q.ivoireL, ro: Q.rose, roD: Q.roseD, roL: Q.roseL, hoof: '#3A2A22', ink: 'rgba(30,14,10,0.95)' };
+  const OFFP = [[0, 0], [0.01, 0], [0, 0.01]];
+
+  function cline(pts, col, w) { const c = cx_(); c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.strokeStyle = col; c.lineWidth = (w || 1) * M._lw(); c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); }
+  function arcPts(cx, cy, rx, ry, a0, a1, n) { const o = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; o.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); } return o; }
+  const mirX = (pts) => pts.map((p) => (p[2] ? [-p[0], p[1], 1] : [-p[0], p[1]]));
+
+  // ------------------------------------------------------------------ projection (fausse 3D) : visage dessiné en coordonnées « de face »
+  // origine = rivet du front (pivot sur le cou) ; y vers le bas. yaw > 0 : tête tournée vers +x (sens de marche). nod < 0 : museau relevé.
+  const Z = (x, y) => (40 + 52 * smooth(20, 100, y) - 10 * smooth(-30, -70, y)) * Math.sqrt(Math.max(0, 1 - (x / 84) * (x / 84)));
+  function mkW(yaw, nod) {
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cn = Math.cos(nod), sn = Math.sin(nod);
+    const raw = (x, y) => { const z = Z(x, y), x1 = x * cy + z * sy, z1 = -x * sy + z * cy; return [x1, y * cn + z1 * sn]; };
+    const o = raw(0, PIV);
+    const W = (x, y) => { const p = raw(x, y); return [p[0] - o[0], p[1] - o[1]]; };
+    W.pts = (pts) => pts.map((p) => { const q = W(p[0], p[1]); if (p[2]) q.push(1); return q; });
+    W.jac = (x, y) => { const a = W(x + 1, y), b = W(x - 1, y), c = W(x, y + 1), d = W(x, y - 1); return [(a[0] - b[0]) / 2, (a[1] - b[1]) / 2, (c[0] - d[0]) / 2, (c[1] - d[1]) / 2]; };
+    // dessine fn() en repère local centré sur (x,y), déformé comme la surface du visage
+    W.feat = (x, y, fn) => { const c = cx_(), p = W(x, y), j = W.jac(x, y); c.save(); c.translate(p[0], p[1]); c.transform(j[0], j[1], j[2], j[3], 0, 0); fn(); c.restore(); };
+    W.yaw = yaw; W.nod = nod;
+    return W;
+  }
+  const PIV = -22;                                            // le rivet de la tête (pivot sur le cou) est sur la tache du front
+  const nodOf = (p) => clamp(p.nod != null ? p.nod : ((p.ang && p.ang.head) || 0), -0.5, 0.5);
+
+  // ------------------------------------------------------------------ silhouette du visage (de face, demi-contour droit, du sommet au menton)
+  const HALF = [[30, -57], [44, -53], [56, -45], [65, -33], [71, -18], [74, -2], [74, 14], [71, 30], [66, 44], [60, 58], [55, 72], [54, 86], [57, 98], [59, 112], [55, 126], [44, 137], [25, 143], [0, 145]];
+  const TOUPET = [[-30, -57], [-24, -68], [-15, -62], [-9, -77], [-2, -66], [5, -79], [11, -65], [19, -72], [23, -61], [30, -57]];
+  const FACE = (function () { const r = HALF.slice(0, -1), l = mirX(HALF.slice(1, -1)).reverse(); return TOUPET.slice(1, -1).concat([[30, -57]], r.slice(1), [[0, 145]], l, [[-30, -57]]); })();
+  const EYE = { x: 40, y: 12, rx: 18.5, ry: 20 };            // yeux (±x)
+  const MUF = { y: 102, rx: 53, ry: 37 };                    // mufle rose
+
+  // ------------------------------------------------------------------ l'œil (même esprit que l'œil de profil : rond, iris brun, reflets, cils)
+  // dessiné en repère local (0,0) ; sgn = côté (+1 droite, -1 gauche) ; mood > 0 fâchée ; hap > 0 heureuse
+  function eyeF(rx, ry, lid, lidB, mood, hap, sgn) {
+    const c = cx_();
+    mood = clamp(mood || 0);
+    const look = [sgn * 2.2 * mood, 2 + 0.8 * mood];
+    fillPts(ell(0, 0, rx + 1.8, ry + 1.8, 18), 'rgba(40,20,14,0.92)', 0, 0);
+    fillPts(ell(0, 0, rx, ry, 18), '#F6F0DE', 0, 0);
+    const ir = ry * (0.72 - 0.22 * mood);
+    c.save(); M.path(ell(0, 0, rx, ry, 18), 0, 0); c.clip();
+    fillPts(ell(look[0], look[1], ir, ir, 16), '#5a3220', 0, 0);
+    fillPts(ell(look[0], look[1], ir * 0.86, ir * 0.86, 16), '#4a2a1a', 0, 0);
+    fillPts(ell(look[0], look[1], ir * 0.56, ir * 0.56, 12), '#150c0a', 0, 0);
+    dot(look[0] - ir * 0.34, look[1] - ir * 0.38, ir * 0.26, 'rgba(255,255,255,0.96)'); dot(look[0] + ir * 0.32, look[1] + ir * 0.34, ir * 0.11, 'rgba(255,255,255,0.75)');
+    const topY = -ry + 2 * ry * clamp(lid) * 1.1, botY = ry - 2 * ry * clamp(lidB) * 0.75;
+    if (lid > 0.01) {
+      fillPts([[-rx - 6, -ry - 8], [rx + 6, -ry - 8], [rx + 6, topY - 2], [rx * 0.5, topY + 2], [0, topY + 4], [-rx * 0.5, topY + 2], [-rx - 6, topY - 2]], '#9a5a3f', 0, 0);
+      cline([[-rx - 2, topY - 2], [-rx * 0.5, topY + 3], [0, topY + 4], [rx * 0.5, topY + 3], [rx + 2, topY - 2]], C.ink, 2.6);
+    }
+    if (lidB > 0.01) { fillPts([[-rx - 6, ry + 8], [rx + 6, ry + 8], [rx + 6, botY + 2], [0, botY - 3], [-rx - 6, botY + 2]], '#8a4a33', 0, 0); cline([[-rx - 2, botY + 1], [0, botY - 3], [rx + 2, botY + 1]], 'rgba(30,14,10,0.8)', 1.8); }
+    if (mood > 0.02) {       // fâchée : paupière haute abaissée en biais (côté du nez plus bas)
+      const xi = -sgn * (rx + 6), xo = sgn * (rx + 6), yi = lerp(-ry - 10, ry * 0.15, mood), yo = lerp(-ry - 10, -ry * 0.55, mood);
+      fillPts([[xi, -ry - 14], [xo, -ry - 14], [xo, yo], [xi, yi]], '#6a3222', 0, 0); cline([[xi, yi], [xo, yo]], 'rgba(25,10,6,0.95)', 3.4);
+    }
+    c.restore();
+    if (lid >= 0.93) {
+      // œil fermé (clin d'œil) : arc en « sourire » + cils vers le bas
+      cline(arcPts(0, -ry * 0.3, rx * 0.98, ry * 0.8, PI * 0.1, PI * 0.9, 14), 'rgba(30,14,10,0.97)', 3.4);
+      for (let i = 0; i < 5; i++) { const a = PI * (0.18 + i * 0.16), x0 = Math.cos(a) * rx * 0.98, y0 = -ry * 0.3 + Math.sin(a) * ry * 0.8; cline([[x0, y0], [x0 + Math.cos(a) * 7, y0 + 8]], 'rgba(30,14,10,0.95)', 1.8); }
+    } else if (lid < 0.85 && mood < 0.5) {
+      // cils en éventail sur le bord haut, plus longs côté extérieur
+      for (let i = 0; i < 5; i++) { const u = i / 4, a = sgn > 0 ? PI * (1.38 + u * 0.5) : PI * (1.62 - u * 0.5), L = 6 + 6 * u, x0 = Math.cos(a) * (rx + 1), y0 = Math.sin(a) * (ry + 1) + (topY + ry) * 0.9; cline([[x0, y0], [x0 + Math.cos(a) * L + sgn * 2 * u, y0 + Math.sin(a) * L]], 'rgba(30,14,10,0.9)', 1.8); }
+    } else if (lid < 0.93) for (let i = 0; i < 5; i++) { const xx = -rx * 0.9 + i * rx * 0.45; cline([[xx, topY + 2.5 - (i === 0 || i === 4 ? 3 : 0)], [xx + (i - 2) * 1.8, topY + 11]], 'rgba(30,14,10,0.9)', 1.7); }
+  }
+
+  // ------------------------------------------------------------------ peinture de la tête (toutes les formes passent par W)
+  function headPaint(yaw) {
+    return (p) => {
+      const W = mkW(yaw, nodOf(p)), f = p.face || {}, hum = clamp(p.humeur || 0, -1, 1), ang = Math.max(0, hum), hap = Math.max(0, -hum);
+      // volume : joues ombrées, hachures de gravure
+      hatch(W.pts([[-90, 20], [-50, 30], [-46, 150], [-90, 150]]), 0.7, 3.8, 0.2);
+      hatch(W.pts([[90, 20], [50, 30], [46, 150], [90, 150]]), -0.7, 3.8, 0.2);
+      hatch(W.pts([[-80, -60], [-58, -60], [-50, 0], [-80, 0]]), 0.9, 4, 0.16);
+      hatch(W.pts([[80, -60], [58, -60], [50, 0], [80, 0]]), -0.9, 4, 0.16);
+      const a1 = W(-80, 0), a2 = W(80, 0);
+      shade(a1[0] + 40, 0, a1[0], 0, 0.14, [-120, -100, 120, 180]);
+      shade((a1[0] + a2[0]) / 2 + 20, 0, a2[0] + 6, 0, 0.26, [-120, -100, 120, 180]);
+      shade(0, 40, 0, 150, 0.12, [-120, -100, 120, 180]);
+      // calotte acajou (sommet) + toupet bouclé
+      fillPts(W.pts([[-90, -90], [90, -90], [90, -40], [72, -34], [58, -42], [44, -33], [28, -40], [14, -32], [0, -38], [-14, -31], [-30, -40], [-46, -33], [-60, -42], [-74, -33], [-90, -38]]), C.ac, 4, 0.5);
+      hatch(W.pts([[-90, -90], [90, -90], [90, -36], [-90, -36]]), 0.9, 3.4, 0.26);
+      fillPts(W.pts(TOUPET.concat([[24, -50], [8, -46], [-8, -48], [-24, -50]])), C.acL, 5, 0.6);
+      for (const [x, y] of [[-16, -60], [-3, -66], [10, -62], [20, -56], [-24, -54]]) { const q = W(x, y); strokePts([[q[0] - 5, q[1] + 2], [q[0], q[1] - 5], [q[0] + 5, q[1] + 2]], 'rgba(50,20,10,0.6)', 1.3); }
+      // tache acajou du front (le rivet y est planté)
+      fillPts(W.pts([[0, -34], [8, -31], [12, -24], [10, -15], [3, -9], [-4, -10], [-10, -16], [-12, -25], [-7, -32]]), C.ac, 9, 0.7);
+      hatch(W.pts([[-14, -36], [14, -36], [14, -7], [-14, -7]]), 0.9, 3.2, 0.25);
+      // poils du front (petits traits)
+      for (const [x, y] of [[-30, -24], [-20, -30], [24, -28], [32, -22], [-6, -4], [6, -2], [0, 2]]) { const q = W(x, y); strokePts([[q[0], q[1]], [q[0] + 1, q[1] + 5]], 'rgba(120,100,70,0.45)', 1); }
+      // lunettes acajou autour des yeux
+      for (const sd of [-1, 1]) {
+        W.feat(sd * EYE.x, EYE.y, () => {
+          fillPts([[-30, -8], [-20, -27], [0, -32], [20, -28], [31, -10], [31, 12], [22, 28], [2, 33], [-20, 29], [-30, 12]], C.ac, 6 + sd, 0.5);
+          hatch([[-34, -34], [34, -34], [34, 36], [-34, 36]], 0.9, 3.4, 0.24);
+        });
+      }
+      // joues roses
+      for (const sd of [-1, 1]) W.feat(sd * 52, 52, () => dot(0, 0, 10, 'rgba(226,120,120,' + (0.42 * (1 - ang) + 0.28 * hap) + ')'));
+      // yeux
+      const lb = Math.max(clamp(p.lidB || 0), 0.44 * hap), l0 = 0.04 * hap;
+      W.feat(-EYE.x, EYE.y, () => eyeF(EYE.rx, EYE.ry, Math.max(clamp(p.lid || 0), l0), lb, ang, hap, -1));
+      W.feat(EYE.x, EYE.y, () => eyeF(EYE.rx, EYE.ry, Math.max(clamp(p.lidF || 0), l0), lb, ang, hap, 1));
+      // sourcils : arcs doux (repos), relevés (heureuse), en V épais (fâchée)
+      for (const sd of [-1, 1]) {
+        const pts = ang > 0.02
+          ? [[sd * 64, lerp(-24, -26, ang)], [sd * 44, lerp(-24, -18, ang)], [sd * 18, lerp(-22, -4, ang)]]
+          : [[sd * 62, -16 - 4 * hap], [sd * 44, -26 - 5 * hap], [sd * 24, -20 - 4 * hap]];
+        cline(W.pts(pts), ang > 0.02 ? 'rgba(30,12,6,' + Math.min(1, 0.6 + ang) + ')' : 'rgba(50,24,16,0.8)', 2.8 + 3.2 * ang);
+      }
+      // rides de colère sur le chanfrein
+      if (ang > 0.3) for (const sd of [-1, 1]) cline(W.pts([[sd * 6, 34], [sd * 10, 44]]), 'rgba(60,30,20,' + (0.5 * ang) + ')', 1.4);
+      // mufle rose large + naseaux
+      W.feat(0, MUF.y, () => {
+        fillPts(ell(0, 0, MUF.rx, MUF.ry, 22), C.ro, 8, 0.5);
+        fillPts([[-MUF.rx, 12], [MUF.rx, 12], [MUF.rx, 40], [-MUF.rx, 40]], 'rgba(150,80,80,0.22)', 0, 0);
+        hatch(ell(0, 0, MUF.rx, MUF.ry, 18), 0.6, 3.2, 0.18);
+        fillPts(ell(-8, -14, 26, 8, 12), 'rgba(255,225,215,0.28)', 0, 0);
+        for (const sd of [-1, 1]) {
+          const nx = sd * 20, ny = -3;
+          fillPts([[nx - sd * 9, ny - 4], [nx - sd * 2, ny - 8], [nx + sd * 7, ny - 5], [nx + sd * 9, ny + 2], [nx + sd * 3, ny + 7], [nx - sd * 5, ny + 6], [nx - sd * 9, ny + 2]], C.hoof, 3 + sd, 0.3);
+          strokePts([[nx - sd * 4, ny - 7], [nx - sd * 12, ny - 12]], 'rgba(110,50,50,0.5)', 1.2);
+        }
+        for (const [x, y] of [[-30, 12], [-22, 18], [26, 14], [34, 8], [0, 16], [-8, 22], [12, 22]]) dot(x, y, 1.3, 'rgba(90,40,40,0.45)');
+        strokePts([[0, -30], [0, -14]], 'rgba(120,60,60,0.35)', 1.2);
+      });
+      // bouche (sous le mufle) — face.mouth ; si fâchée sans bouche imposée : 'grr'
+      const m = f.mouth || (ang > 0.5 ? 'grr' : 'n');
+      const op = jawOpen(p), y0 = 136;
+      let L;
+      if (op > 4) L = [[-30, y0 - 3], [-16, y0 + 2], [0, y0 + 3], [16, y0 + 2], [30, y0 - 3]];
+      else if (m === 'grr') L = [[-26, y0 + 3], [-12, y0 - 1], [0, y0 - 2], [12, y0 - 1], [26, y0 + 3]];
+      else if (m === 'tight') L = [[-22, y0 + 1], [0, y0 + 2], [22, y0 + 1]];
+      else if (m === 'smile' || m === 'o') L = [[-36, y0 - 12], [-24, y0 - 1], [0, y0 + 3], [24, y0 - 1], [36, y0 - 12]];
+      else L = [[-28, y0 - 4 - 5 * hap], [-14, y0 + 1], [0, y0 + 2.5], [14, y0 + 1], [28, y0 - 4 - 5 * hap]];
+      cline(W.pts(L), 'rgba(70,26,26,0.95)', m === 'tight' ? 3.6 : 2.8);
+      if (m === 'smile' && op <= 4) for (const sd of [-1, 1]) { const q = W(sd * 36, y0 - 12); cline([[q[0], q[1]], [q[0] + sd * 3, q[1] - 4]], 'rgba(70,26,26,0.8)', 2); }
+    };
+  }
+  // ouverture de la bouche (px) : ang.jaw > 0,02 ouvre ; face.mouth 'o' ajoute
+  function jawOpen(p) { const a = (p.ang && p.ang.jaw) || 0; return Math.min(34, Math.max(0, a - 0.1) * 55 + Math.max(0, Math.min(a, 0.1) - 0.02) * 30 + ((p.face && p.face.mouth === 'o') ? 12 : 0)); }
+  // glissement latéral de la mâchoire quand elle rumine (petites valeurs oscillantes de ang.jaw)
+  function jawSide(p) { const a = (p.ang && p.ang.jaw) || 0; return (a - 0.04) * 80 * (1 - smooth(0.1, 0.18, a)); }
+
+  // ------------------------------------------------------------------ pièces : tête, mâchoire, oreilles, cornes
+  const JAW_Y = 128;
+  const JAW = [[-33, -60], [33, -60], [36, -10], [33, 10], [24, 26], [0, 33], [-24, 26], [-33, 10], [-36, -10]];
+  function headSpec(yaw, at) {
+    const P = {};
+    const W0 = mkW(yaw, 0);
+    P.head = { parent: 'torso', at, seed: 1620, base: C.iv, rest: 0, pts: (p) => mkW(yaw, nodOf(p)).pts(FACE), paint: headPaint(yaw) };
+    // mâchoire (derrière la tête) : glisse vers le bas pour ouvrir, de côté pour ruminer ; la rotation du rivet est annulée
+    const ja = W0(0, JAW_Y);
+    P.jaw = { parent: 'head', at: ja, noRivet: true, seed: 1621, base: C.iv,
+      pts: (p) => jawPts(p, yaw),
+      paint: (p) => {
+        const c = cx_(), a = (p.ang && p.ang.jaw) || 0, W = mkW(yaw, nodOf(p)), j = W0.jac(0, JAW_Y);
+        c.rotate(-a); c.translate(jawSide(p), jawOpen(p) + (W(0, JAW_Y)[1] - ja[1])); c.transform(j[0], j[1], j[2], j[3], 0, 0);
+        fillPts([[-60, -70], [60, -70], [60, -10], [32, -8], [22, 5], [0, 11], [-22, 5], [-32, -8], [-60, -10]], '#4a1818', 3, 0);
+        fillPts(ell(0, 6, 16, 8, 12), '#b0606a', 2, 0.3);
+        fillPts([[-60, -10], [-32, -8], [-22, 5], [0, 11], [22, 5], [32, -8], [60, -10], [60, 22], [-60, 22]], C.roL, 4, 0.3);
+        fillPts([[-60, 4], [-30, 6], [-20, 14], [0, 18], [20, 14], [30, 6], [60, 4], [60, 50], [-60, 50]], C.iv, 5, 0.3);
+        hatch([[-50, 16], [50, 16], [50, 40], [-50, 40]], 0.6, 3.4, 0.2); shade(0, 14, 0, 36, 0.22, [-60, -40, 60, 50]);
+      } };
+    // oreilles (devant la tête, rivet à la racine) ; sd -1 = earN (côté proche en 3/4), +1 = earF
+    for (const [nm, sd] of [['earN', -1], ['earF', 1]]) {
+      const root = W0(sd * 66, -24), kx = W0.jac(sd * 64, -20)[0];
+      P[nm] = { parent: 'head', at: root, seed: 1622 + sd, base: sd < 0 ? C.ac : C.acD, rest: sd * 0.3, noRivet: false,
+        pts: (p) => earPts(p, sd, kx), paint: (p) => earPaint(p, sd, kx) };
+    }
+    // cornes en lyre (derrière la tête)
+    for (const [nm, sd] of [['hornN', -1], ['hornF', 1]]) {
+      const root = W0(sd * 38, -44), kx = W0.jac(sd * 38, -44)[0];
+      P[nm] = { parent: 'head', at: root, seed: 1626 + sd, base: C.iv, noRivet: true,
+        pts: () => hornPts(sd, kx), paint: () => hornPaint(sd, kx) };
+    }
+    return P;
+  }
+  function jawPts(p, yaw) {
+    const a = (p.ang && p.ang.jaw) || 0, W0 = mkW(yaw, 0), W = mkW(yaw, nodOf(p)), j = W0.jac(0, JAW_Y), ja = W0(0, JAW_Y);
+    const dx = jawSide(p), dy = jawOpen(p) + (W(0, JAW_Y)[1] - ja[1]), ca = Math.cos(-a), sa = Math.sin(-a);
+    return JAW.map((q) => { const x = q[0] * j[0] + q[1] * j[2] + dx, y = q[0] * j[1] + q[1] * j[3] + dy; return [x * ca - y * sa, x * sa + y * ca]; });
+  }
+  const EAR = [[-8, -9], [12, -15], [38, -17], [60, -12], [74, -3], [77, 4], [68, 12], [44, 17], [18, 15], [-8, 9]];
+  const EAR_IN = [[2, -6], [18, -10], [40, -11], [58, -7], [68, 1], [60, 7], [40, 10], [18, 9], [2, 5]];
+  const humEar = (p) => { const h = clamp(p.humeur || 0, -1, 1); return 0.32 * Math.max(0, h) - 0.14 * Math.max(0, -h); };
+  function earXf(pts, p, sd, kx) {
+    const a = sd * humEar(p), ca = Math.cos(a), sa = Math.sin(a), k = Math.min(1.1, kx);
+    return pts.map((q) => { const x = sd * q[0] * k, y = q[1]; const r = [x * ca - y * sa, x * sa + y * ca]; if (q[2]) r.push(1); return r; });
+  }
+  function earPts(p, sd, kx) { return earXf(EAR, p, sd, kx); }
+  function earPaint(p, sd, kx) {
+    fillPts(earXf(EAR_IN, p, sd, kx), C.ro, 3, 0.3);
+    const tuft = []; for (let i = 0; i < 6; i++) tuft.push([[10 + i * 9, 6 - (i % 2) * 2], [13 + i * 9, -2]]);
+    for (const l of tuft) strokePts(earXf(l, p, sd, kx), 'rgba(255,240,220,0.55)', 1.2);
+    fillPts(earXf([[-10, -20], [16, -20], [16, 20], [-10, 20]], p, sd, kx), 'rgba(60,24,12,0.18)', 0, 0);
+    hatch(null, sd * 0.5, 3.2, 0.28, 1.05, M.P.encre, [-90, -30, 90, 30]);
+  }
+  function hornLine(sd, kx) { return bez([0, 0], [sd * 46 * kx, -4], [sd * 62 * kx, -50], [sd * 42 * kx, -80], 16).concat([[sd * 44 * kx, -88]]); }
+  function hornPts(sd, kx) { return ribbon(hornLine(sd, kx), 24, 7); }
+  function hornPaint(sd, kx) {
+    const L = hornLine(sd, kx), tip = L[L.length - 1], pre = L[L.length - 4];
+    fillPts(ell(tip[0], tip[1], 13, 13, 12), '#4a3a32', 0, 0); fillPts(ell(pre[0], pre[1], 8, 8, 10), 'rgba(74,58,50,0.5)', 0, 0);
+    strokePts(L.slice(2, 12).map((q) => [q[0] - sd * 4, q[1]]), 'rgba(80,60,40,0.4)', 1.2);
+    for (let i = 3; i < 11; i += 2) { const q = L[i]; strokePts([[q[0] - 7, q[1] + 2], [q[0] + 7, q[1] - 1]], 'rgba(120,100,70,0.35)', 1); }
+    hatch(null, 0.9, 3, 0.22, 1.05, M.P.encre, [-80, -100, 80, 20]);
+  }
+
+  // ------------------------------------------------------------------ assemblage : corps / encolure de la bibliothèque + tête de face
+  const HEAD_NAMES = ['head', 'jaw', 'earN', 'earF', 'hornN', 'hornF'];
+  function build(src, yaw, at, orderTail) {
+    const parts = {};
+    for (const n in src.parts) if (HEAD_NAMES.indexOf(n) < 0) parts[n] = src.parts[n];
+    Object.assign(parts, headSpec(yaw, at));
+    const order = src.order.filter((n) => HEAD_NAMES.indexOf(n) < 0).concat(orderTail);
+    return { hipY: src.hipY, parts, handLen: src.handLen, rod: src.rod, order };
+  }
+  const TAIL = ['hornF', 'hornN', 'jaw', 'head', 'earF', 'earN'];
+  REB.FACE_AT = { corps: [350, -164], tete: [136, -380] };
+  const YAW_B = 0.46;
+  CH.vacheF = build(CH.vache, 0, REB.FACE_AT.corps, TAIL);
+  CH.vacheTeteF = build(CH.vacheTete, 0, REB.FACE_AT.tete, TAIL);
+  CH.vacheF3 = build(CH.vache, YAW_B, [REB.FACE_AT.corps[0] + 8, REB.FACE_AT.corps[1]], TAIL);
+  CH.vacheTeteF3 = build(CH.vacheTete, YAW_B, [REB.FACE_AT.tete[0] + 8, REB.FACE_AT.tete[1]], TAIL);
+  REB.VUE_FACE = 'A';
+
+  // la tête de face ne pivote que doucement dans le plan (0,35 × ang.head) ; le reste de ang.head devient un hochement (pose.nod)
+  function adapt(pose) {
+    const p = Object.assign({}, pose); p.ang = Object.assign({}, pose.ang || {});
+    const h = p.ang.head || 0; if (p.nod == null) p.nod = h; p.ang.head = 0.35 * h; delete p.tq;
+    return p;
+  }
+  REB.vacheFAdapt = adapt;
+  REB.vacheF = function (pose, x, y, s, o) {
+    o = o || {}; const slot = o.slot != null ? o.slot : M.ST.slotF, def = (o.vue || REB.VUE_FACE) === 'B' ? CH.vacheF3 : CH.vacheF;
+    return M.puppet(def, Object.assign({ slot }, adapt(pose)), x, y, s == null ? 1 : s, Object.assign({ slot }, o));
+  };
+  REB.vacheTeteF = function (pose, x, y, s, o) {
+    o = o || {}; const slot = o.slot != null ? o.slot : M.ST.slotB, def = (o.vue || REB.VUE_FACE) === 'B' ? CH.vacheTeteF3 : CH.vacheTeteF;
+    return M.puppet(def, Object.assign({ slot }, adapt(pose)), x, y, s == null ? 1 : s, Object.assign({ slot }, o));
+  };
+})();
