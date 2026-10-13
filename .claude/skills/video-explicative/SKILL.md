@@ -33,6 +33,7 @@ Règles :
 - **Forme des consignes** : un agent ne voit rien de cette conversation. Structure chaque consigne avec des balises : `<contexte>` (vidéo, plan, fichiers à lire), `<tache>` (étapes numérotées), `<regles>` (interdits, rappels propres à ce plan, défauts déjà relevés par l'utilisateur), `<rapport>` (format court attendu). Le rapport doit rester court : il revient dans ton contexte.
 - Les consignes d'agent **renvoient vers les fichiers** (`CHARTE.md`, `API.md`, `bibliotheque/LISEZMOI.md`, fiche de la vidéo) au lieu de les recopier.
 - Tu ne lis jamais le journal complet d'un agent : seulement son rapport, ses planches et les gros plans utiles.
+- Ces choix (modèle, effort, langue, forme des consignes) viennent de la documentation Anthropic et de retours d'utilisateurs : détail et sources dans `outils/MODELES.md`. À revoir à chaque nouvelle génération de modèles.
 - Dossier de travail : `<scratchpad>/<slug-du-sujet>/` (jamais dans le dépôt). `OUTILS` = chemin absolu du dossier `outils/` à côté de ce fichier.
 
 ---
@@ -179,6 +180,7 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - **5 hashtags** (le thème, le personnage, le sujet, puis #culturegenerale et un tag large) ;
      - le **script** plan par plan ;
      - la liste des fichiers vidéo et le rappel des réglages de montage.
+     - le **prompt de couverture** (voir ci-dessous).
 
      Modèle : le fichier « Arc de triomphe — script et publication.txt » du Drive.
   2. Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<Sujet>" "<travail>/<Sujet> — script et publication.txt" <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4`.
@@ -186,6 +188,19 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).
      - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
+- **Prompt de couverture** (illustration sobre et élégante pour la miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Rédigé **en anglais** (les générateurs d'images comprennent mieux l'anglais), sur ce modèle :
+  ```
+  Elegant minimalist vertical cover illustration, 9:16. A small antique paper puppet theatre seen from the front:
+  dark carved wooden proscenium with aged gold mouldings, deep red velvet curtains drawn to the sides, warm oil-lamp footlights.
+  On stage, [LE PERSONNAGE OU L'OBJET EMBLÉMATIQUE, 1 seul sujet principal, décrit précisément : silhouette de profil,
+  couleurs, expression, objet du gag] in front of a painted cardboard backdrop of [LE LIEU / L'ÉPOQUE].
+  Rod-puppet craft: die-cut paper with thin white edge, visible brass rivets at the joints, a slim wooden rod going down
+  into a floor slot, fine engraving hatching, paper and canvas texture, soft spotlight with floating dust.
+  Muted vintage palette: midnight blue, faded green, ochre, ivory, blood red, aged gold. Centered, uncluttered composition,
+  generous empty space in the upper third for a title, gentle vignette, fine grain, refined and sober.
+  No text, no letters, no numbers, no logo, no watermark.
+  ```
+  Négatif (si le générateur en accepte un) : `text, letters, typography, logo, watermark, 3D render, plastic, glossy, anime, cartoon style, photorealistic, clutter, extra limbs, deformed hands`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Un seul sujet, le décor reconnaissable, le tiers haut libre pour le titre.
 - Passe le sujet à « livrée » dans `videos-realisees.md`.
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas.
