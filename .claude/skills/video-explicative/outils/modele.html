@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITRE__</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+  canvas { display: block; margin: 0 auto; height: 100vh; width: auto; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="timeline.js"></script>
+<script src="marionnettes.js"></script>
+<script src="persos.js"></script>
+<script src="scene.js"></script>
+<script>
+const FPS = 30, FRAMES = 300;
+const ctx = document.getElementById('c').getContext('2d');
+M.use(ctx); M.init(); if (SCENE.init) SCENE.init();
+function setFrame(f) {
+  const t = f / FPS;
+  M.use(ctx); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  SCENE.draw(t);
+  M.finish(t);
+}
+window.W = 1080; window.H = 1920; window.FRAMES = FRAMES; window.FPS = FPS;
+window.renderFrame = (f) => { setFrame(f); return true; };
+const params = new URLSearchParams(location.search);
+if (params.has('frame')) setFrame(+params.get('frame'));
+else if (!navigator.webdriver) { const t0 = performance.now(); const loop = () => { setFrame(Math.floor((performance.now() - t0) / 1000 * FPS) % FRAMES); requestAnimationFrame(loop); }; loop(); }
+window.READY = true;
+</script>
+</body>
+</html>

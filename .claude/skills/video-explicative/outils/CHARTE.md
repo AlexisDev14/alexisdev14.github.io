@@ -1,0 +1,64 @@
+# Charte « Théâtre de marionnettes à tiges »
+
+À lire **en entier** par tout agent qui dessine, anime ou sonorise un plan. Référence de qualité : `exemples/arc-de-triomphe/` (6 plans validés par l'utilisateur).
+
+## 1. Format
+- 1080 × 1920, 30 im/s, 10,0 s par plan (300 images), H.264 yuv420p + AAC stéréo 192 kb/s.
+- Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.**
+
+## 2. Le théâtre (fourni par le kit, ne pas redessiner)
+- Petit théâtre de papier vu de face, caméra fixe : cadre de scène en bois sombre et moulures dorées, lambrequin de velours à franges, rampe de lampes à huile (flammes qui vacillent), coquille du souffleur, plancher en lattes avec **deux fentes** (arrière `ST.slotB`, avant `ST.slotF`) d'où sortent les tiges.
+- Rideau de velours rouge (`M.curtain`) : s'ouvre en drapé vers les côtés, le bas des pans balance avec retard.
+- Lumière : faisceaux de projecteurs avec poussière, poursuite (`M.stageLight`), vignettage chaud et grain papier (`M.finish`, automatique).
+
+## 3. Décors
+- Tout est **carton peint découpé** : toiles de fond cousues en lés, nuages pendus à des fils, coulisses latérales (arbres, colonnes), fermes basses (rangée de toits, collines, vagues en bandes), praticables.
+- Les décors **bougent toujours un peu** (balancement sur leurs fils, ondulation des bandes) et ont une ombre portée sur ce qui est derrière.
+- Changer de lieu = **mécanique de théâtre visible** : décor qui monte de la trappe, descend des cintres sur ses câbles (avec rebond à l'arrivée), bascule et tombe, ou rideau qui se ferme puis se rouvre (≈ 1 s).
+- Profondeur : fond plus pâle et désaturé, premier plan contrasté. Ne jamais boucher la scène : 2 ou 3 couches suffisent.
+- Monuments et objets réels : **proportions vraies** (l'Arc de triomphe ≈ 45 m de large pour 50 m de haut). Pour dire « plus grand », c'est le support (feuille, décor) qui grandit, jamais l'objet qui se déforme.
+
+## 4. Marionnettes
+- Papier découpé **de profil**, proportions adultes (~1/6 de tête), traits fins, hachures de gravure, palette sourde (bleu nuit, vert éteint, ocre, ivoire, rouge sang, or vieilli), liseré blanc de découpe, ombre portée sur le décor.
+- Membres articulés par **rivets en laiton visibles** ; une **tige en bois** part du corps et descend dans une fente du plancher ; un fil secondaire peut tenir une main qui travaille.
+- Jeu de marionnette : petits sautillements en marchant (glissement le long de la fente), balancement, légère inclinaison dans le mouvement, rotation des membres autour des rivets, respiration (oscillation 1–2 px). **Jamais figé**, même dans la dernière seconde (flammes, respiration).
+- Gestes **lisibles de profil** : main dans le gilet, poing sur la hanche, bras tendu main ouverte, tape du pied, salut, mains devant les yeux. À éviter : bras croisés (illisible de profil, se lit « bras sur le ventre »), doigt tendu seul (interdit).
+- Taille : personnage principal ≥ 450 px debout ; visage jamais caché par un objet ou un autre personnage au moment où il réagit.
+- Un objet emblématique (chapeau, outil, accessoire) est dessiné **par la même fonction** dans tous les plans, et agrandi (×1,2 à ×1,4) quand il porte le gag.
+
+## 5. Mise en scène
+- **Plan 1 : le rideau s'ouvre** (0,1 → ~1,2 s). Changements de scène dans un plan : par les cintres/la trappe ou par le rideau (fermeture + réouverture ≈ 1 s).
+- **Dernier plan : le rideau reste ouvert.** Aucune transition de fin dans aucun plan.
+- Le geste clé tombe sur le mot clé de la voix (écart < 0,2 s) ; le gag arrive avec la chute, jamais avant.
+- Anticipation → action → rebond (ressorts amortis), durées minimales : geste 0,3 s, expression 0,6 s, gag 1,5–2 s. Une action principale à la fois.
+- Toute action finie à 9 s (au plus tard 9,6 s si un bruitage doit suivre le dernier mot) ; puis image stable.
+- Caméra fixe (le théâtre ne bouge pas). Seul mouvement permis : un recul lent unique (zoom 1,1 → 1,0) pour révéler un décor.
+
+## 6. Cadrage TikTok
+- Action importante (visages, gags, objets clés) entièrement dans **x 60–930, y 150–1430**.
+- y > 1430 : plancher, rampe, souffleur seulement (sous-titres). x > 930 : décor seulement (boutons). Coin haut gauche (x < 220, y < 220) calme (logo).
+
+## 7. Bruitages (voir `sfx_lib.py`)
+- **Seulement des bruitages d'action**, liés à ce qu'on voit. Pas de fond sonore continu, pas de musique, pas de voix.
+- Toujours sonoriser : **ouverture et fermeture du rideau** (`rideau_ouvre`, `rideau_ferme`, `rideau_change`), **décors qui changent** (`decor_monte`, `decor_descend`, `decor_tombe`), **marionnettes qui apparaissent ou partent** (`apparition`, `disparition`, `glisse` avec les sautillements), plus les **détails** visibles : pas, objet posé, chute, papier, maillet… Une ambiance de lieu (`ambiance('vent' | 'ressac' | 'vent_herbe' | 'sabots_neige', …)`) seulement si elle se voit (neige, mer) et très basse.
+- **Pas fort, juste ce qu'il faut** : préréglages déjà calibrés (principal ≈ −28 dBFS, détails −33 à −40), plafond global −24 dBFS. Ne pas monter les niveaux.
+- Aucun bruitage marqué sur un mot-clé de la voix (`TL.MOTS`, contrôlé par `Mix.verifier()`), sauf s'il illustre exactement ce mot et reste ≤ −32.
+- 3 à 8 bruitages par plan. Sons organiques = échantillons CC0 de `sons/` (licences dans `sons/LICENCES.md`) ; synthèse pour velours, anneaux, poulies, clacs.
+
+## 8. Erreurs déjà commises (à vérifier à chaque plan)
+- Marionnette à l'horizontale **au bout de sa tige** (on dirait que la tige « rentre dans les fesses ») → une chute finit **à plat sur le plancher**, la tige est lâchée et redescend par la fente avant l'impact.
+- Monument étiré / mal proportionné (l'arc dessiné en bande verticale) → proportions vraies, c'est la feuille qui grandit.
+- L'objet du gag absent au moment clé (place d'honneur vide sans le bicorne) → le spectateur doit comprendre **qui** manque : montrer son objet emblématique.
+- Foule qui masque les piliers ou le décor clé → deux groupes latéraux, plus bas ou plus pâles.
+- Ornements dorés qui ressemblent à des lettres ; croisillons qui font des « fenêtres » sur un monument.
+- Objet qui tombe sur une tête, qui passe devant un visage qui réagit.
+- Personnage allongé ou en sortie coupé par le rideau ou le cadre.
+- Bras croisés de profil (illisibles) ; doigt seul tendu.
+- Personnage trop petit ou trop loin ; action cachée par la zone des sous-titres.
+- Image qui contredit la phrase entendue ; anachronisme (tour Eiffel avant 1889, objets d'une autre époque).
+- Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
+
+## 9. Contrôle avant livraison d'un plan
+1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
+2. Chaque point de la section 8 vérifié.
+3. `verifier.sh` tout « OK » (format, durée, son, crête ≤ −22).

@@ -1,174 +1,167 @@
 ---
 name: video-explicative
-description: Produit une vidéo explicative TikTok de 60 s (6 plans de 10 s, 9:16) dans le style Clark. Propose d'abord 3 sujets tirés de la base de questions Clark (Firestore), puis, sur le sujet choisi, écrit le script de voix off satirique, sa version ElevenLabs, la fiche de continuité, puis réalise les 6 plans animés avec leurs bruitages. À utiliser quand l'utilisateur demande une nouvelle vidéo explicative, une idée de vidéo, ou tape /video-explicative.
+description: Produit une vidéo explicative TikTok de 60 s (6 plans de 10 s, 9:16) en style « théâtre de marionnettes à tiges » (rideau de velours, décors de carton qui montent et descendent, marionnettes de papier articulées). Propose d'abord 3 sujets tirés de la base de questions Clark (Firestore), puis écrit le script satirique et sa version ElevenLabs, la fiche des 6 plans, et réalise les 6 plans animés avec leurs bruitages, un plan après l'autre. À utiliser quand l'utilisateur demande une nouvelle vidéo explicative, une idée de vidéo, ou tape /video-explicative.
 ---
 
-# Vidéo explicative Clark — de l'idée aux 6 plans
+# Vidéo explicative Clark — théâtre de marionnettes
 
-Tu produis une vidéo explicative de culture générale pour TikTok : 60 s, 6 plans de 10 s, 1080 × 1920, 30 im/s, voix off ElevenLabs et sous-titres ajoutés au montage par l'utilisateur. Le ton est la marque de fabrique : **accessible, précis, avec une pointe d'humour satirique à chaque plan**, jamais purement documentaire.
+Vidéo de culture générale pour TikTok : 60 s = 6 plans de 10 s, 1080 × 1920, 30 im/s. L'utilisateur ajoute au montage la voix off (ElevenLabs), les sous-titres, le carton de fin et le logo. Le ton est la marque de fabrique : **accessible, précis, une pointe d'humour satirique à chaque plan**.
 
-La notice de référence complète (à lire si le connecteur Claude Docs est disponible, avec ses outils de lecture) :
-https://claude.ai/code/artifact/620478f0-fbb2-4191-b779-ff610b9ff78d
-Les règles essentielles sont reprises ci-dessous ; en cas d'écart, la notice fait foi.
+Le style est **unique** : un petit théâtre de marionnettes à tiges, plus mature qu'un dessin animé. Tout est décrit dans `outils/CHARTE.md` et réalisé avec le kit de `outils/` (référence de qualité : `outils/exemples/arc-de-triomphe/`).
 
-Le travail se fait en **4 étapes avec 3 arrêts pour validation**. Ne saute jamais un arrêt.
+**Déroulé : 4 étapes, 3 arrêts pour validation (sujet, script, fiche des plans), puis les 6 plans d'un trait sans arrêt.** Ne saute jamais un arrêt.
+
+---
+
+## 0. Organisation, modèles et ressources (à respecter)
+
+La machine est petite (4 processeurs) : **un seul travail lourd à la fois**. Le rendu d'un plan prend ≈ 1 min avec `produire.sh` ; il n'y a donc aucun intérêt à paralléliser les plans, seulement des coûts et des conflits.
+
+| Qui | Modèle | Rôle |
+|---|---|---|
+| Toi (session principale) | Opus | Jugement : choix des sujets, script, fiche des plans, consignes, contrôle ciblé de chaque plan, contrôle final, échanges avec l'utilisateur. |
+| Agent « présélection » | `model: "haiku"` | Étape 1 : lit des centaines de questions Firestore et renvoie une liste courte filtrée. |
+| Agent « faits » | `model: "sonnet"` | Étape 2 : vérifie dates, chiffres et attributions sur le web, avec sources. |
+| Agent « casting » | `model: "sonnet"` | Étape 4a : crée `persos.js` (personnages, accessoires et décors propres à la vidéo) + planche de casting. |
+| Agent « plan N » | `model: "sonnet"` | Étape 4b : code, rend et sonorise UN plan, puis s'arrête. |
+
+Règles :
+- **Jamais Fable.** Toujours préciser `model` à l'appel de l'outil Agent.
+- **Un seul agent de production actif à la fois** ; les plans s'enchaînent 1 → 6. Pour corriger un plan, relancer le même agent avec SendMessage (il garde son contexte) plutôt qu'en créer un nouveau.
+- Les consignes d'agent **renvoient vers les fichiers** (`CHARTE.md`, `API.md`, fiche de la vidéo) au lieu de les recopier.
+- Tu ne lis jamais le journal complet d'un agent : seulement son rapport, ses planches et les gros plans utiles.
+- Dossier de travail : `<scratchpad>/<slug-du-sujet>/` (jamais dans le dépôt). `OUTILS` = chemin absolu du dossier `outils/` à côté de ce fichier.
 
 ---
 
 ## Étape 1 — Proposer 3 sujets (ARRÊT 1)
 
-### Anti-doublon (avant toute recherche)
+### Anti-doublon
+- Lire `videos-realisees.md`. Écarter toute question dont l'id y figure et tout sujet qui partage un personnage, un objet, un événement ou un mot-clé de la colonne « Mots-clés à écarter ».
+- Varier le **type de récit** : aucun des 3 sujets ne reprend le type des 2 dernières vidéos (sauf demande), et les 3 ont 3 types différents.
+- Dès que l'utilisateur choisit : ajouter sa ligne au registre (statut « en cours »), la passer à « livrée » à la fin ; committer et pousser **ce seul fichier** (jamais les rendus).
 
-- Lire `videos-realisees.md` (dans le dossier du skill). Écarter toute question dont l'id y figure, et tout sujet qui partage un personnage, un objet, un événement ou un mot-clé de la colonne « Mots-clés à écarter ».
-- Varier le **type de récit** : aucun des 3 sujets proposés ne reprend le type des 2 dernières vidéos (sauf demande de l'utilisateur), et les 3 sujets ont 3 types différents.
-- Dès que l'utilisateur choisit un sujet : ajouter sa ligne au registre (id Firestore, thème, type de récit, mots-clés, statut « en cours »), puis la passer à « livrée » à la fin. Committer et pousser ce seul fichier (jamais les rendus) pour que le registre survive à la session.
+### Présélection (agent Haiku)
+Lance un agent `model: "haiku"` avec cette consigne (à compléter) :
+> Lis la collection Firestore `questions` du projet `clark-app-9b938` (connecteur Firestore Clark, outil `list_documents`, chercher « Firestore_Clark » avec ToolSearch ; parent `projects/clark-app-9b938/databases/(default)/documents` ; `orderBy: "random_id"`, `pageSize` 300, 2 pages différentes ; `mask` : text, choices, correct_answer_index, theme_code, type, status, qc, explanation, stats). **Lecture seule.** Si une réponse est enregistrée dans un fichier, analyse-la avec `python3 -I`. Garde seulement `status` ACTIVE, `qc.status` pass, `type` EVERGREEN, et écarte les ids et mots-clés suivants : [liste du registre]. Renvoie les 15 meilleures pour une vidéo-récit (anecdote avec ironie ou retournement, personnage ou objet dessinable, lien avec le quotidien, faits intemporels), sur au moins 5 thèmes : pour chacune id, theme_code, question, réponse, anecdote en 2 lignes, taux de réussite.
 
-### Source : la base de questions Clark (Firestore)
+### Choix (toi)
+Critères :
+1. Un récit en 6 temps (situation → problème → décision → conséquence → réaction → retournement).
+2. Un personnage ou un objet incarnable en marionnette.
+3. Un potentiel satirique (ironie, paradoxe, réaction excessive).
+4. Un lien avec le quotidien.
+5. Des faits vérifiables et intemporels.
+6. Trois thèmes différents.
+7. La nouveauté par rapport au registre.
 
-- Projet `clark-app-9b938`, base `(default)`, collection `questions`.
-- Outil : `list_documents` du connecteur Firestore Clark (chercher « Firestore_Clark » avec ToolSearch). Parent : `projects/clark-app-9b938/databases/(default)/documents`, `collectionId: "questions"`, `pageSize` 100 à 300, et un `mask` pour ne lire que : `text`, `choices`, `correct_answer_index`, `theme_code`, `type`, `status`, `qc`, `explanation`, `sources`, `stats`.
-- Varier l'échantillon : `orderBy: "random_id"` et une page différente à chaque fois (utiliser `pageToken`), ou plusieurs pages.
-- **Lecture seule.** N'écris, ne modifie et ne supprime rien dans Firestore sans demande explicite de l'utilisateur.
-
-Champs utiles d'une question :
-- `text` : la question ; `choices` + `correct_answer_index` : la réponse.
-- `explanation.short / context / detailed / anecdote` : la matière du récit (l'anecdote fait souvent la chute).
-- `sources.url_*` : les sources à vérifier.
-- `status` = `ACTIVE`, `qc.status` = `pass`, `type` = `EVERGREEN` : seules questions à retenir.
-- `stats.times_played`, `stats.success_rate` : une question souvent ratée = bon sujet (« vous vous êtes trompés »).
-
-### Critères de choix d'un bon sujet
-
-1. Un **récit** en 6 temps possible : situation → problème → décision/événement → conséquence → réaction → héritage ou retournement.
-2. Un **personnage** ou un objet incarnable à l'image (on doit pouvoir le dessiner simplement).
-3. Un **potentiel satirique** : une ironie, un paradoxe, une réaction excessive, un retournement (« on voulait l'humilier, on l'a rendu immortel »).
-4. Un **lien avec le quotidien** du spectateur (un mot, un objet, un geste qu'il connaît).
-5. **Faits vérifiables** et intemporels ; écarter les faits périssables (sportifs en activité, records récents, chiffres qui bougent).
-6. Diversité : les 3 propositions viennent de 3 thèmes (`theme_code`) différents.
-7. Nouveauté : ni la question, ni le sujet, ni (si possible) le type de récit ne figurent dans `videos-realisees.md`.
-
-Si Firestore est inaccessible, propose 3 sujets de culture générale de ta connaissance en respectant les mêmes critères, et dis-le.
-
-### Format de la proposition
-
-Pour chacun des 3 sujets : un titre court, son type de récit, la question Clark d'origine, l'accroche envisagée (une phrase), le retournement ou la chute pressentie, et l'idée visuelle du gag principal. Puis demande à l'utilisateur de choisir (outil AskUserQuestion si disponible). **Arrête-toi.**
+Une question souvent ratée (`stats.success_rate` bas) est un bon signe.
+Pour chacun des 3 sujets : titre, type de récit, question d'origine, accroche (une phrase), chute pressentie, idée du gag principal **en théâtre de marionnettes** (quel décor monte, quel effet de rideau). Demande le choix (AskUserQuestion). **Arrête-toi.**
+Si Firestore est inaccessible, propose 3 sujets de ta connaissance selon les mêmes critères et dis-le.
 
 ---
 
 ## Étape 2 — Le script (ARRÊT 2)
 
-### Vérification des faits
-- Ouvre les sources de la question et au moins une source indépendante. Chaque date, chiffre ou attribution du script doit être confirmé.
-- En cas de doute : formuler plus largement (« la presse » plutôt qu'un journal précis) ou retirer. Signaler à l'utilisateur ce qui reste incertain.
+1. **Faits** : agent `model: "sonnet"` : « Vérifie sur le web (sources de la question + au moins une source indépendante) chaque date, chiffre, nom et attribution de ce récit : […]. Renvoie un tableau fait → confirmé / nuancé / faux, avec URL. » En cas de doute : formuler plus largement ou retirer, et le signaler.
+2. **Écriture (toi)** :
+   - **6 paragraphes, un par plan, de 22 à 26 mots prononcés** (≈ 10 s à 2,5 mots/s). Compter comme c'est dit : « 1836 » = « mille huit cent trente-six » = 5 mots. Total ≈ 145–150 mots.
+   - **Plan 1 — accroche** : mystère léger, sans formule trop appuyée.
+   - Le fait clé arrive quand on le découvre à l'image.
+   - **Une chute par plan**, courte, sur sa propre phrase, dite à plat (« Évidemment. », « Modestement. »).
+   - **Une blague récurrente** posée tôt et résolue au dernier plan. En marionnettes, c'est idéalement un objet emblématique (le bicorne de l'Arc de triomphe).
+   - **Morale finale ironique** et réplique de fin.
+   - Cibles satiriques sûres : les gens de l'époque, les puissants, la presse, le spectateur. Le personnage central reste sympathique.
+   - Vouvoiement.
+3. **Livrables** :
+   - Le script plan par plan, avec le nombre de mots et la durée.
+   - La **version ElevenLabs** (Eleven v3) : années en toutes lettres, une ou deux balises d'intention par phrase au plus ([deadpan], [sarcastic], [amused], [sighs]…), pauses par « … ». Conseils : un paragraphe par plan, stabilité « Natural », chutes à plat.
+   - Deux variantes pour l'accroche et pour la chute finale.
+   - Les faits incertains.
 
-### Écriture
-- **6 paragraphes, un par plan, de 22 à 26 mots prononcés** (≈ 10 s à 2,5 mots/s). Compter les mots tels qu'ils sont dits : « 1883 » = 6 mots. Total ≈ 145–150 mots.
-- **Plan 1 — accroche** : mystère léger, sans image choc ni formule trop appuyée (une version « vous jetez vos ordures dans un homme » a été jugée trop lourde ; « Ce mot, vous le dites tous les jours. Mais derrière… il y a un vrai monsieur. » a été retenue).
-- Le nom ou le fait clé arrive quand on le découvre à l'image.
-- **Une chute par plan**, courte, sur sa propre phrase, dite à plat (« Évidemment. », « Terriblement. »).
-- **Une blague récurrente** posée tôt et résolue au dernier plan (ex. le pot de yaourt : plan 4 → plan 6).
-- **Morale finale ironique** + une réplique de fin adressée au personnage (« Chapeau, monsieur le préfet. »).
-- Cibles satiriques sûres : les gens de l'époque qui râlent, les puissants, la presse, le spectateur lui-même. Le personnage central reste sympathique.
-- Vouvoiement du spectateur, sauf consigne contraire.
-
-### Livrables de l'étape 2
-1. Le script en texte brut, plan par plan, avec le nombre de mots prononcés et la durée estimée.
-2. La **version ElevenLabs** (modèle Eleven v3) : mêmes phrases, années en toutes lettres, une ou deux balises d'intention entre crochets par phrase au maximum ([intrigued], [deadpan], [sarcastic], [chuckles], [sighs], [mischievously], [amused]…), pauses par « … » et ponctuation (pas de balise break en v3). Conseils : générer un paragraphe par plan, stabilité « Natural » ou « Creative », chutes à plat.
-3. 2 variantes pour l'accroche et pour la chute finale.
-4. La liste des faits incertains.
-
-Demande validation. **Arrête-toi.** Si l'utilisateur modifie le texte, recompte les mots.
+Demande validation. **Arrête-toi.** Si le texte change, recompte les mots.
 
 ---
 
-## Étape 3 — Fiche de continuité et consignes des 6 plans (ARRÊT 3)
+## Étape 3 — Fiche de la vidéo et consignes des 6 plans (ARRÊT 3)
 
-### Fiche de continuité
-Tableau : élément récurrent → description fixe (formes, couleurs hex exactes, tenue) → plans où il apparaît. Personnages, objets récurrents (dont l'objet de la blague récurrente), lieux. Elle est copiée telle quelle dans chaque consigne de plan.
+Écris `<travail>/FICHE.md` puis montre-la :
 
-### Consigne de chaque plan (gabarit)
+**A. Distribution** : pour chaque marionnette, accessoire et décor récurrent, une description fixe : silhouette de profil, tenue, couleurs hex dans la palette sourde, pièces articulées utiles, objet emblématique. Précise ce qui existe déjà dans le kit (`outils/API.md` : Napoléon, Marie-Louise, architecte, grenadier, figurants, arcs, colonnes, mer, rocher, ciels…) et ce que le casting doit créer.
+
+**B. Une consigne par plan** (gabarit) :
 ```
-### Plan N/6 — [titre court] (10 s, 9:16, TikTok)
-Idée en une phrase : …
-Voix off : « … »
-Chute : … / Gag visuel : … (muet, lisible en 1 s, répond à la chute)
-Lieu et époque : … / Personnages : … / Objets récurrents : …
-Calage voix / image :
-| Instant | Voix off | Image |
-| 0–X s | « … » | … |
-| X–Y s | « … » | geste clé sur le mot clé : … |
-| Y–9 s | « chute » | gag visuel |
-| 9–10 s | — | image immobile |
-Caméra : un mouvement principal (départ → arrivée)
-Son (sous la voix off, 2 à 4 bruitages) : instant, bruitage, niveau
-Interdits : aucun texte/lettre/chiffre/logo dans l'image ; anachronismes à éviter : … ; pas de transition de fin
-Points de vigilance : silhouettes à rendre reconnaissables, superpositions à risque, raccords
+### Plan N/6 — [titre] (10 s)
+Voix off : « … » — fenêtres : (0–1,4) … (1,6–3,0) …   Mots-clés : « … » (a–b s)
+Chute : … / Gag : … (muet, lisible en 1 s, répond à la chute)
+Décor et machinerie : rideau (ouvre à … / change à …), décors qui montent/descendent (quoi, quand)
+Marionnettes : qui, fente avant/arrière, entrées/sorties
+| Instant | Voix | Image (geste clé sur le mot clé) |
+| … | … | … |
+| 9–10 s | — | stable (pas de fermeture de rideau) |
+Bruitages (actions visibles seulement) : instant → préréglage sfx_lib
+Vigilance : risques de lecture, proportions, superpositions, raccord avec le plan précédent
 ```
+Rappels : le plan 1 s'ouvre sur le rideau ; le dernier finit rideau ouvert ; un changement de lieu se fait par la machinerie ou le rideau ; une seule action principale à la fois.
 
-Montre la fiche et les 6 consignes, demande validation. **Arrête-toi.**
+Demande validation. **Arrête-toi.**
 
 ---
 
-## Étape 4 — Réalisation des 6 plans
+## Étape 4 — Production (sans arrêt)
 
-### Charte visuelle
-- Illustration vectorielle 2D éditoriale, formes arrondies, contours encre bleu marine #1B2340 de 4 à 7 px à l'écran, grain papier en multiplication (~30 %).
-- Palette A : parchemin #F3DAB4, encre #1B2340, bleu #326DEC, framboise #EC4899, crèmes #FBEBD3 / #F8E3C6 / #FFF4E2. Toute autre couleur a une raison (code réel d'un objet, matière, peau) et est fixée dans la fiche de continuité.
-- Ombres portées : ellipses bleu marine à 15–20 %.
-- **Aucun texte, lettre, chiffre ou logo dans l'image**, sauf texte explicitement demandé (alors intégré dans la vidéo, police d'affiche libre de droits chargée avant `READY`).
+### Les outils (`outils/`)
+- `CHARTE.md` : règles visuelles, mise en scène, cadrage, bruitages, erreurs déjà commises, contrôle.
+- `API.md` : référence du kit (`kit/marionnettes.js`, assemblé depuis `kit/src/` par `kit/assemble.sh`).
+- `exemples/arc-de-triomphe/m1…m6` : scènes réussies à imiter.
+- `gabarits/` : départ de `scene.js`, `timeline.js` (`TL.EVENTS` et `TL.MOTS`), `mixage.py`.
+- `construire.sh <travail>/pN` : prépare le dossier du plan (gabarits, kit, `persos.js` de la vidéo, `index.html`) et vérifie la syntaxe.
+- `render.cjs <dossier> --stills 0,60,…` : images clés en PNG.
+  - Le rendu est fait par le processeur, en `--workers 3`, environ 13 fois plus vite qu'avant ; ne pas passer `--gpu`.
+- `produire.sh <travail>/pN` : rendu complet, puis bruitages, puis `pN_final.mp4`, `planche.png` et `verifier.sh`.
+  - Durée : environ 30 à 70 s.
+- `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` : planche de 16 images ou gros plan.
+- `sfx_lib.py` + `sons/` : bruitages tout faits et clips CC0.
+  - Préréglages : `rideau_ouvre`, `rideau_ferme`, `rideau_change`, `decor_monte`, `decor_descend`, `decor_tombe`, `apparition`, `disparition`, `glisse`, `pas`, `objet_pose`, `chute`, `papier`, `ambiance`.
+  - `freesound_cc0.py` sert à chercher un nouveau son ; vérifier sa licence CC0 avant de l'utiliser.
 
-### Cadrage TikTok
-- Action importante (visages, gags, objets clés) en entier dans **x 60–930 px, y 150–1430 px**.
-- Bas de l'image (y > 1430) : décor calme seulement (sous-titres + légende). Bande droite (x > 930) : décor seulement (boutons).
-- Personnages lisibles : un personnage principal fait au moins ~350–450 px de haut ; un sourire au moins 20 px de large. Sinon, rapprocher la caméra.
+### 4a. Casting (un agent Sonnet)
+Lancer cette étape seulement si la fiche demande des éléments absents du kit. Consigne :
+> Lis `OUTILS/CHARTE.md`, `OUTILS/API.md` et `<travail>/FICHE.md` (section Distribution). Crée `<travail>/persos.js` (chargé après le kit) avec les marionnettes, accessoires et décors listés comme « à créer », dans le style exact du kit (papier découpé de profil, rivets, tiges, hachures, palette sourde). Pour vérifier, crée `<travail>/casting/scene.js` qui les montre tous sur scène (au repos, en marche, gestes clés, de profil dans les deux sens). Lance `bash OUTILS/construire.sh <travail>/casting`, puis `node OUTILS/render.cjs <travail>/casting --out <travail>/out --stills 30,150`, et regarde les images. Itère jusqu'à un résultat propre, au plus 4 fois. Règles : `CHARTE.md` sections 4 et 8. Rapport court : liste des fonctions créées (nom, options, pièces articulées).
 
-### Animation
-- Le geste clé tombe sur le mot clé de la voix (écart < 0,2 s) ; le gag arrive avec la chute, jamais avant.
-- Anticipation → action → rebond (squash and stretch 10–15 %), courbes douces, ressorts amortis.
-- Durées minimales : geste 0,3 s, expression 0,6 s, gag 1,5–2 s, détail rapide visible ≥ 0,4 s.
-- Toute action finie à 9 s ; **dernière seconde immobile ; pas de transition de fin**.
-- À éviter : traits de vitesse, tremblements, effets ambigus, plusieurs actions simultanées.
+Toi : regarde la planche de casting. Si un défaut est visible, renvoie-le à l'agent une seule fois. Une fois la distribution figée, ne la change plus.
 
-### Erreurs déjà commises (à vérifier systématiquement)
-- Image qui contredit la phrase entendue (« le tri disparaît » pendant que des bacs de tri apparaissent).
-- Personnages minuscules sous une façade géante ; action cachée par les sous-titres.
-- Forme qui évoque un monument d'une autre époque (rosace prise pour une grande roue) ; anachronismes.
-- Matière mal rendue (hotte d'osier qui ressemble à une cheminée en briques ; couvercles ouverts lus comme des vitres ; huîtres lues comme des vinyles).
-- Personnage ou élément coupé en deux par le bord du cadre.
-- Morceau de décor manquant (ne pas mettre en cache de très grandes images : une tuile peut se perdre ; redessiner le décor à chaque image).
-- Géométrie fausse (arcs non concentriques, éléments qui se touchent par accident, objet posé sur une tête).
-- Ordre de superposition faux (bras derrière la tête).
-- Points parasites : jamais de cercle de rayon quasi nul avec contour ; inspecter les aplats en gros plan.
-- Objet tombé dans un contenant encore visible dessous ; couvercle qui rebondit en laissant une fente.
-- Transformation illisible au premier instant (un oiseau de papier doit avoir tête et ailes dès l'envol).
-- Objet animé qui passe devant les visages au moment où ils réagissent.
+### 4b. Les 6 plans, l'un après l'autre (un agent Sonnet par plan)
+Pour N = 1 à 6, attendre la fin de N avant de lancer N + 1 :
+> Tu réalises le plan N/6 de la vidéo « … ». Lis dans l'ordre : `OUTILS/CHARTE.md`, `OUTILS/API.md`, `<travail>/FICHE.md` (distribution + consigne du plan N), l'exemple le plus proche `OUTILS/exemples/arc-de-triomphe/m?` [à choisir], et le `scene.js` du plan N−1 s'il existe (raccord, réutilise ses fonctions). Méthode :
+> 1. Lance `bash OUTILS/construire.sh <travail>/pN`.
+> 2. Écris `timeline.js` (instants calés sur les fenêtres de la voix, `TL.MOTS`), puis `scene.js`, puis `mixage.py` (préréglages de `sfx_lib` uniquement pour les actions visibles).
+> 3. Rends les images clés : `node OUTILS/render.cjs <travail>/pN --out <travail>/out --stills 0,30,60,…,299` plus les instants clés. Regarde-les et corrige ; 3 tours au plus, puis gros plans sur les zones à risque.
+> 4. Lance `bash OUTILS/produire.sh <travail>/pN`. Regarde `planche.png`. `verifier.sh` doit être tout « OK », et `mixage.py` ne doit afficher aucune ligne « ATTENTION ».
+>
+> Interdits : texte, lettres, chiffres, logos ; doigt seul tendu ; fermeture de rideau en fin de plan ; lancer un second rendu en parallèle ; git. Ne modifie ni `OUTILS/` ni `persos.js`. Ce qui est propre au plan va dans `scene.js` ; si un correctif de `persos.js` est indispensable, décris-le dans ton rapport.
+>
+> Rapport court : chemin de `pN_final.mp4` ; déroulé seconde par seconde calé sur la voix ; bruitages (instant → préréglage) ; limites connues.
 
-### Production technique
-Les outils sont dans `outils/` à côté de ce fichier :
-- `modele-plan.html` : page Canvas 2D de départ (palette, aides de dessin, ressort, grain, `setFrame`, `renderFrame`, `READY`). Une page par plan.
-- `timeline.js` : minutage partagé entre l'image et le son ; y noter chaque instant calé sur la voix.
-- `render.cjs` : rendu image par image avec Playwright + ffmpeg. Il cherche le dossier du plan **à côté de lui** : copie-le dans le dossier de travail.
-  - Images clés : `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <dossier> --name <nom> --stills 0,30,60,…`
-  - Vidéo complète : même commande sans `--stills` (≈ 7–10 min par plan), sortie `out/<nom>/<nom>.mp4`.
-- `mixage.py` : pose des échantillons CC0 et un carillon synthétique, crête limitée à −6 dBFS. `python3 -I mixage.py <dossier_echantillons> <sortie.wav>`.
-- `freesound_cc0.py` : recherche de sons CC0 sur Freesound (`python3 freesound_cc0.py "glass bottle"`). Télécharger l'aperçu `-hq.mp3` et **vérifier la licence CC0 sur la page du son** avant usage.
-- Assemblage : `ffmpeg -y -i plan.mp4 -i sfx.wav -c:v copy -c:a aac -b:a 192k -shortest final.mp4`.
+**Contrôle ciblé (toi), avant d'envoyer le plan** :
+- Lis `planche.png`, puis fais 1 ou 2 gros plans avec `planche.sh` : geste clé et chute, mains et tiges, objet du gag, bords du cadre.
+- Vérifie le raccord avec le plan précédent (mêmes personnages, même objet emblématique) et la liste « Erreurs déjà commises » (`CHARTE.md` §8).
+- En cas de défaut, renvoie à l'agent du plan (SendMessage) une demande précise et une seule.
+- Sinon, **envoie le plan tout de suite** (SendUserFile, le fichier `pN_final.mp4`) avec un résumé en 3 à 6 lignes, puis lance le plan suivant.
 
-Travaille dans le dossier scratchpad de la session, jamais dans le dépôt. Les 6 plans peuvent être confiés en parallèle à des sous-agents : donne à chacun la charte, la fiche de continuité complète, sa consigne, les zones TikTok, la liste d'erreurs ci-dessus et l'exigence de contrôle ci-dessous ; les objets partagés entre plans (personnage, objet récurrent) sont décrits à l'identique dans chaque brief, et la fonction de dessin du premier plan terminé est recopiée dans les suivants.
+### 4c. Contrôle final ciblé (toi, une fois les 6 plans faits)
+Pas de nouveau rendu complet. Vérifie seulement :
+- les raccords entre les plans : fin de N contre début de N+1, objets, tenues, lumière ;
+- l'homogénéité du son : `verifier.sh` sur les 6 fichiers, des crêtes proches d'un plan à l'autre ;
+- que la blague récurrente est bien résolue au dernier plan, et que le rideau y reste ouvert.
 
-### Son
-- Sous la voix off : 2 à 4 bruitages par plan, chacun lié à une action visible, aucun sur un mot clé de la voix.
-- Niveaux : bruitage principal −18 à −22 dBFS, secondaire −25 à −32, ambiance −35 à −45 ou rien. Même référence pour les 6 plans (pas d'écart de volume d'un plan à l'autre).
-- Sons organiques (voix de foule, rires, papier, verre, pas) : enregistrements CC0 réels, foules filtrées vers 4 kHz. Synthèse seulement pour les sons abstraits (pop, carillon, petit souffle). Pas de musique, pas de voix de personnage.
-- Tu ne peux pas écouter : vérifier le calage avec un spectrogramme (`ffmpeg -lavfi showspectrumpic`) et une courbe de volume, et le dire à l'utilisateur.
-
-### Contrôle avant chaque envoi
-- Planche de ≥ 12 images réparties sur les 10 s, regardée en entier, plus des gros plans des zones à risque ; bords et coins inspectés.
-- Chaque point de la liste « Erreurs déjà commises » vérifié.
-- Fichier : MP4 1080 × 1920, 30 im/s, 10,0 s, AAC stéréo.
+**Ne fais pas de montage assemblant les 6 plans** (l'utilisateur n'en veut pas). Ne pousse jamais les rendus dans Git.
 
 ### Livraison
-- Envoie chaque plan dans la conversation (SendUserFile) dès qu'il est validé, avec un résumé : déroulé seconde par seconde calé sur la voix, sons utilisés, limites connues.
-- **Ne pousse jamais les rendus dans un dépôt Git.**
-- À la fin, rappelle les réglages de montage : sous-titres sur 2 lignes max vers 65–72 % de la hauteur, mot de la chute en framboise, vidéo complète à −14 LUFS (crête −1 dBFS), carton de fin et logo de l'application.
-- Propose d'ajouter à la notice tout nouveau défaut rencontré.
+- Chaque plan est envoyé dans la conversation dès qu'il a passé ton contrôle.
+- À la fin, rappelle à l'utilisateur les réglages de montage :
+  - sous-titres sur 2 lignes au maximum, vers 65–72 % de la hauteur, avec le mot de la chute en couleur ;
+  - vidéo complète à −14 LUFS, crête à −1 dBFS ;
+  - carton de fin et logo en haut à gauche.
+- Passe le sujet à « livrée » dans `videos-realisees.md`, committe ce fichier et pousse-le.
+- Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur (et committe-le), pour qu'il ne revienne pas.
