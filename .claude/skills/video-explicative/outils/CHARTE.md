@@ -16,6 +16,7 @@
 - Les décors **bougent toujours un peu** (balancement sur leurs fils, ondulation des bandes) et ont une ombre portée sur ce qui est derrière.
 - Changer de lieu = **mécanique de théâtre visible** : décor qui monte de la trappe, descend des cintres sur ses câbles (avec rebond à l'arrivée), bascule et tombe, ou rideau qui se ferme puis se rouvre (≈ 1 s).
 - Profondeur : fond plus pâle et désaturé, premier plan contrasté. Ne jamais boucher la scène : 2 ou 3 couches suffisent.
+- **Extérieur = vivant** : toute scène en plein air a 1 à 3 touches de faune ou de flore au loin (API §4c) : un vol d'oiseaux dans le ciel, un chamois ou un troupeau qui passe sur une crête, une marmotte, des papillons, des poissons qui sautent, une bande de fleurs qui ondulent. Adaptées au lieu et à l'époque (mouettes à la mer, chamois en montagne, pas de perroquet en Savoie). Petites, pâlies par la brume, posées sur un relief, **muettes** ; jamais devant un visage, jamais pendant le geste clé au même endroit, rien dans le coin du logo. Elles décorent, elles ne racontent pas (sauf si la fiche en fait un gag).
 - Monuments et objets réels : **proportions vraies** (l'Arc de triomphe ≈ 45 m de large pour 50 m de haut). Pour dire « plus grand », c'est le support (feuille, décor) qui grandit, jamais l'objet qui se déforme.
 
 ## 4. Marionnettes
@@ -28,11 +29,17 @@
 - Un objet emblématique (chapeau, outil, accessoire) est dessiné **par la même fonction** dans tous les plans, et agrandi (×1,2 à ×1,4) quand il porte le gag.
 
 ## 5. Mise en scène
-- **Plan 1 : le rideau s'ouvre** (0,1 → ~1,2 s). Changements de scène dans un plan : par les cintres/la trappe ou par le rideau (fermeture + réouverture ≈ 1 s).
-- **Dernier plan : le rideau reste ouvert.** Aucune transition de fin dans aucun plan.
+- **Le rideau a une conduite pour toute la vidéo** (`<video>/rideau.json`, API §4b), décidée dans la fiche, plan par plan :
+  - **début** : le plan 1 s'ouvre sur le rideau (0,1 → ≈ 1,2 s) ;
+  - **changement de lieu ou d'époque** entre deux plans : `change` à cheval sur la coupe (fermeture ≈ 9,4 → 9,95 s du plan N, fermé pendant la coupe, réouverture ≈ 0,15 → 0,85 s du plan N+1) ; la voix continue rideau fermé. Ou bien machinerie (décor qui monte/descend) si le lieu reste le même théâtre ;
+  - **changement à l'intérieur d'un plan** : `change` (≈ 1,1–1,4 s en tout, fermé ≤ 0,3 s) ou machinerie ;
+  - **ellipse de temps sans changer de lieu** (« plus tard », « des siècles plus tard ») : `demi` (les pans se resserrent à moitié et se rouvrent, ≈ 1,2 s) ;
+  - **même lieu, action continue** : rien, le rideau reste ouvert à travers la coupe ;
+  - **fin de la vidéo** : le rideau **se ferme après la chute** du dernier plan (≈ 9,0 → 9,85 s), une fois le gag vu ; dernière image rideau fermé.
+- Le rideau n'est **jamais** en mouvement sur un mot-clé dont l'image compte, ni devant le geste clé ou le gag ; au plus 2 mouvements de rideau par plan ; pas deux `change` dans deux coupes consécutives (varier avec la machinerie ou `demi`).
 - Le geste clé tombe sur le mot clé de la voix (écart < 0,2 s) ; le gag arrive avec la chute, jamais avant.
 - Anticipation → action → rebond (ressorts amortis), durées minimales : geste 0,3 s, expression 0,6 s, gag 1,5–2 s. Une action principale à la fois.
-- Toute action finie à 9 s (au plus tard 9,6 s si un bruitage doit suivre le dernier mot) ; puis image stable.
+- Toute action finie à 9 s (au plus tard 9,6 s si un bruitage doit suivre le dernier mot) ; puis image stable, ou fermeture du rideau si la conduite la prévoit.
 - Caméra fixe (le théâtre ne bouge pas). Seul mouvement permis : un recul lent unique (zoom 1,1 → 1,0) pour révéler un décor.
 
 ## 6. Cadrage TikTok
@@ -41,7 +48,7 @@
 
 ## 7. Bruitages (voir `sfx_lib.py`)
 - **Seulement des bruitages d'action**, liés à ce qu'on voit. Pas de fond sonore continu, pas de musique, pas de voix.
-- Toujours sonoriser : **ouverture et fermeture du rideau** (`rideau_ouvre`, `rideau_ferme`, `rideau_change`), **décors qui changent** (`decor_monte`, `decor_descend`, `decor_tombe`), **marionnettes qui apparaissent ou partent** (`apparition`, `disparition`, `glisse` avec les sautillements), plus les **détails** visibles : pas, objet posé, chute, papier, maillet… Une ambiance de lieu (`ambiance('vent' | 'ressac' | 'vent_herbe' | 'sabots_neige', …)`) seulement si elle se voit (neige, mer) et très basse.
+- Toujours sonoriser : **le rideau** (automatique : `m.rideau_conduite()`, y compris un mouvement à cheval sur la coupe), **décors qui changent** (`decor_monte`, `decor_descend`, `decor_tombe`), **marionnettes qui apparaissent ou partent** (`apparition`, `disparition`, `glisse` avec les sautillements), plus les **détails** visibles : pas, objet posé, chute, papier, maillet… La faune lointaine est muette ; un animal au premier plan qui fait une vraie action visible (meuglement, coq) peut avoir un son très bas. Une ambiance de lieu (`ambiance('vent' | 'ressac' | 'vent_herbe' | 'sabots_neige', …)`) seulement si elle se voit (neige, mer) et très basse.
 - **Pas fort, juste ce qu'il faut** : préréglages déjà calibrés (principal ≈ −28 dBFS, détails −33 à −40), plafond global −24 dBFS. Ne pas monter les niveaux.
 - Aucun bruitage marqué sur un mot-clé de la voix (`TL.MOTS`, contrôlé par `Mix.verifier()`), sauf s'il illustre exactement ce mot et reste ≤ −32.
 - 3 à 8 bruitages par plan. Sons organiques = échantillons CC0 de `sons/` (licences dans `sons/LICENCES.md`) ; synthèse pour velours, anneaux, poulies, clacs.
@@ -61,8 +68,11 @@
 - Objet mal tenu (gobelet tenu par le bord, couché, ouverture vers l'extérieur) → la main **entoure le corps** de l'objet, ouverture vers le haut ou vers la bouche quand il boit ; objet posé qui flotte ou cache les jambes.
 - Changement de posture trop abrupt (se rasseoir « d'un bond », reprise du travail sèche) → enchaîner par étapes lisibles (se tourner, se pencher, s'asseoir, reprendre les mains au travail) sur 0,8–1,2 s, avec anticipation et ralenti en fin de geste.
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
+- Animal lointain qui flotte dans le ciel ou sur la toile (pas de relief sous ses pieds) ; faune qui attire l'œil pendant le geste clé.
+- Rideau qui bouge pendant un gag ou sur un mot-clé ; raccord de rideau faux à la coupe (plan qui ne commence pas dans l'état où le précédent finit) → toujours `M.rideau(t)` + `rideau.json`, jamais un rideau codé à la main.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
 3. `verifier.sh` tout « OK » (format, durée, son, crête ≤ −22).
+4. Raccord de rideau : première image du plan = dernière image du plan précédent pour le rideau (ouvert, fermé ou en mouvement).

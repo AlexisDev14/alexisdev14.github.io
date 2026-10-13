@@ -13,7 +13,11 @@ Un plan = 4 fichiers dans `<video>/pN/` (+ `<video>/persos.js` partagé par tous
 | `persos.js` | personnages / accessoires propres à la vidéo (§7). Chargé après le kit, avant `scene.js`. |
 | `mixage.py` | bruitages (§9). |
 
-Commandes : `bash construire.sh <video>/pN` (prépare, copie kit + persos.js, vérifie la syntaxe) ; `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <video>/pN --name pN --out <video>/out --stills 60,200` (images fixes PNG) ; `bash produire.sh <video>/pN` (rendu complet ≈ 1 min + son + `planche.png` + `verifier.sh`).
+Commandes : `bash construire.sh <video>/pN` (prépare, copie le kit, `bibliotheque/*.js`, la conduite `rideau.json` et `persos.js`, vérifie la syntaxe) ; `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <video>/pN --name pN --out <video>/out --stills 60,200` (images fixes PNG + **`planche_cles.png`** : toutes les images clés sur une seule image, dans l'ordre demandé — la regarder d'abord, n'ouvrir en grand que les PNG utiles) ; `bash produire.sh <video>/pN` (rendu complet ≈ 1 min + son + `planche.png` + `verifier.sh`).
+
+Les rendus passent **l'un après l'autre** grâce à un verrou dans `render.cjs` : si un autre rendu tourne, le suivant attend (« un autre rendu est en cours : attente… »). Ne jamais le contourner.
+
+**Bibliothèque commune** (`outils/bibliotheque/`, index dans `bibliotheque/LISEZMOI.md`) : personnages, accessoires et décors **déjà validés** dans des vidéos précédentes, chargés dans chaque plan. Les réutiliser tels quels plutôt que de recréer (vache, paysan, moine, seigneur, chalet, montagnes, ustensiles…).
 
 **Mécanique du rendu** (`modele.html`) : `M.init()` (textures, personnages, cadre, plancher), puis `SCENE.init()` une fois ; pour chaque image `SCENE.draw(t)` (t en secondes, 0 → 10, 300 images à 30 im/s) puis `M.finish(t)` automatiquement (vignettage chaud + grain : ne pas l'appeler). Le rendu est réparti sur 3 pages Chromium qui rendent chacune un bloc d'images consécutives : **`S.draw(t)` doit être une fonction pure de t** (aucun état accumulé d'une image à l'autre ; un cache calculé paresseusement depuis t est permis, voir `freeHat` dans m1). Tout est déterministe : **jamais `Math.random`**, utiliser `M.rng(seed)`.
 
@@ -22,7 +26,7 @@ Commandes : `bash construire.sh <video>/pN` (prépare, copie kit + persos.js, v�
 **Contexte** : `M.ctx()` donne le contexte 2D ; `M.use(ctx)` le fixe (fait par `modele.html`). Repère écran 1080 × 1920, origine en haut à gauche, y vers le bas.
 
 ### Ordre de dessin OBLIGATOIRE dans `S.draw`
-toile de fond (`drawImage(K.sky,0,0)`) → décors suspendus (`M.hung`) / coulisses (`M.flat`) → fermes basses → décors qui montent/descendent → **`M.drawFloor()`** → marionnettes (fente arrière, puis fente avant) → accessoires, effets (pétales, neige, poussière) → **`M.stageLight(t, …)`** → **`M.curtain(t, f, …)`** → **`M.drawFrame(t)`**. (Le plancher est dessiné après les décors : il masque leur pied ; les marionnettes passent devant le plancher.)
+toile de fond (`drawImage(K.sky,0,0)`) → oiseaux lointains (`M.oiseaux`) → décors suspendus (`M.hung`) / coulisses (`M.flat`) → animaux lointains sur leur crête (`M.passage`) → fermes basses → fleurs, papillons, marmotte → décors qui montent/descendent → **`M.drawFloor()`** → marionnettes (fente arrière, puis fente avant) → accessoires, effets (pétales, neige, poussière) → **`M.stageLight(t, …)`** → **`M.rideau(t)`** → **`M.drawFrame(t)`**. (Le plancher est dessiné après les décors : il masque leur pied ; les marionnettes passent devant le plancher.)
 
 ### Constantes `M.ST` (scène)
 ```
@@ -118,6 +122,35 @@ Même placement que `flat` + balancement `amp·sin(t·f + ph)` et deux fils qui 
 - `M.stageLight(t, {spot:{x,y,r,a}, beams, beamA})` : faisceaux de projecteurs + poussière + lueur de rampe + **poursuite** : assombrit hors du cercle de rayon `r` (a 0.3–0.5). Défaut `spot:{x:520,y:1060,r:470,a:0.42}` ; `spot:null` la supprime. `beams = [[sx,sy,ex,ey,ew],…]` (défaut deux faisceaux depuis les cintres), `beamA` multiplie leur intensité.
 - `M.drawFrame(t)` : rampe (flammes), souffleur, cadre de scène doré, lambrequin. En tout dernier. `M.footlights(t)` en fait partie.
 
+## 4b. Conduite du rideau (toute la vidéo) — `<video>/rideau.json`
+Le rideau ne se règle plus plan par plan : **une conduite de 60 s** pour toute la vidéo, écrite dans la fiche puis dans `<video>/rideau.json` (temps **globaux** : plan N à t s = (N−1)·10 + t). `construire.sh` la copie dans chaque plan avec le numéro du plan ; chaque plan en dessine sa tranche. Un mouvement peut **chevaucher la coupe** : fermeture à la fin du plan 3, réouverture au début du plan 4 → mis bout à bout, un seul geste continu (même ouverture, même balancement, même son de part et d'autre de la coupe).
+```json
+{ "cues": [
+  { "type": "ouvre",  "a": 0.1,  "b": 1.2 },
+  { "type": "demi",   "a": 23.6, "b": 24.1, "c": 24.4, "d": 25.0, "k": 0.45, "id": "plustard" },
+  { "type": "change", "a": 29.4, "b": 29.95, "c": 30.15, "d": 30.85, "id": "chalet" },
+  { "type": "ferme",  "a": 59.0, "b": 59.85 }
+] }
+```
+- `ouvre` (0 → 1), `ferme` (→ 0), `change` (ferme a→b, **fermé** b→c : on change le décor, rouvre c→d), `demi` (les pans se resserrent jusqu'à `k` puis se rouvrent : ellipse de temps, « plus tard », sans changer de lieu).
+- Dans `scene.js` : **`M.rideau(t)`** à la place de `M.curtain` (dessine l'état de la conduite). `M.rideauAt(t)` → `{ f, swing, T, ferme }`. Changement de décor : `if (M.rideauApres(t, 'chalet')) decorB(t); else decorA(t);` (vrai à partir du milieu de l'intervalle fermé du repère). Dans le plan qui **commence** fermé, dessiner directement le nouveau décor.
+- Dans `mixage.py` : **`m.rideau_conduite()`** place tout le son du rideau (y compris la partie d'un mouvement commencé dans le plan précédent ou fini dans le suivant). Ne pas ajouter `rideau_ouvre/ferme` à la main.
+- Sans `rideau.json`, `M.rideau(t)` laisse le rideau ouvert.
+
+## 4c. Faune et flore lointaines (scènes en extérieur)
+Petites silhouettes de carton, fonctions pures de t, à dessiner **avant `M.drawFloor()`**. `brume` (0..1) les pâlit vers la couleur de l'air : plus c'est loin, plus c'est pâle (0,3–0,5 au fond).
+| Appel | Effet |
+|---|---|
+| `M.oiseaux(t, {x0, x1, y, t0, dur=7, n=5, s=1, seed, col, brume=0.35, boucle, fil})` | vol en formation lâche qui traverse de x0 à x1, battements d'ailes ; `col:'#e9e4d8'` = mouettes ; `fil:true` = fils de théâtre visibles |
+| `M.passage(kind, t, {x0, x1, y, t0, dur=8, s=0.35, n=1, ecart=70, broute, seed, brume, boucle})` | animal (ou petit troupeau `n`) qui marche le long d'une crête ou d'une prairie ; `broute` (0..1) : s'arrête brouter au milieu |
+| `M.animal(kind, x, y, s, {dir, ph, brume, tete, immobile, col, col2})` | un animal posé (pieds en x,y), `ph` = phase de pas (tours) |
+| `M.marmotte(t, x, y, s=0.5, {t0, t1})` | sort de son terrier, se dresse, regarde, rentre |
+| `M.papillons(t, {x, y, rx, ry, n=3, s})` | papillons qui volettent dans une zone |
+| `M.poissons(t, {x0, x1, y, n=3, periode=3.2, s})` | poissons qui sautent (mer, lac) avec éclaboussures ; `y` = surface |
+| `M.fleurs(t, {x0, x1, y, n=30, h=40, seed, cols, brume, herbe})` | bande de fleurs et d'herbes qui ondulent (pied de coulisse, prairie) |
+
+`kind` (`M.BETES`) : `chamois bouquetin cerf biche vache cheval mouton chevre renard loup lapin`. Échelles : au fond (crête) `s` 0,25–0,4 ; prairie intermédiaire 0,4–0,6. Poser les pieds **sur** un relief dessiné (crête de colline, bord de prairie, rive), jamais en l'air sur la toile du ciel.
+
 ## 5. Matériel interne exposé pour personnages propres : `M.X`
 `M.X = { legPts(th=1), armPts(len=98), forePts(kind), foreTuck(), NAP_HEAD, AR_HEAD, GR_HEAD, earPaint(x,y), eye(f,x,y,sz=1), brow(f,x,y,col,lw), mouth(f,x,y,col), handPaint(skin,kind), HAND_OPEN, HAND_FIST }`
 - `legPts(th)` : jambe de profil, hanche en (0,−12), pied en y ≈ 237, bout du pied vers +x ; peindre bottes/chaussettes par un rectangle `y ≥ 214` dans le `paint`.
@@ -202,13 +235,7 @@ Même méthode pour un décor propre : `K.fiole = M.withShadow(M.cutFlat(w,h,w/2
 
 ## 8. Recettes (extraits des exemples)
 
-**Rideau qui s'ouvre** (plan 1, 0,1 → ≈ 1,2 s ; m1, m2, m4) :
-```js
-function rideau(t) { const u = (t - E.rideau0) / (E.rideau1 - E.rideau0), f = ease(u);
-  const vel = (ease(u + 0.02) - ease(u - 0.02)) / (0.04 * (E.rideau1 - E.rideau0));
-  return { f, swing: -vel * 9 + wob(t, E.rideau1, 26, 0.85, 2.6) }; }       // puis M.curtain(t, r.f, {swing: r.swing})
-```
-**Rideau qui se ferme / change de scène** (m3, m5) : `f = 1 - ease((t-close0)/(close1-close0))` puis `f = ease((t-open0)/(open1-open0))` ; `swing = 18·sin(π·u_ferme)` à la fermeture, `-14·sin(π·u_ouvre)` à l'ouverture, `+ wob(t, open1, 22, 0.9, 2.8)` ; le décor est remplacé dans l'intervalle fermé (`if (t < E.swap) sceneA(t); else sceneB(t);`). ≈ 1 s en tout. Dernier plan : `M.curtain(t, 1, {swing:0})`, jamais refermé.
+**Rideau** : voir §4b (conduite de la vidéo, `M.rideau(t)`). Les exemples `arc-de-triomphe` le pilotent encore à la main (`M.curtain(t, f, {swing})`) : ne pas les imiter sur ce point.
 
 **Décor qui monte de la trappe** avec rebond (m4, faux arc) : `const p = easeOut((t-flat0)/(flat1-flat0)); const y = ST.back + (1-p)*H + wob(t, flat1, -16, 2.6, 5.5); M.flat(K.faux, X, y, {clipY: ST.back+1, scale: 0.9, cast:{dx:18,dy:8,a:0.42}});` (H = hauteur du décor ; cordes : `ctx.quadraticCurveTo` du haut du décor jusqu'à y = 150). **Décor qui descend des cintres** (m1, vrai arc) : `y = ST.back - (1-p)*1250 + wob(t, arc1, -12, 2.2, 5.5)`, `rot = wob(t, arc1, 0.008, 1.6, 4)`, câbles `moveTo(cx, y-H*s+6); lineTo(cx, 0)`.
 
@@ -242,7 +269,7 @@ Après l'impact : `rot = -π/2 + wob(t, fallLand, 0.05, 2.6, 7)`, petit rebond `
 
 ## 9. Bruitages (`sfx_lib.py`, détail dans son en-tête)
 `gabarits/mixage.py` : `E = events('timeline.js')` (lit **`TL.EVENTS`** : clés `\w+`, valeurs **numériques littérales** ; ne pas écrire `mot: 3` dans un commentaire de ce bloc ni `};` avant sa fin) ; `MOTS` = paires `[a, b]` de `TL.MOTS = [[a,b],…];` (**une seule instruction, aucun `;` dans ses commentaires**) ; `m = Mix(mots=MOTS, seed=N)` ; `m.write(sys.argv[2])` (limite à −24 dBFS : un son trop fort fait baisser tout le mixage). Lancement : `cd <plan> && python3 -I mixage.py <outils> /tmp/x.wav`.
-Préréglages (db = crête dBFS, pan −1 gauche … +1 droite, aucun bruitage > −26) : `rideau_ouvre(t0,t1)`, `rideau_ferme(t0,t1)`, `rideau_change(f0,f1,o0,o1)`, `decor_monte(t0,t1,pan,poids='leger'|'lourd')` (butée à t1), `decor_descend(t0,t1,pan,poids)`, `decor_tombe(t,pan)`, `apparition(t,pan)` (t = arrêt), `disparition(t,pan)` (t = début), `glisse(t0,t1,pan0,pan1,db,sauts=(instants de clac))`, `pas(instants,pan)`, `objet_pose(t,pan)`, `chute(t,pan)`, `papier(t,pan,long=False)`, `ambiance('vent'|'ressac'|'vent_herbe'|'sabots_neige', t0,t1, db=-42, pan, af)` (seulement si visible : neige, mer). Bas niveau : `place(nom,at,db,pan,start,end,af,rate,fin,fout,label)` sur `sons/<nom>.mp3` (si `start` dépasse la durée du clip, rien n'est joué : durées dans `sons/`), `add(sig,at,db,pan)`, `swish`, `rings`, `creak`, `clac`, `carillon`, `murmure`, `applaudissements` (ces deux derniers seulement si une foule **visible** applaudit). `Mix.verifier()` signale (ligne `ATTENTION`) tout bruitage dont le DÉBUT tombe dans `[a−0.05, b]` d'un mot-clé et dépasse −36 dBFS : décaler le son après le mot.
+Rideau : **`m.rideau_conduite()`** (d'après `rideau.json`, automatique). Préréglages (db = crête dBFS, pan −1 gauche … +1 droite, aucun bruitage > −26) : `rideau_ouvre(t0,t1)`, `rideau_ferme(t0,t1)`, `rideau_change(f0,f1,o0,o1)`, `rideau_demi(a,b,c,d)` (réservés à la conduite), `decor_monte(t0,t1,pan,poids='leger'|'lourd')` (butée à t1), `decor_descend(t0,t1,pan,poids)`, `decor_tombe(t,pan)`, `apparition(t,pan)` (t = arrêt), `disparition(t,pan)` (t = début), `glisse(t0,t1,pan0,pan1,db,sauts=(instants de clac))`, `pas(instants,pan)`, `objet_pose(t,pan)`, `chute(t,pan)`, `papier(t,pan,long=False)`, `ambiance('vent'|'ressac'|'vent_herbe'|'sabots_neige', t0,t1, db=-42, pan, af)` (seulement si visible : neige, mer). Bas niveau : `place(nom,at,db,pan,start,end,af,rate,fin,fout,label)` sur `sons/<nom>.mp3` (si `start` dépasse la durée du clip, rien n'est joué : durées dans `sons/`), `add(sig,at,db,pan)`, `swish`, `rings`, `creak`, `clac`, `carillon`, `murmure`, `applaudissements` (ces deux derniers seulement si une foule **visible** applaudit). `Mix.verifier()` signale (ligne `ATTENTION`) tout bruitage dont le DÉBUT tombe dans `[a−0.05, b]` d'un mot-clé et dépasse −36 dBFS : décaler le son après le mot.
 
 ## 10. Pièges connus
 - `const` global dans `persos.js`/`scene.js` (autre que `SCENE`) → « redeclaration » ; ne pas redéfinir `FPS`, `FRAMES`, `ctx`, `setFrame`, `params` (déjà dans `modele.html`).

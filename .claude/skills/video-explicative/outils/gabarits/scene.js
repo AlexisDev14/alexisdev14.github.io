@@ -10,21 +10,17 @@ const SCENE = (() => {
   S.init = () => {                              // pré-rendus (une seule fois) : toiles, décors, accessoires
     K = { sky: M.makeSky('aube'), row: M.makeParisRow(), wingL: M.makeTreeWing(5, false), wingR: M.makeTreeWing(9, true) };
   };
-  function rideau(t) {                          // ouverture (0 = fermé, 1 = ouvert) + balancement du bas des pans
-    const u = (t - E.rideau0) / (E.rideau1 - E.rideau0), f = ease(u);
-    const vel = (ease(u + 0.02) - ease(u - 0.02)) / (0.04 * (E.rideau1 - E.rideau0));
-    return { f, swing: -vel * 9 + wob(t, E.rideau1, 26, 0.85, 2.6) };
-  }
   S.draw = (t) => {
     const ctx = M.ctx();
     ctx.drawImage(K.sky, 0, 0);
     M.flat(K.wingL, 120, ST.back, { rot: 0.006 * Math.sin(t * 0.9), cast });
     M.flat(K.wingR, 960, ST.back, { rot: 0.006 * Math.sin(t * 0.8 + 1), cast });
     M.flat(K.row, 540, ST.back + 2 * Math.sin(t * 1.3));
+    // extérieur : faune et flore lointaines, discrètes (M.oiseaux, M.passage, M.marmotte, M.papillons, M.poissons, M.fleurs)
     M.drawFloor();
     // marionnettes : M.puppet(C.napoleon, pose, x, FEET, échelle, { dir: 1, slot: ST.slotF, cast });
     M.stageLight(t, { spot: { x: 540, y: 1080, r: 480, a: 0.35 } });
-    const r = rideau(t); M.curtain(t, r.f, { swing: r.swing });
+    M.rideau(t);                                // conduite de la vidéo (rideau.json) ; changement de décor : if (M.rideauApres(t, 'id')) …
     M.drawFrame(t);
   };
   return S;

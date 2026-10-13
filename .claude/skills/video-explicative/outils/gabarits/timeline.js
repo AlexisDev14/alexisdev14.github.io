@@ -3,8 +3,7 @@
 (function (g) {
   const TL = {};
   TL.EVENTS = {
-    rideau0: 0.10,   // le rideau commence à s'ouvrir (plan 1, et tout plan qui change de scène)
-    rideau1: 1.20,   // rideau ouvert
+    // le rideau ne se règle PAS ici : il suit la conduite de la vidéo (<video>/rideau.json, M.rideau(t))
     // geste0: 2.45, // « mot clé » : le geste clé tombe sur le mot (écart < 0,2 s)
     fixe: 9.0,       // toute action finie ; dernière seconde immobile (flammes et respiration seulement)
   };

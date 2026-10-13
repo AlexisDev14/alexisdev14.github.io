@@ -160,6 +160,33 @@ class Mix:
         self.rideau_ferme(t_ferme0, t_ferme1, db)
         self.rideau_ouvre(t_ouvre0, t_ouvre1, db - 1)
 
+    def rideau_demi(self, t0, t1, t2, t3, db=-31):
+        """Les pans se resserrent à moitié puis se rouvrent (ellipse « plus tard ») : velours et anneaux, sans « flomp »."""
+        for (a, b) in ((t0, t1), (t2, t3)):
+            for pan, dl in ((-0.5, 0.0), (0.5, 0.03)):
+                self.place('velours', a + dl, db - 2, pan * 0.7, end=b - a + 0.5, rate=0.8, af='lowpass=f=2800', fin=0.08, fout=0.25, label='rideau (demi)')
+                self.rings(a + dl, a + dl + (b - a) * 0.8, db - 13, pan, n=max(5, int((b - a) * 8)))
+
+    def rideau_conduite(self, chemin='rideau.json', plan=None):
+        """Bruitages du rideau d'après la conduite de toute la vidéo (temps globaux) : place ceux qui touchent ce plan,
+        y compris un mouvement commencé dans le plan précédent ou fini dans le suivant (coupé net aux bords : mis bout à
+        bout, les deux plans redonnent exactement le même son, car chaque repère a sa propre graine)."""
+        import json
+        if not os.path.exists(chemin): return
+        if plan is None: plan = int((re.findall(r'\d+', os.path.basename(os.getcwd())) or ['1'])[0])
+        T0 = (plan - 1) * DUR
+        cues = sorted(json.load(open(chemin))['cues'], key=lambda q: q['a'])
+        for i, q in enumerate(cues):
+            fin = max(q.get(k, q['a']) for k in 'abcd')
+            if fin + 2.5 < T0 or q['a'] > T0 + DUR: continue
+            r = lambda k: q[k] - T0
+            sauve, self.rng = self.rng, np.random.default_rng(900 + i)
+            if q['type'] == 'ouvre': self.rideau_ouvre(r('a'), r('b'))
+            elif q['type'] == 'ferme': self.rideau_ferme(r('a'), r('b'))
+            elif q['type'] == 'change': self.rideau_change(r('a'), r('b'), r('c'), r('d'))
+            elif q['type'] == 'demi': self.rideau_demi(r('a'), r('b'), r('c'), r('d'))
+            self.rng = sauve
+
     def decor_monte(self, t0, t1, pan=0.0, poids='leger', db=-30):
         """Un décor en carton monte de la trappe (ou descend des cintres, voir decor_descend) :
         poulie qui grince + corde, puis butée de bois à l'arrivée (t1) avec un petit tremblement."""
