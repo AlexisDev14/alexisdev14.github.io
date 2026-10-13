@@ -188,20 +188,24 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).
      - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
-- **Prompt de couverture** (miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Validé par l'utilisateur : **rideau rouge fermé en fond, l'objet emblématique du sujet seul devant (pas de personnage), un titre accrocheur dans le tiers haut**. C'est la seule image où du texte est permis. Prompt **en anglais**, titre en français entre guillemets, **court** (4 à 7 mots : les générateurs écrivent mal les titres longs), sur ce modèle :
+- **Prompt de couverture** (miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Validé par l'utilisateur : **rideau rouge fermé en fond, l'objet emblématique du sujet seul devant (pas de personnage), un titre accrocheur dans le tiers haut**, le tout **dans la DA de la vidéo** (carton découpé plat, pas de rendu réaliste) et un titre en **lettres de papier doré découpées, style affiche de théâtre XIXᵉ** (pas de serif classique fin). C'est la seule image où du texte est permis. Prompt **en anglais**, titre en français entre guillemets, **court** (4 à 7 mots : les générateurs écrivent mal les titres longs), sur ce modèle :
   ```
-  Elegant minimalist vertical cover illustration, 9:16. Background: only a closed deep red velvet theatre curtain
-  filling the whole frame, soft vertical folds, warm light pooling in the centre, darker at the edges; the curtain
-  falls onto a red velvet floor. No proscenium, no stage frame, no landscape, no audience, no characters, no animals.
-  In front of the curtain, in the lower half: [L'OBJET EMBLÉMATIQUE SEUL, décrit précisément : forme, matière,
-  couleurs, détail du gag], lit by a single soft spotlight, as a paper-cut theatre prop with thin white die-cut edge,
-  fine engraving hatching and paper texture, soft shadow on the velvet.
-  In the upper third, a title in French, exactly: "[TITRE]" — elegant classic serif lettering in aged gold leaf,
-  centered on two or three lines, slightly embossed, perfectly spelled with French accents.
-  Muted vintage palette: ivory, ochre, aged gold against the red velvet. Centered, uncluttered, gentle vignette,
-  fine grain, refined and sober. No other text, no logo, no watermark.
+  Flat cut-paper illustration in the style of a 19th-century paper toy theatre, vertical 9:16, elegant and minimalist.
+  NOT photographic, NOT 3D: matte layered cardstock, flat colour areas, crisp die-cut edges with a thin white border,
+  fine engraving-style hatching for shading, visible paper grain, small soft drop shadows between paper layers.
+  Background: only a closed theatre curtain drawn as flat painted paper — deep muted crimson, stylised regular vertical
+  folds in two or three tones, a thin aged-gold fringe at the bottom; no proscenium, no stage frame, no landscape,
+  no audience, no characters.
+  In front of the curtain, in the lower half, standing on a simple flat strip of dark wooden floorboards:
+  [L'OBJET EMBLÉMATIQUE SEUL, simplifié en carton découpé : formes nettes, aplats, couleurs sourdes, brass paper-fastener
+  rivets if it has parts], with a slim wooden rod going down into a slot in the floor, lit by a soft warm spotlight.
+  In the upper third, the French title, exactly: "[TITRE]", made of letters hand-cut from gold paper, in the style of
+  a 19th-century wood-type theatre playbill (bold condensed slab-serif capitals), each letter very slightly uneven and
+  casting a tiny shadow on the curtain, centered on two or three lines, perfectly spelled with French accents.
+  Palette strictly muted: crimson, ivory, ochre, midnight blue, aged gold. Centered, uncluttered, gentle vignette,
+  fine paper grain. No other text, no logo, no watermark.
   ```
-  Négatif : `extra text, misspelled words, logo, watermark, cow, animal, person, puppet, landscape, stage frame, proscenium, audience seats, 3D render, plastic, glossy, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
+  Négatif : `photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
 - Passe le sujet à « livrée » dans `videos-realisees.md`.
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas.
