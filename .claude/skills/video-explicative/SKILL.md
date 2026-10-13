@@ -121,7 +121,8 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 ## Étape 3 — Production (sans arrêt)
 
 ### Les outils (`outils/`)
-- `CHARTE.md` : règles visuelles, mise en scène, rideau, faune, cadrage, bruitages, erreurs déjà commises, contrôle.
+- `MEMO-PLAN.md` : **mémo d'une page lu par chaque agent « plan N »** (fichiers, ordre de dessin, cadrage, marionnettes, rideau, raccords, règles qui reviennent, bruitages, contrôle). Il évite de relire ≈ 50 000 tokens de documentation à chaque plan. **À tenir à jour** : toute règle ajoutée à `CHARTE.md` §8 ou à `API.md` qui concerne tous les plans y est résumée en une ligne.
+- `CHARTE.md` : règles visuelles, mise en scène, rideau, faune, cadrage, bruitages, erreurs déjà commises, contrôle (lue en entier par toi et par le casting ; par section pour les plans).
 - `API.md` : référence du kit (`kit/marionnettes.js`, assemblé depuis `kit/src/` par `kit/assemble.sh`), de la conduite du rideau (§4b) et de la faune (§4c).
 - `bibliotheque/` : personnages, accessoires et décors validés des vidéos précédentes (index : `LISEZMOI.md`), chargés automatiquement dans chaque plan.
 - `exemples/arc-de-triomphe/m1…m6` : scènes réussies à imiter (sauf leur rideau codé à la main).
@@ -142,7 +143,7 @@ Toi : regarde la planche de casting **et un gros plan de chaque test obligatoire
 
 ### 3b. Les 6 plans (un agent Sonnet par plan, en tuilage)
 Pour N = 1 à 6 (l'agent N+1 démarre dès le rapport de N, voir §0) :
-> Tu réalises le plan N/6 de la vidéo « … ». Lis dans l'ordre : `OUTILS/CHARTE.md`, `OUTILS/API.md`, `OUTILS/bibliotheque/LISEZMOI.md`, `<travail>/FICHE.md` (distribution, conduite du rideau, consigne du plan N), l'exemple le plus proche `OUTILS/exemples/arc-de-triomphe/m?` [à choisir], et le `scene.js` du plan N−1 s'il existe (réutilise ses fonctions). Méthode :
+> Tu réalises le plan N/6 de la vidéo « … ». Lis dans l'ordre : **`OUTILS/MEMO-PLAN.md` en entier** (il remplace la lecture complète de la charte, de l'API et des exemples), l'en-tête-index de `<travail>/persos.js` et des fichiers de `OUTILS/bibliotheque/` utilisés par le plan, `<travail>/FICHE.md` (distribution, plan de scène, conduite du rideau, consigne du plan N), et le `scene.js` du plan N−1 s'il existe (réutilise ses fonctions). `CHARTE.md`, `API.md` et les exemples ne se lisent **que par section, au besoin** (index : `grep -n "^##" OUTILS/API.md`) [indiquer ici la recette ou la section utile au plan, ex. « API §8 chute », « exemple m4 : décor qui monte »]. Méthode :
 > 1. Lance `bash OUTILS/construire.sh <travail>/pN`.
 > 2. Écris `timeline.js` (instants calés sur les fenêtres de la voix, `TL.MOTS`), puis `scene.js`, puis `mixage.py` (garde `m.rideau_conduite()` ; préréglages de `sfx_lib` uniquement pour les actions visibles).
 >    - Rideau : **`M.rideau(t)`** seulement (jamais codé à la main) ; changement de décor avec `M.rideauApres(t, 'id')`.
@@ -236,5 +237,5 @@ Pas de nouveau rendu complet. Vérifie seulement :
   Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
 - Passe le sujet à « livrée » dans `videos-realisees.md`, avec **l'id de la question, son `theme_code` et le lien du dossier Drive** (indispensables pour refaire la vidéo ou sa couverture).
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
-- Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas.
+- Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas (et, s'il concerne tous les plans, une ligne dans `outils/MEMO-PLAN.md`).
 - Committe et pousse ces fichiers (registre, bibliothèque, charte), jamais les rendus.
