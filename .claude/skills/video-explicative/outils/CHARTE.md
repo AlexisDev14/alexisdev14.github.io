@@ -24,6 +24,7 @@
 - Jeu de marionnette : petits sautillements en marchant (glissement le long de la fente), balancement, légère inclinaison dans le mouvement, rotation des membres autour des rivets, respiration (oscillation 1–2 px). **Jamais figé**, même dans la dernière seconde (flammes, respiration).
 - Gestes **lisibles de profil** : main dans le gilet, poing sur la hanche, bras tendu main ouverte, tape du pied, salut, mains devant les yeux. À éviter : bras croisés (illisible de profil, se lit « bras sur le ventre »), doigt tendu seul (interdit).
 - Taille : personnage principal ≥ 450 px debout ; visage jamais caché par un objet ou un autre personnage au moment où il réagit.
+- **Accessoires** (couteau, fourchette, seau, gobelet, outils…) : pas obligés d'avoir une tige ; ils peuvent « voler » sur scène pour un mouvement fluide (« on peut tricher »). Les marionnettes, elles, gardent leurs tiges.
 - Un objet emblématique (chapeau, outil, accessoire) est dessiné **par la même fonction** dans tous les plans, et agrandi (×1,2 à ×1,4) quand il porte le gag.
 
 ## 5. Mise en scène
@@ -56,6 +57,7 @@
 - Bras croisés de profil (illisibles) ; doigt seul tendu.
 - Personnage trop petit ou trop loin ; action cachée par la zone des sous-titres.
 - Image qui contredit la phrase entendue ; anachronisme (tour Eiffel avant 1889, objets d'une autre époque).
+- Objet trop gros qui écrase la scène (fromage géant) ; part découpée en bloc informe → une part se lit comme un **coin triangulaire** pointe vers le centre, faces coupées couleur pâte ; ustensile mal dessiné (couteau qui ressemble à une spatule) → lame effilée + manche distinct, sans tige.
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
 
 ## 9. Contrôle avant livraison d'un plan
