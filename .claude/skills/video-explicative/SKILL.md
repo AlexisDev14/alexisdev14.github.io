@@ -17,17 +17,20 @@ Le style est **unique** : un petit théâtre de marionnettes à tiges, plus matu
 
 La machine est petite (4 processeurs). Un rendu complet prend ≈ 1 min ; **les rendus passent un par un** (verrou intégré à `render.cjs` : un rendu lancé pendant un autre attend tout seul). Ce qui coûte du temps, ce n'est pas le rendu, ce sont les allers-retours : on les évite en réutilisant ce qui est validé (bibliothèque), en écrivant des fiches précises, et en contrôlant chaque plan **avant** de l'envoyer.
 
-| Qui | Modèle | Rôle |
-|---|---|---|
-| Toi (session principale) | Opus | Jugement : choix des sujets, script, fiche, conduite du rideau, consignes, contrôle de chaque plan, contrôle final, échanges avec l'utilisateur. |
-| Agent « présélection » | `model: "haiku"` | Étape 1 : lit des centaines de questions Firestore et renvoie une liste courte filtrée. |
-| Agent « faits » | `model: "sonnet"` | Étape 2 : vérifie dates, chiffres et attributions sur le web, avec sources. |
-| Agent « casting » | `model: "sonnet"` | Étape 3a : crée `persos.js` (ce qui manque au kit et à la bibliothèque) + planche de casting. |
-| Agent « plan N » | `model: "sonnet"` | Étape 3b : code, rend et sonorise UN plan, puis s'arrête. |
+| Qui | Modèle | Effort | Rôle |
+|---|---|---|---|
+| Toi (session principale) | Opus | (session) | Jugement : choix des sujets, script, fiche, conduite du rideau, consignes, contrôle visuel de chaque plan, contrôle final, échanges avec l'utilisateur. |
+| Agent « présélection » | `model: "haiku"` | `effort: "low"` | Étape 1 : lit des centaines de questions Firestore et renvoie une liste courte filtrée (tri en volume : le rôle type de Haiku). |
+| Agent « faits » | `model: "sonnet"` | `effort: "medium"` | Étape 2 : vérifie dates, chiffres et attributions sur le web, avec sources. |
+| Agent « casting » | `model: "opus"` | `effort: "high"` | Étape 3a : crée `persos.js` + planche de casting. Opus car c'est le travail le plus visuel et le plus durable (les personnages rejoignent la bibliothèque) : la plupart des retours de l'utilisateur portaient sur l'apparence des personnages. |
+| Agent « plan N » | `model: "sonnet"` | `effort: "high"` | Étape 3b : code, rend et sonorise UN plan, puis s'arrête. |
 
 Règles :
-- **Jamais Fable.** Toujours préciser `model` à l'appel de l'outil Agent.
+- **Jamais Fable.** Toujours préciser `model` **et `effort`** (valeurs ci-dessus) à l'appel de l'outil Agent : sans `model`, un agent hérite d'Opus et coûte bien plus cher pour rien.
+- **Escalade** : si l'utilisateur renvoie **deux fois le même défaut** sur un plan, ou si l'agent Sonnet échoue deux fois à le corriger, relance ce plan avec un agent `model: "opus"` (même consigne + `scene.js` existant + le défaut précis) au lieu d'insister.
 - **Enchaînement en tuilage** : dès que l'agent du plan N rend son rapport, lance l'agent du plan N+1 (en arrière-plan), **puis** fais ton contrôle du plan N. Au plus 2 agents de production actifs (N+1 qui avance, N en correction) ; leurs rendus se suivent grâce au verrou. Pour corriger un plan, relance le même agent avec SendMessage (il garde son contexte).
+- **Langue** : tout reste en français (charte, fiches, consignes, rapports) : Claude y garde ≈ 97–98 % de son niveau en anglais, et l'utilisateur doit pouvoir lire et corriger les règles. Les noms de code (fonctions, options) restent tels quels.
+- **Forme des consignes** : un agent ne voit rien de cette conversation. Structure chaque consigne avec des balises : `<contexte>` (vidéo, plan, fichiers à lire), `<tache>` (étapes numérotées), `<regles>` (interdits, rappels propres à ce plan, défauts déjà relevés par l'utilisateur), `<rapport>` (format court attendu). Le rapport doit rester court : il revient dans ton contexte.
 - Les consignes d'agent **renvoient vers les fichiers** (`CHARTE.md`, `API.md`, `bibliotheque/LISEZMOI.md`, fiche de la vidéo) au lieu de les recopier.
 - Tu ne lis jamais le journal complet d'un agent : seulement son rapport, ses planches et les gros plans utiles.
 - Dossier de travail : `<scratchpad>/<slug-du-sujet>/` (jamais dans le dépôt). `OUTILS` = chemin absolu du dossier `outils/` à côté de ce fichier.
@@ -124,7 +127,7 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
   - Préréglages : `rideau_conduite` (automatique), `decor_monte`, `decor_descend`, `decor_tombe`, `apparition`, `disparition`, `glisse`, `pas`, `objet_pose`, `chute`, `papier`, `ambiance`.
   - `freesound_cc0.py` sert à chercher un nouveau son ; vérifier sa licence CC0 avant de l'utiliser.
 
-### 3a. Casting (un agent Sonnet, seulement pour ce qui est « à créer »)
+### 3a. Casting (un agent Opus, seulement pour ce qui est « à créer »)
 Consigne :
 > Lis `OUTILS/CHARTE.md`, `OUTILS/API.md`, `OUTILS/bibliotheque/LISEZMOI.md` et `<travail>/FICHE.md` (section Distribution). Crée `<travail>/persos.js` (chargé après le kit et la bibliothèque) avec **seulement** les marionnettes, accessoires et décors marqués « à créer », dans le style exact du kit (papier découpé de profil, rivets, tiges, hachures, palette sourde) ; espace de noms propre à la vidéo (jamais `M.reb`). Les accessoires n'ont pas de tige (ils volent) ; les mains peuvent les tenir par leur corps. Pour vérifier, crée `<travail>/casting/scene.js` qui les montre tous sur scène (au repos, en marche, gestes clés, de profil dans les deux sens, objets tenus). Lance `bash OUTILS/construire.sh <travail>/casting`, puis `node OUTILS/render.cjs <travail>/casting --out <travail>/out --stills 30,150` et regarde `planche_cles.png`. Itère jusqu'à un résultat propre, au plus 4 fois. Règles : `CHARTE.md` sections 4 et 8. Rapport court : liste des fonctions créées (nom, options, pièces articulées).
 
