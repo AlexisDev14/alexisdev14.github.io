@@ -8,7 +8,7 @@ Le « type de récit » sert à varier : ne pas proposer un type utilisé par l'
 | Date | Sujet | Question Clark (id Firestore) | Thème | Type de récit | Mots-clés à écarter | Statut |
 |---|---|---|---|---|---|---|
 | 2026-10 | Le préfet Poubelle | (id non noté) | histoire / mots | nom propre devenu nom commun | Poubelle, Eugène Poubelle, préfet de la Seine, ordures, boîte à ordures | livrée |
-| 2026-10 | Le reblochon | DkUttMwQ1cOzZlpB1wq5 | gastronomie / mots | étymologie d'une ruse | reblochon, reblocher, redevance laitière, Savoie, fraude au lait | livrée (dessin animé) ; refaite en marionnettes : en cours |
+| 2026-10 | Le reblochon | DkUttMwQ1cOzZlpB1wq5 | gastronomie / mots | étymologie d'une ruse | reblochon, reblocher, redevance laitière, Savoie, fraude au lait | livrée (dessin animé, puis refaite en marionnettes) |
 | 2026-10 | L'Arc de triomphe de l'Étoile | NMBLoKwuSiLMp88Z4J8F | HIST | ironie du destin | Arc de triomphe, Napoléon, Étoile, retour des cendres, arche en toile 1810 | livrée |
 | — | Le Téflon (prochaine vidéo, choisie par l'utilisateur) | UNIk4MQqzbqgcIgshSbm | VIE | invention par accident | Téflon, Plunkett, poêle, Tefal, Marc Grégoire | prévue |
 
