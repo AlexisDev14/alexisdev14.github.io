@@ -23,3 +23,17 @@ DÉCORS : REB.init() (dans S.init) remplit REB.K = { aravis{aube,couchant}, prai
   + constantes REB.FEN, TABLE, TABLEBOIS, CHALET, CHATEAU, CHEMIN, SEAU, GOB, POT, MOULE, PLAT, PANIER, TABOURET, CLA.
 ```
 Réglages éprouvés : vache de profil `s` 0,75–0,9 (fente avant), `pose.humeur` −1 (très contente, yeux plissés) … 1 (fâchée, sourcil en V) ; éviter `tq` entre 0,3 et 0,6 ; `clarineK` 1,3 quand la clarine porte le gag. Couteau et fourchette : `rod:false` (ils volent). Avant d'utiliser une pièce, lire son en-tête dans `reblochon.js` (options exactes).
+
+## `poubelle.js` — « Monsieur Poubelle » (Paris, 1883 → aujourd'hui), espace `M.pou`
+Validé : préfet Poubelle (barbe collier blanche, habit bleu nuit brodé argent, bicorne à plumes blanches ; salut au bicorne, soupir, plume), propriétaire (haut-de-forme, rouge + fumée des oreilles), chiffonnier (hotte en osier, crochet ou pelle), rats, boîte à ordures 1883 (couvercle articulé qui avale, claque, salue comme un chapeau), journal « LE PETIT RÂLEUR » avec caricature, rue haussmannienne et café 1880.
+Dans `S.init` : `POU.init();` (pré-rend `POU.K` = rue, cafe, gueridon, chaise, morris). Lire l'en-tête-index de `poubelle.js` avant usage (options exactes).
+
+```
+MARIONNETTES : POU.prefet(pose,x,y,s,o) (passer par elle ou POU.prefetPose pour salut/soupir) ; pose.tenu 'rien'|'plume'|'rouleau', pose.salut 0..1, pose.soupir 0..1
+               C.proprio (pose.rouge, pose.fumee, pose.leve) ; C.chiffonnier (pose.tenu 'crochet'|'pelle', pose.deuxMains + POU.manche)
+ACCESSOIRES  : POU.boite(x,y,s,{ouvre, contenu 'putrescible'|'papiers'|'verre'|'tout'|'vide', salut, bicorne, bande 'vert'|'ocre'|'bleu'|hex, huitre, mouche, t})
+               POU.bac({couleur 'jaune'|'vert'}), POU.mainModerne + POU.yaourt, POU.pupitre / POU.arrete / POU.rouleau(deroule), POU.journal(face 'caricature'|'dos'),
+               POU.tas(taille), POU.rat(t,x,y,s,{trot, tient 'croute'|'arete'}), POU.bicorne
+DÉCORS       : POU.K.rue (poser à 540 ; POU.RUE.portes [210,540,870], POU.RUE.cinq, POU.RUE.corniches), POU.K.cafe, gueridon, chaise, morris
+```
+Réglages éprouvés : marionnettes à `s` 0,9–0,95 (≈ 480–500 px) ; boîtes du tri à 1,1 (3 de front) ou 0,88 (5 de front) avec `bande` (la boîte est entièrement teintée) ; tas d'ordures à 1,35 avec étirement vertical 1,35 ; rats à 1,4–1,5 ; main moderne à 1,5 ; journal à 1,29. Bras levé « brandir » : armF_up ≈ −2,0, armF_lo ≈ −0,85. Un inconnu « dans l'ombre » : préfet sans bicorne assombri à 70 %, découpé au bord de la boîte (voir le plan 1 de la vidéo).
