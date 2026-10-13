@@ -59,6 +59,7 @@
 - Image qui contredit la phrase entendue ; anachronisme (tour Eiffel avant 1889, objets d'une autre époque).
 - Objet trop gros qui écrase la scène (fromage géant) ; part découpée en bloc informe → une part se lit comme un **coin triangulaire** pointe vers le centre, faces coupées couleur pâte ; ustensile mal dessiné (couteau qui ressemble à une spatule) → lame effilée + manche distinct, sans tige.
 - Objet mal tenu (gobelet tenu par le bord, couché, ouverture vers l'extérieur) → la main **entoure le corps** de l'objet, ouverture vers le haut ou vers la bouche quand il boit ; objet posé qui flotte ou cache les jambes.
+- Changement de posture trop abrupt (se rasseoir « d'un bond », reprise du travail sèche) → enchaîner par étapes lisibles (se tourner, se pencher, s'asseoir, reprendre les mains au travail) sur 0,8–1,2 s, avec anticipation et ralenti en fin de geste.
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
 
 ## 9. Contrôle avant livraison d'un plan
