@@ -9,5 +9,7 @@
   };
   // Mots-clés de la voix (aucun bruitage marqué dessus) : [début, fin] en secondes
   TL.MOTS = [];
+  // Sauts voulus : instants (s) d'un geste discret prévu (objet posé, chapeau soulevé, couvercle qui claque) : sauts.py ne les signale pas
+  TL.SAUTS = [];
   if (typeof module !== 'undefined') module.exports = TL; else g.TL = TL;
 })(this);

@@ -7,7 +7,10 @@
 #  - fond nu : zone d'un seul tenant, noir pur (le canevas n'est jamais repeint : sans décor, la scène reste noire,
 #    éclairée seulement par les projecteurs), d'au moins 3 % de la zone de scène, visible 2 images ou plus.
 # Limite : une scène de nuit entièrement noire déclenche le contrôle de fond nu (à vérifier à l'œil).
-import os, subprocess, sys
+# Sauts voulus : un geste discret prévu (objet posé, chapeau soulevé, couvercle qui claque…) se déclare dans le timeline.js
+# du plan, une seule instruction : `TL.SAUTS = [2.0, 6.65];` (secondes). Un saut à ± 0,2 s d'un de ces instants est
+# signalé « OK saut voulu » au lieu d'ATTENTION. timeline.js est cherché à côté de la vidéo, sinon dans <video>/pN/.
+import os, re, subprocess, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
@@ -22,6 +25,17 @@ NU_NOIR = 6                           # gris ≤ 6 : fond nu (noir)
 NU_SURFACE = 0.03                     # fraction minimale de la zone de scène
 NU_IMAGES = 2
 MAX_LIGNES = 6
+TOL_VOULU = 0.2                       # secondes autour d'un instant de TL.SAUTS
+
+
+def sauts_voulus(video):
+    # TL.SAUTS du timeline.js du plan : <video>/out/pN/pN_final.mp4 → <video>/pN/timeline.js
+    d = os.path.dirname(os.path.abspath(video)); n = os.path.basename(d)
+    for tl in (os.path.join(d, 'timeline.js'), os.path.join(os.path.dirname(os.path.dirname(d)), n, 'timeline.js')):
+        if os.path.isfile(tl):
+            m = re.search(r'TL\.SAUTS\s*=\s*\[([^\]]*)\]', open(tl, encoding='utf-8').read())
+            return [float(x) for x in re.findall(r'-?\d+(?:\.\d+)?', m.group(1))] if m else []
+    return []
 
 
 def decoder(video):
@@ -78,7 +92,7 @@ def dilater(m, r):
     return out
 
 
-def sauts(a):
+def sauts(a, voulus=()):
     n = len(a)
     gh, gw = H // B, W // B
     # écart moyen par bloc entre l'image k et k-1, k = 1..n-1  → d[k-1]
@@ -95,8 +109,15 @@ def sauts(a):
         if hit.any():
             ys, xs = np.nonzero(hit)
             alertes[k] = (int(xs.min()) * B * S, int(ys.min()) * B * S, (int(xs.max()) + 2) * B * S, (int(ys.max()) + 2) * B * S)
-    lignes = [f'ATTENTION saut à {duree(f0, f1)} (zone x {bb[0]}–{bb[2]}, y {bb[1]}–{bb[3]})' for f0, f1, bb in regrouper(alertes)]
-    afficher(lignes, 'OK   aucun saut brusque')
+    lignes, ok = [], []
+    for f0, f1, bb in regrouper(alertes):
+        if any(f0 / FPS - TOL_VOULU <= v <= f1 / FPS + TOL_VOULU for v in voulus):
+            ok.append(f'OK   saut voulu à {duree(f0, f1)} (TL.SAUTS)')
+        else:
+            lignes.append(f'ATTENTION saut à {duree(f0, f1)} (zone x {bb[0]}–{bb[2]}, y {bb[1]}–{bb[3]})')
+    for l in ok:
+        print(l)
+    afficher(lignes, 'OK   aucun saut brusque' if not ok else 'OK   aucun autre saut')
 
 
 def composantes(m):
@@ -148,7 +169,7 @@ def main():
     a = decoder(sys.argv[1])
     if a is None or len(a) < 4:
         return
-    sauts(a)
+    sauts(a, sauts_voulus(sys.argv[1]))
     fond_nu(a)
 
 

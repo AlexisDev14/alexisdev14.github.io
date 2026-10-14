@@ -6,7 +6,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md` et `API.md`. Ton cahier de
 - `<video>/persos.js` : **seulement** les marionnettes, accessoires et décors marqués « à créer » dans la distribution.
 - `<video>/persos.md` : le **mode d'emploi** de `persos.js`, d'après `OUTILS/gabarits/persos.md`. C'est le seul document que liront les agents des plans : ils n'ouvriront pas `persos.js`. Tout ce qu'ils doivent savoir pour appeler une pièce y est (fonction, options et valeurs permises, points de prise et points nommés, taille en px à l'échelle conseillée, pièces articulées, pièges). 150 lignes au plus.
 - `<video>/casting/scene.js` : la planche de casting et les 4 tests obligatoires (§5).
-- Tu ne crées pas `decors.js` : il est réservé aux décors que les plans se partagent. Un décor récurrent de la distribution va dans `persos.js` (pré-rendu dans `init`).
+- Tu ne crées pas de fichier dans `decors/` : il est réservé aux décors que les plans se partagent. Un décor récurrent de la distribution va dans `persos.js` (pré-rendu dans `init`).
 
 ## 2. Style (CHARTE §4, résumé)
 - Papier découpé **de profil**, proportions adultes (≈ 1/6 de tête), traits fins, hachures de gravure, palette sourde (bleu nuit, vert éteint, ocre, ivoire, rouge sang, or vieilli), liseré blanc de découpe, ombre portée.

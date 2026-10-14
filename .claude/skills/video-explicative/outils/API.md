@@ -4,14 +4,14 @@ Référence EXACTE du kit (`kit/src/*.js`, assemblé en `kit/marionnettes.js`). 
 
 ## 0. Principe et fichiers d'un plan
 
-Un plan = 4 fichiers dans `<video>/pN/` (+ `<video>/persos.js` et son mode d'emploi `persos.md`, et `<video>/decors.js`, partagés par tous les plans de la vidéo) :
+Un plan = 4 fichiers dans `<video>/pN/` (+ `<video>/persos.js` et son mode d'emploi `persos.md`, et les décors partagés `<video>/decors/pN.js`, réunis pour tous les plans de la vidéo) :
 
 | Fichier | Rôle |
 |---|---|
-| `timeline.js` | `TL.EVENTS` (instants nommés, nombres littéraux), `TL.MOTS` (fenêtres des mots-clés de la voix). Lu par `scene.js` ET `mixage.py`. |
+| `timeline.js` | `TL.EVENTS` (instants nommés, nombres littéraux), `TL.MOTS` (fenêtres des mots-clés de la voix), `TL.SAUTS` (instants des sauts voulus, ignorés par `sauts.py`). Lu par `scene.js` ET `mixage.py`. |
 | `scene.js` | `const SCENE = (() => { … S.init = …; S.draw = (t) => …; return S; })();` — seul identifiant global déclaré. |
 | `persos.js` | personnages / accessoires propres à la vidéo (§7). Chargé après le kit, avant `decors.js` et `scene.js`. Les plans lisent `persos.md`, pas ce fichier. |
-| `decors.js` | décors partagés entre plans (§4d), espace `M.dec`. Chargé après `persos.js`, avant `scene.js`. |
+| `decors.js` | décors partagés entre plans (§4d), espace `M.dec`, réuni par `construire.sh` depuis `<video>/decors/*.js`. Chargé après `persos.js`, avant `scene.js`. |
 | `CONSIGNE.md` | écrit par `construire.sh` : `FICHE.md` sans le script ni les consignes des autres plans. C'est la fiche que lit l'agent du plan. |
 | `mixage.py` | bruitages (§9). |
 
@@ -158,7 +158,7 @@ Chaque plan **écrit son état final** (ce que le plan suivant doit reprendre à
 `construire.sh` réunit tous ces fichiers dans le `raccords.js` de chaque plan (chargé avant `persos.js`). Le plan N+1 **lit** `M.RACC['p' + (M.PLAN - 1)]` pour placer son image 0 au lieu de recopier des valeurs à la main ; si le plan N est corrigé, il suffit de relancer `construire.sh` et `produire.sh` du plan N+1.
 Contenu utile : positions, échelles, sens (`dir`), poses finales (angles importants), état des objets (couvercles, contenus), décor et ciel, personnages encore en scène.
 
-**Décors partagés — `<video>/decors.js`** : un décor qui sert à plusieurs plans (rivière, cuisine, labo…) s'écrit une seule fois ici au lieu d'être recopié de `scene.js` en `scene.js`. `construire.sh` le copie dans chaque plan, chargé après `persos.js` et avant `scene.js`. Forme : `M.dec = M.dec || {}; M.dec.riviere = function (t, up) { … };` (pas de `const` global : même portée que les autres scripts) ; chaque fonction prend le décalage vertical `up` (le décor qui monte ou descend) ; pré-rendus dans `M.dec.init()`, appelé dans `S.init`. Le premier plan qui en a besoin l'ajoute en fin de fichier ; les suivants l'appellent sans modifier ce qui existe (variante = option ou nouvelle fonction). Fonction pure de `t`, comme `S.draw`.
+**Décors partagés — `<video>/decors/pN.js`** (un fichier par plan : deux agents en tuilage n'écrivent jamais dans le même fichier) : un décor qui sert à plusieurs plans (rivière, cuisine, labo…) s'écrit une seule fois, dans le fichier du plan qui le crée, au lieu d'être recopié de `scene.js` en `scene.js`. `construire.sh` réunit tous les `decors/*.js` (et l'ancien `<video>/decors.js` s'il existe) dans le `decors.js` de chaque plan, chargé après `persos.js` et avant `scene.js`. Forme : `M.dec.riviere = function (t, up) { … };` (`M.dec` existe déjà ; pas de `const` global) ; chaque fonction prend le décalage vertical `up` ; pré-rendus dans `M.dec.init_pN = function () { … };` — `M.dec.init()`, appelé dans `S.init`, lance tous les `init_*`. Les plans suivants appellent ces fonctions sans les modifier (variante = nouvelle fonction dans leur propre fichier). Fonction pure de `t`, comme `S.draw`.
 
 ## 5. Matériel interne exposé pour personnages propres : `M.X`
 `M.X = { legPts(th=1), armPts(len=98), forePts(kind), foreTuck(), NAP_HEAD, AR_HEAD, GR_HEAD, earPaint(x,y), eye(f,x,y,sz=1), brow(f,x,y,col,lw), mouth(f,x,y,col), handPaint(skin,kind), HAND_OPEN, HAND_FIST }`

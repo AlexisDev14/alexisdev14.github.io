@@ -135,7 +135,7 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 | `bibliotheque/` | Personnages, accessoires et décors validés des vidéos précédentes (index : `LISEZMOI.md`), chargés automatiquement dans chaque plan. | toi pour la distribution ; agents : l'en-tête du fichier utilisé |
 | `exemples/` | `arc-de-triomphe/m1…m6` (scènes réussies, sauf leur rideau codé à la main) ; `persos_chimiste.js` (marionnette complète commentée). | par extrait, pour une recette précise |
 | `gabarits/` | Départ de `scene.js` (avec `M.rideau(t)`), `timeline.js` (`TL.EVENTS`, `TL.MOTS`), `mixage.py` (avec `m.rideau_conduite()`) et `persos.md` (mode d'emploi rempli par le casting). | copiés par `construire.sh` ; `persos.md` par le casting |
-| `construire.sh <travail>/pN` | Prépare le dossier du plan (gabarits, kit, bibliothèque, conduite du rideau, raccords, `persos.js`, `decors.js`, `index.html`), écrit **`pN/CONSIGNE.md`** (la fiche sans le script ni les autres plans) et vérifie la syntaxe. | |
+| `construire.sh <travail>/pN` | Prépare le dossier du plan (gabarits, kit, bibliothèque, conduite du rideau, raccords, `persos.js`, `decors.js`, `index.html`), écrit **`pN/CONSIGNE.md`** (la fiche sans le script ni les autres plans ; affiche une ligne ATTENTION si la fiche n'a pas de titre `### Plan N/6` pour ce plan) et vérifie la syntaxe. | |
 | `essai.sh <travail>/pN [4.5,8.3]` | `construire.sh` + images clés (secondes 0 à 9, 9,97 et les instants donnés) + `planche_cles.png`, en une commande et une ligne de sortie. | |
 | `render.cjs <dossier> --stills …` | Rendu (processeur, `--workers 3` pour le complet ; jamais `--gpu`). Verrou : les rendus se suivent. | |
 | `produire.sh <travail>/pN` | Rendu complet, bruitages, `pN_final.mp4`, `planche.png`, puis contrôles automatiques : `verifier.sh` (format, durée, son), `sauts.py` (objet qui surgit ou disparaît d'une image à l'autre, fond nu de la scène) et `raccord.sh` (coupe avec le plan précédent). ≈ 30 à 70 s. | |
@@ -143,7 +143,7 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 | `sfx_lib.py` + `sons/` | Bruitages tout faits et clips CC0. **`python3 -I OUTILS/sfx_lib.py --aide`** liste en 17 lignes les préréglages et leurs paramètres. `freesound_cc0.py` cherche un nouveau son (vérifier sa licence CC0). | agents : `--aide`, jamais le fichier |
 | `drive_envoi.py` | Envoi sur le Drive à la livraison. | |
 
-Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + `persos.md` (casting), `decors.js` (décors partagés entre plans, écrits par les plans : règles dans `MEMO-PLAN.md` §4), `raccords/pN.js`, `pN/`, `casting/`, `out/`.
+Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + `persos.md` (casting), `decors/pN.js` (décors partagés entre plans, un fichier par plan pour que deux agents en tuilage n'écrivent jamais au même endroit : règles dans `MEMO-PLAN.md` §4), `raccords/pN.js`, `pN/`, `casting/`, `out/`.
 
 ### 3a. Casting (agent `video-atelier` avec `model: "opus"`, seulement pour ce qui est « à créer »)
 Consigne :
@@ -157,14 +157,15 @@ Pour N = 1 à 6 (l'agent N+1 démarre dès le rapport de N, voir §0) :
 > 1. Écris `timeline.js` (instants calés sur les fenêtres de la voix, `TL.MOTS`), puis `scene.js`, puis `mixage.py` (garde `m.rideau_conduite()` ; préréglages de `python3 -I OUTILS/sfx_lib.py --aide`, uniquement pour les actions visibles).
 >    - Rideau : **`M.rideau(t)`** seulement (jamais codé à la main) ; changement de décor avec `M.rideauApres(t, 'id')`.
 >    - Positions : celles du plan de scène (B2). Raccords : image 0 d'après `M.RACC['p' + (M.PLAN - 1)]` ; à la fin, ton état final dans `TRAVAIL/raccords/pN.js`.
->    - Un décor qui servira aussi à un autre plan va dans `TRAVAIL/decors.js` (règles : `MEMO-PLAN.md` §4).
+>    - Un décor qui servira aussi à un autre plan va dans `TRAVAIL/decors/pN.js`, ton fichier (règles : `MEMO-PLAN.md` §4).
+>    - Un geste discret prévu (objet posé, couvercle qui claque, chapeau soulevé) se déclare dans `TL.SAUTS` pour que `sauts.py` ne le signale pas.
 > 2. Itère avec `bash OUTILS/essai.sh TRAVAIL/pN <instants clés>` : regarde `planche_cles.png`, puis en grand les images utiles, et corrige ; 3 tours au plus, puis gros plans sur les zones à risque.
 > 3. Auto-contrôle avant le rendu complet : `MEMO-PLAN.md` §7, point par point sur les images.
 > 4. Lance `bash OUTILS/produire.sh TRAVAIL/pN`. Regarde `planche.png`. `verifier.sh` tout « OK » ; examine chaque ligne « ATTENTION » (`mixage.py`, `sauts.py`, `raccord.sh`) et corrige-la ou justifie-la dans ton rapport.
 >
-> Interdits : texte, lettres, chiffres, logos (sauf texte explicitement demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu ; rideau codé à la main ; git. Ne modifie ni `OUTILS/`, ni `persos.js`, ni `rideau.json`, ni `FICHE.md`, ni les raccords des autres plans, ni les fonctions de `decors.js` écrites par un autre plan. Ce qui est propre au plan va dans `scene.js` ; si un correctif de `persos.js` ou de la conduite est indispensable, décris-le dans ton rapport.
+> Interdits : texte, lettres, chiffres, logos (sauf texte explicitement demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu ; rideau codé à la main ; git. Ne modifie ni `OUTILS/`, ni `persos.js`, ni `rideau.json`, ni `FICHE.md`, ni les raccords des autres plans, ni le fichier `decors/` d'un autre plan. Ce qui est propre au plan va dans `scene.js` ; si un correctif de `persos.js` ou de la conduite est indispensable, décris-le dans ton rapport.
 >
-> Rapport court : chemin de `pN_final.mp4` ; déroulé seconde par seconde calé sur la voix ; bruitages (instant → préréglage) ; ajouts à `decors.js` ; lignes « ATTENTION » restantes et pourquoi ; limites connues.
+> Rapport court : chemin de `pN_final.mp4` ; déroulé seconde par seconde calé sur la voix ; bruitages (instant → préréglage) ; ajouts à `decors/pN.js` ; lignes « ATTENTION » restantes et pourquoi ; limites connues.
 
 **Contrôle ciblé (toi), avant d'envoyer le plan** :
 - Lis `planche.png` **à petite taille d'abord** (comme sur un téléphone : l'objet de chaque mot-clé se lit-il ?), puis fais 1 ou 2 gros plans avec `planche.sh` : geste clé et chute, mains et objets tenus, coudes et épaules, transitions de posture, bords du cadre.
@@ -245,6 +246,6 @@ Pas de nouveau rendu complet. Vérifie seulement :
 
   Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
 - Passe le sujet à « livrée » dans `videos-realisees.md`, avec **l'id de la question, son `theme_code` et le lien du dossier Drive** (indispensables pour refaire la vidéo ou sa couverture).
-- **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre) et `<travail>/persos.md` dans `outils/bibliotheque/<slug>.md` (mode d'emploi, à lire à la place du `.js`), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé). Un décor de `<travail>/decors.js` réutilisable rejoint aussi la bibliothèque (ajouté à `<slug>.js` : `M.dec.x` y devient `M.<espace de la vidéo>.x`, car `M.dec` est propre à chaque vidéo).
+- **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre) et `<travail>/persos.md` dans `outils/bibliotheque/<slug>.md` (mode d'emploi, à lire à la place du `.js`), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé). Un décor de `<travail>/decors/*.js` réutilisable rejoint aussi la bibliothèque (ajouté à `<slug>.js` : `M.dec.x` y devient `M.<espace de la vidéo>.x`, car `M.dec` est propre à chaque vidéo).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas (et, s'il concerne tous les plans, une ligne dans `outils/MEMO-PLAN.md`).
 - Committe et pousse ces fichiers (registre, bibliothèque, charte), jamais les rendus.
