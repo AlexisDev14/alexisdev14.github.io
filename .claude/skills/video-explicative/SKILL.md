@@ -90,7 +90,7 @@ Dès le choix : lance l'agent « faits » **en arrière-plan** et commence la fi
 
 1. **Faits** : agent `model: "sonnet"` : « Vérifie sur le web (sources de la question + au moins une source indépendante) chaque date, chiffre, nom et attribution de ce récit : […]. Renvoie un tableau fait → confirmé / nuancé / faux, avec URL. » En cas de doute : formuler plus largement ou retirer, et le signaler.
 2. **Script (toi)** :
-   - **6 paragraphes, un par plan, de 22 à 26 mots prononcés** (≈ 10 s à 2,5 mots/s). Compter comme c'est dit : « 1836 » = « mille huit cent trente-six » = 5 mots. Total ≈ 145–150 mots.
+   - **6 paragraphes, un par plan, de 20 à 24 mots prononcés et ≤ 155 caractères balises comprises, au plus un « … » par paragraphe** (la voix « Alexandre » en `eleven_v4` dit ≈ 2,3 mots/s et chaque « … » ajoute ≈ 0,5 s ; mesuré sur le Téflon : 147–188 caractères → 9,4–11,8 s, les paragraphes à 2 « … » débordent). Cible : voix ≤ 9,3 s. Compter comme c'est dit : « 1836 » = « mille huit cent trente-six » = 5 mots. Total ≈ 145–150 mots.
    - **Plan 1 — accroche** : mystère léger, sans formule trop appuyée.
    - Le fait clé arrive quand on le découvre à l'image.
    - **Une chute par plan**, courte, sur sa propre phrase, dite à plat (« Évidemment. », « Modestement. »).

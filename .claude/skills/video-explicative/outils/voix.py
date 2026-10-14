@@ -97,7 +97,10 @@ def main():
     open(os.path.join(d, 'MOTS.md'), 'w', encoding='utf-8').write('\n'.join(lignes))
     # voix complète calée sur la vidéo : chaque plan complété à 10,0 s, bout à bout (60 s), à poser sous les 6 plans au montage
     mp3 = [os.path.join(d, f'p{n}.mp3') for n in range(1, 7)]
-    if all(os.path.exists(f) for f in mp3):
+    longs = [n for n in range(1, 7) if os.path.exists(os.path.join(d, f'p{n}.json')) and json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))['duree'] > 10.0]
+    if longs:
+        print('voix_complete.mp3 non faite : p' + ', p'.join(map(str, longs)) + ' dépasse 10 s (elle serait coupée en plein mot)')
+    elif all(os.path.exists(f) for f in mp3):
         import subprocess
         filt = ''.join(f'[{i}:a]apad=whole_dur=10,atrim=0:10[a{i}];' for i in range(6)) + ''.join(f'[a{i}]' for i in range(6)) + 'concat=n=6:v=0:a=1[o]'
         subprocess.run(['ffmpeg', '-v', 'error', '-y', *sum((['-i', f] for f in mp3), []), '-filter_complex', filt, '-map', '[o]',
