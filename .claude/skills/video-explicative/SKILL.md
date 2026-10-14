@@ -47,14 +47,26 @@ Règles :
 
 ## Étape 1 — Proposer 3 sujets (ARRÊT 1)
 
-### Anti-doublon
-- Lire `videos-realisees.md`. Écarter toute question dont l'id y figure et tout sujet qui partage un personnage, un objet, un événement ou un mot-clé de la colonne « Mots-clés à écarter ».
+### Anti-doublon et variété (registre partagé entre sessions et routines)
+`videos-realisees.md` est le **registre commun** de toutes les sessions et routines : chacune y voit ce que les autres ont livré ou ont en cours. Il vit dans git : on le lit toujours **à jour** et on y réserve son sujet **avant** de travailler.
+- **D'abord** : `python3 -I OUTILS/registre.py etat` (met le dépôt à jour, affiche les dernières vidéos, les sujets en cours ailleurs, le nombre de vidéos par thème et les **thèmes conseillés**).
+- Écarter toute question dont l'id figure au registre, tout sujet « en cours » dans une autre session, et tout sujet qui partage un personnage, un objet, un événement ou un mot-clé de la colonne « Mots-clés à écarter ».
+- **Varier le thème** : les sujets proposés viennent des thèmes conseillés (absents des 3 dernières vidéos, les moins servis d'abord ; ACTU exclu). On garde un thème déjà vu récemment seulement si l'histoire est nettement meilleure, et on le dit. La présélection Haiku reçoit ces thèmes.
 - Varier le **type de récit** : aucun des 3 sujets ne reprend le type des 2 dernières vidéos (sauf demande), et les 3 ont 3 types différents.
-- Dès que l'utilisateur choisit : ajouter sa ligne au registre (statut « en cours »), la passer à « livrée » à la fin ; committer et pousser **ce seul fichier** (jamais les rendus).
+- **Dès que le sujet est choisi** (par l'utilisateur, ou par toi en routine) : `python3 -I OUTILS/registre.py reserver "<Sujet>" <id> <THEME> "<type>" "<mots-clés>"` réserve la ligne « en cours », committe et pousse ce seul fichier. Code de sortie 2 = une autre session vient de le prendre : prendre le suivant. La colonne Thème commence toujours par le code Clark (HIST, GEO, SCI…).
+- À la livraison : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>"`. Jamais les rendus dans git.
+
+### En routine (session planifiée, sans utilisateur)
+Une routine ne peut pas demander : elle applique le **mode autonome** du début à la fin.
+1. `registre.py etat` ; présélection Haiku limitée aux thèmes conseillés.
+2. Choisis toi-même le meilleur sujet selon les critères ci-dessous, réserve-le aussitôt (`registre.py reserver`) ; s'il est déjà pris, le suivant.
+3. Faits, script, fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
+4. Livraison complète : Drive (fichier texte avec le prompt de couverture + 6 plans), `registre.py livrer`, bibliothèque, charte.
+5. Deux routines peuvent tourner le même jour : espace-les de quelques heures (limite d'usage sur 5 h glissantes) et laisse chacune dans sa propre session.
 
 ### Présélection (agent Haiku)
 Lance un agent `model: "haiku"` avec cette consigne (à compléter) :
-> Lis la collection Firestore `questions` du projet `clark-app-9b938` (connecteur Firestore Clark, outil `list_documents`, chercher « Firestore_Clark » avec ToolSearch ; parent `projects/clark-app-9b938/databases/(default)/documents` ; `orderBy: "random_id"`, `pageSize` 300, 2 pages différentes ; `mask` : text, choices, correct_answer_index, theme_code, type, status, qc, explanation, stats). **Lecture seule.** Si une réponse est enregistrée dans un fichier, analyse-la avec `python3 -I`. Garde seulement `status` ACTIVE, `qc.status` pass, `type` EVERGREEN, et écarte les ids et mots-clés suivants : [liste du registre]. Renvoie les 15 meilleures pour une vidéo-récit (anecdote avec ironie ou retournement, personnage ou objet dessinable, lien avec le quotidien, faits intemporels), sur au moins 5 thèmes : pour chacune id, theme_code, question, réponse, anecdote en 2 lignes, taux de réussite.
+> Lis la collection Firestore `questions` du projet `clark-app-9b938` (connecteur Firestore Clark, outil `list_documents`, chercher « Firestore_Clark » avec ToolSearch ; parent `projects/clark-app-9b938/databases/(default)/documents` ; `orderBy: "random_id"`, `pageSize` 300, 2 pages différentes ; `mask` : text, choices, correct_answer_index, theme_code, type, status, qc, explanation, stats). **Lecture seule.** Si une réponse est enregistrée dans un fichier, analyse-la avec `python3 -I`. Garde seulement `status` ACTIVE, `qc.status` pass, `type` EVERGREEN, et écarte les ids et mots-clés suivants : [liste du registre]. Garde en priorité les thèmes suivants : [thèmes conseillés par `registre.py etat`]. Renvoie les 15 meilleures pour une vidéo-récit (anecdote avec ironie ou retournement, personnage ou objet dessinable, lien avec le quotidien, faits intemporels), au moins 10 dans les thèmes prioritaires, sur au moins 5 thèmes : pour chacune id, theme_code, question, réponse, anecdote en 2 lignes, taux de réussite.
 
 ### Choix (toi)
 Critères :
@@ -142,6 +154,7 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 | `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` | Planche de 16 images ou gros plan. | |
 | `sfx_lib.py` + `sons/` | Bruitages tout faits et clips CC0. **`python3 -I OUTILS/sfx_lib.py --aide`** liste en 17 lignes les préréglages et leurs paramètres. `freesound_cc0.py` cherche un nouveau son (vérifier sa licence CC0). | agents : `--aide`, jamais le fichier |
 | `drive_envoi.py` | Envoi sur le Drive à la livraison. | |
+| `registre.py etat / reserver / livrer` | Registre partagé entre sessions et routines : état et thèmes conseillés, réservation d'un sujet (commit + push, refus si déjà pris), passage à « livrée ». | toi |
 
 Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + `persos.md` (casting), `decors/pN.js` (décors partagés entre plans, un fichier par plan pour que deux agents en tuilage n'écrivent jamais au même endroit : règles dans `MEMO-PLAN.md` §4), `raccords/pN.js`, `pN/`, `casting/`, `out/`.
 
@@ -245,7 +258,7 @@ Pas de nouveau rendu complet. Vérifie seulement :
   | ACTU | Actualités | #DC2626 | #991B1B | bright red |
 
   Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
-- Passe le sujet à « livrée » dans `videos-realisees.md`, avec **l'id de la question, son `theme_code` et le lien du dossier Drive** (indispensables pour refaire la vidéo ou sa couverture).
+- Passe le sujet à « livrée » : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>"` (la ligne garde l'id de la question et son `theme_code`, indispensables pour refaire la vidéo ou sa couverture).
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre) et `<travail>/persos.md` dans `outils/bibliotheque/<slug>.md` (mode d'emploi, à lire à la place du `.js`), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé). Un décor de `<travail>/decors/*.js` réutilisable rejoint aussi la bibliothèque (ajouté à `<slug>.js` : `M.dec.x` y devient `M.<espace de la vidéo>.x`, car `M.dec` est propre à chaque vidéo).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas (et, s'il concerne tous les plans, une ligne dans `outils/MEMO-PLAN.md`).
 - Committe et pousse ces fichiers (registre, bibliothèque, charte), jamais les rendus.

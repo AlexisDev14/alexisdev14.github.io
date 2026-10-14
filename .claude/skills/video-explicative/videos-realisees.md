@@ -1,6 +1,6 @@
 # Vidéos déjà réalisées — registre anti-doublon
 
-À lire **avant** de proposer des sujets (étape 1). À compléter **dès que l'utilisateur choisit un sujet** (ligne « en cours »), puis passer la ligne à « livrée » à la fin, avec **l'id de la question, son `theme_code` et le lien du dossier Drive** : sans eux, refaire la vidéo ou sa couverture oblige à tout rechercher.
+Registre COMMUN à toutes les sessions et routines : à lire à jour **avant** de proposer des sujets (`python3 -I outils/registre.py etat`) et à remplir par `registre.py reserver` / `livrer`. À compléter **dès que l'utilisateur choisit un sujet** (ligne « en cours »), puis passer la ligne à « livrée » à la fin, avec **l'id de la question, son `theme_code` et le lien du dossier Drive** : sans eux, refaire la vidéo ou sa couverture oblige à tout rechercher.
 
 Une question Clark déjà utilisée, ou un sujet trop proche (même personnage, même objet, même événement), ne doit plus être proposé.
 Le « type de récit » sert à varier : ne pas proposer un type utilisé par l'une des 2 dernières vidéos, sauf si l'utilisateur le demande.
