@@ -10,8 +10,9 @@
 #       ligne « en cours », committe et pousse ce seul fichier (sur la branche courante et sur master), en réessayant si
 #       une autre session a poussé entre-temps. Code de sortie 2 = déjà pris : choisir un autre sujet.
 #
-#   python3 -I registre.py livrer "<Sujet>" "<lien du dossier Drive>"
-#       Passe la ligne du sujet à « livrée » avec le lien Drive, committe et pousse.
+#   python3 -I registre.py livrer "<Sujet>" "<lien du dossier Drive>" [<id du contenu au BO>]
+#       Passe la ligne du sujet à « livrée » avec le lien Drive (et l'id du contenu dans le planificateur du BO, ex.
+#       v_20261015_0400), committe et pousse.
 import datetime, os, re, subprocess, sys, time
 
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -103,13 +104,13 @@ def reserver(sujet, qid, theme, typ, mots):
     print(f'RÉSERVÉ : « {sujet} » ({theme}) est en cours dans le registre partagé.')
 
 
-def livrer(sujet, lien):
+def livrer(sujet, lien, bo=''):
     tirer()
     txt = open(REG, encoding='utf-8').read()
     for r in lignes():
         if r['sujet'] == sujet:
             c = [x.strip() for x in r['brut'].strip().strip('|').split('|')]
-            c[6] = 'livrée'
+            c[6] = 'livrée' + (f' (BO {bo})' if bo else '')
             if len(c) >= 8:
                 c[7] = f'[{sujet}]({lien})' if lien else c[7]
             txt = txt.replace(r['brut'], '| ' + ' | '.join(c) + ' |\n', 1)
@@ -126,7 +127,7 @@ if __name__ == '__main__':
         etat()
     elif a[:1] == ['reserver'] and len(a) == 6:
         reserver(*a[1:])
-    elif a[:1] == ['livrer'] and len(a) == 3:
+    elif a[:1] == ['livrer'] and len(a) in (3, 4):
         livrer(*a[1:])
     else:
         print(__doc__ if __doc__ else open(__file__, encoding='utf-8').read().split('import')[0])

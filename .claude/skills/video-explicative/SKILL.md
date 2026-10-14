@@ -12,7 +12,7 @@ Le style est **unique** : un petit théâtre de marionnettes à tiges, plus matu
 **Déroulé : 3 étapes, 2 arrêts pour validation (1. le sujet ; 2. le script + la fiche des plans), puis les 6 plans sans arrêt.** Ne saute jamais un arrêt, sauf en **mode autonome** (ci-dessous).
 
 - **Mode autonome** : si l'utilisateur dit d'enchaîner sans lui (« je pars, fais les six plans »), saute les arrêts restants ; écris la fiche, lance le casting et la production, et donne la fiche résumée (distribution, conduite du rideau, gag de chaque plan) dans le premier message de production. Les choix de fond déjà validés (sujet, script) ne changent pas.
-- **Refaire une vidéo déjà livrée** (autre style, nouvelle version) : pas d'étape 1. Retrouve d'abord, dans l'ordre : la ligne du registre (id de la question, thème, lien du fichier texte), le fichier texte du Drive (script, version ElevenLabs), à défaut l'historique des sessions. Puis **liste les gags et idées de mise en scène de l'ancienne version** (rapports, fiche, fichiers `scene.js` s'ils existent, sinon demande à l'utilisateur ce qu'il avait aimé) : la fiche les reprend par défaut, adaptés au nouveau style. (Leçon de « Monsieur Poubelle » : l'inconnu qui sort de la poubelle, oublié puis redemandé.)
+- **Refaire une vidéo déjà livrée** (autre style, nouvelle version) : pas d'étape 1. Retrouve d'abord, dans l'ordre : la ligne du registre (id de la question, thème, lien du dossier Drive, id du contenu au BO) ; le contenu du planificateur du BO (connecteur Firestore Clark, `get_document` sur `video_slots/<id du contenu>`, lecture seule : script, version ElevenLabs, prompt de couverture, titre, description) ; pour une vidéo livrée avant le 15/10, le fichier texte de son dossier Drive ; à défaut l'historique des sessions. Puis **liste les gags et idées de mise en scène de l'ancienne version** (rapports, fiche, fichiers `scene.js` s'ils existent, sinon demande à l'utilisateur ce qu'il avait aimé) : la fiche les reprend par défaut, adaptés au nouveau style. (Leçon de « Monsieur Poubelle » : l'inconnu qui sort de la poubelle, oublié puis redemandé.)
 - **Retour ambigu** : après la livraison, si un retour vise un élément présent à la fois dans les vidéos et sur la couverture (ou dans plusieurs plans), pose une question courte avant de lancer quoi que ce soit. (« Le chapeau fait trop Napoléon » visait le prompt de couverture, pas les vidéos.)
 
 ---
@@ -54,14 +54,23 @@ Règles :
 - **Varier le thème** : les sujets proposés viennent des thèmes conseillés (absents des 3 dernières vidéos, les moins servis d'abord ; ACTU exclu). On garde un thème déjà vu récemment seulement si l'histoire est nettement meilleure, et on le dit. La présélection Haiku reçoit ces thèmes.
 - Varier le **type de récit** : aucun des 3 sujets ne reprend le type des 2 dernières vidéos (sauf demande), et les 3 ont 3 types différents.
 - **Dès que le sujet est choisi** (par l'utilisateur, ou par toi en routine) : `python3 -I OUTILS/registre.py reserver "<Sujet>" <id> <THEME> "<type>" "<mots-clés>"` réserve la ligne « en cours », committe et pousse ce seul fichier. Code de sortie 2 = une autre session vient de le prendre : prendre le suivant. La colonne Thème commence toujours par le code Clark (HIST, GEO, SCI…).
-- À la livraison : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>"`. Jamais les rendus dans git.
+- À la livraison : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>" <id du contenu au BO>`. Jamais les rendus dans git.
+
+### Horodatage de la vidéo (à prendre une fois, au départ)
+Chaque vidéo porte la date et l'heure de sa production, pour la retrouver ensuite (BO, Drive, registre). Prends-les **une seule fois** : en routine, avant toute autre commande ; en session, dès que le sujet est réservé. Écris-les dans un fichier, car ton contexte peut être résumé en cours de route :
+`python3 -I -c "import datetime as d;from zoneinfo import ZoneInfo;n=d.datetime.now(ZoneInfo('Europe/Paris'));print(f'ID=v_{n:%Y%m%d_%H%M}\nMS={int(n.timestamp()*1000)}\nLIBELLE={n:%Y-%m-%d %Hh%M}')" > <scratchpad>/HORODATAGE.txt`
+- `ID` : l'id du contenu dans le planificateur du BO (ex. `v_20261015_0400`) ;
+- `MS` : l'instant de génération (`generatedAt`) ;
+- `LIBELLE` : le début du nom du dossier Drive (« 2026-10-15 04h00 — <Sujet> »).
+Recopie ce fichier dans `<travail>/` dès que le dossier existe ; relis-le à la livraison, ne le recalcule jamais.
 
 ### En routine (session planifiée, sans utilisateur)
 Une routine ne peut pas demander : elle applique le **mode autonome** du début à la fin.
+0. **Horodatage** (ci-dessus), avant toute autre commande.
 1. `registre.py etat` ; présélection Haiku sur les **questions les plus récentes** (`created_at desc`), limitée aux thèmes conseillés.
 2. Choisis toi-même le meilleur sujet selon les critères ci-dessous, réserve-le aussitôt (`registre.py reserver`) ; s'il est déjà pris, le suivant.
-3. Faits, script, **voix** (`voix.py`, instants réels reportés dans la fiche), fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
-4. Livraison complète : Drive (fichier texte avec titre, description, hashtags, script, version ElevenLabs et prompt de couverture + 6 plans + `voix/p1…p6.mp3` + `voix/voix_complete.mp3`), créneau du planificateur du BO (voir « Livraison », création seule), `registre.py livrer`, bibliothèque, charte. Le résumé final dit : sujet, thème, lien du dossier Drive, créneau du BO, crédits ElevenLabs utilisés (caractères envoyés), limites.
+3. Faits, script, **voix** (`voix.py`, **un seul appel ElevenLabs pour toute la vidéo**, instants réels reportés dans la fiche), fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
+4. Livraison complète (voir « Livraison ») : Drive (médias seulement : 6 plans + `voix/p1…p6.mp3` + `voix/voix_complete.mp3`, dans le dossier « <LIBELLE> — <Sujet> ») ; contenu du planificateur du BO (création seule, id `ID` de l'horodatage, avec titre, description, hashtags, script, version ElevenLabs, prompt de couverture et lien du dossier Drive) ; `registre.py livrer` ; bibliothèque ; charte. Le résumé final dit : sujet, thème, horodatage (`LIBELLE`), lien du dossier Drive, id du contenu au BO, crédits ElevenLabs utilisés (caractères envoyés, un seul appel), limites.
 5. Deux routines peuvent tourner le même jour : espace-les de quelques heures (limite d'usage sur 5 h glissantes) et laisse chacune dans sa propre session.
 
 ### Présélection (agent Haiku)
@@ -127,7 +136,12 @@ Vigilance : objets tenus (la main entoure le corps de l'objet), transitions de p
    - deux variantes pour l'accroche et pour la chute finale ;
    - les faits incertains ;
    - la fiche résumée : distribution (kit / bibliothèque / à créer), conduite du rideau, et pour chaque plan le décor, le gag et la faune.
-5. **Voix (ElevenLabs, automatique)** : écris la version ElevenLabs dans `<travail>/voix.txt` (6 paragraphes, un par plan, séparés par une ligne vide), puis `python3 -I OUTILS/voix.py <travail>` : les 6 plans partent en vagues (un appel après l'autre) avec la voix de l'utilisateur (« Alexandre », `gP52hjM48hyNoVCbizxO`) et le modèle `eleven_v4`, et `voix.py` écrit `voix/pN.mp3`, `voix/pN.json` (instant de chaque mot), `voix/MOTS.md` et `voix/voix_complete.mp3` (6 × 10,0 s, à poser telle quelle sous les plans au montage). Une ligne ATTENTION (voix > 9,6 s) : raccourcis ce paragraphe et relance `--plans N` seulement (≈ 1 crédit par caractère, ≈ 1 200 par vidéo ; jamais de voix accélérée). Puis **reporte les vrais instants** de `voix/MOTS.md` dans la fiche (fenêtres de voix et mots-clés de chaque plan) : les agents des plans calent `TL.MOTS` et les gestes clés dessus, sans estimation. Hors routine, fais-le après la validation du script (une réécriture coûterait une nouvelle voix).
+5. **Voix (ElevenLabs, automatique, UN SEUL APPEL PAR VIDÉO)** : écris la version ElevenLabs dans `<travail>/voix.txt` (6 paragraphes, un par plan, séparés par une ligne vide), puis `python3 -I OUTILS/voix.py <travail>`.
+   - `voix.py` contrôle d'abord les longueurs sans rien envoyer (≤ 155 caractères et au plus un « … » par paragraphe). S'il refuse, raccourcis `voix.txt` et relance : rien n'est facturé.
+   - Puis il envoie **les 6 paragraphes en un seul appel** (voix de l'utilisateur « Alexandre », `gP52hjM48hyNoVCbizxO`, modèle `eleven_v4`), garde la réponse brute (`voix/brut.json`) et découpe hors ligne : `voix/pN.mp3`, `voix/pN.json` (instant de chaque mot), `voix/MOTS.md` et `voix/voix_complete.mp3` (6 × 10,0 s, à poser telle quelle sous les plans au montage). ≈ 1 crédit par caractère, ≈ 950 par vidéo.
+   - ⛔ **Jamais un second appel** : l'utilisateur ne veut qu'une génération par vidéo chez ElevenLabs. Relancer `voix.py` redécoupe seulement (gratuit) ; il n'y a plus de `--plans N` ; ne supprime jamais `voix/brut.json` ni `voix/requete.json` ; `--forcer` seulement si l'utilisateur le demande (jamais en routine). Si `voix.py` s'arrête sur « ÉCHEC… Ne relance pas », continue sans voix : les plans se calent alors sur les fenêtres estimées (2,3 mots/s), et le résumé le dit.
+   - Une ligne ATTENTION (voix > 9,6 s) ne se corrige plus par une nouvelle voix : garde-la, cale le plan sur ses vrais instants, et signale le débordement dans le résumé (`voix_complete.mp3` décale alors la suite, à recaler au montage).
+   - Puis **reporte les vrais instants** de `voix/MOTS.md` dans la fiche (fenêtres de voix et mots-clés de chaque plan) : les agents des plans calent `TL.MOTS` et les gestes clés dessus, sans estimation. Hors routine, lance `voix.py` seulement après la validation du script : une réécriture ensuite coûterait une nouvelle voix.
 6. **Casting anticipé** : s'il y a des éléments « à créer », lance l'agent casting (3a) **en arrière-plan juste avant de t'arrêter** : il travaille pendant que l'utilisateur lit. Si l'utilisateur change la distribution, corrige-le par SendMessage.
 
 Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et mets à jour la fiche et `rideau.json` (sans nouvel arrêt, sauf changement de fond).
@@ -154,8 +168,8 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 | `produire.sh <travail>/pN` | Rendu complet, bruitages, `pN_final.mp4`, `planche.png`, puis contrôles automatiques : `verifier.sh` (format, durée, son), `sauts.py` (objet qui surgit ou disparaît d'une image à l'autre, fond nu de la scène) et `raccord.sh` (coupe avec le plan précédent). ≈ 30 à 70 s. | |
 | `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` | Planche de 16 images ou gros plan. | |
 | `sfx_lib.py` + `sons/` | Bruitages tout faits et clips CC0. **`python3 -I OUTILS/sfx_lib.py --aide`** liste en 17 lignes les préréglages et leurs paramètres. `freesound_cc0.py` cherche un nouveau son (vérifier sa licence CC0). | agents : `--aide`, jamais le fichier |
-| `drive_envoi.py` | Envoi sur le Drive à la livraison (vidéos, voix, texte). | |
-| `voix.py <travail> [--plans N]` | Voix ElevenLabs plan par plan (voix « Alexandre », `eleven_v4`), instants réels des mots (`voix/MOTS.md`), piste complète 6 × 10 s. Clé : secret réseau `xi-api-key` sur `api.elevenlabs.io`, jamais lue. | toi |
+| `drive_envoi.py` | Envoi sur le Drive à la livraison (vidéos et voix ; plus de fichier texte). | |
+| `voix.py <travail>` | Voix ElevenLabs de toute la vidéo en **un seul appel** (voix « Alexandre », `eleven_v4`), découpe hors ligne en 6 plans, instants réels des mots (`voix/MOTS.md`), piste complète 6 × 10 s. Relancé, il redécoupe sans rappeler ElevenLabs. Clé : secret réseau `xi-api-key` sur `api.elevenlabs.io`, jamais lue. | toi |
 | `registre.py etat / reserver / livrer` | Registre partagé entre sessions et routines : état et thèmes conseillés, réservation d'un sujet (commit + push, refus si déjà pris), passage à « livrée ». | toi |
 
 Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + `persos.md` (casting), `decors/pN.js` (décors partagés entre plans, un fichier par plan pour que deux agents en tuilage n'écrivent jamais au même endroit : règles dans `MEMO-PLAN.md` §4), `raccords/pN.js`, `pN/`, `casting/`, `out/`.
@@ -209,19 +223,14 @@ Pas de nouveau rendu complet. Vérifie seulement :
     - vidéo complète à −14 LUFS, crête à −1 dBFS ;
     - carton de fin et logo en haut à gauche ;
   - de garder les plans **dans l'ordre et bout à bout** : le rideau et son bruitage chevauchent certaines coupes.
-- **Dépôt sur le Drive Clark** :
-  1. Écris `<travail>/<Sujet> — script et publication.txt`. Il contient :
-     - un **titre** accrocheur (≤ 80 caractères) ;
-     - une **description piquante** (2 à 3 phrases dans le ton satirique de la vidéo, avec la chute en clin d'œil, un emoji au plus) ;
-     - **5 hashtags** (le thème, le personnage, le sujet, puis #culturegenerale et un tag large) ;
-     - le **script** plan par plan ;
-     - la liste des fichiers vidéo et le rappel des réglages de montage.
-     - **toujours** une section `PROMPT DE COUVERTURE` (rédigée selon le modèle ci-dessous, AVANT l'envoi sur le Drive) : le prompt complet en anglais, la ligne `Négatif : …`, la ligne `Midjourney : --ar 9:16 --style raw`, le thème et sa couleur (ex. « rideau couleur du thème ECO, graphite #334155 »), et les 3 titres proposés.
-     - Si le prompt est retouché après la livraison (retours de l'utilisateur sur l'image générée), mettre à jour cette section du fichier texte et le **remplacer** sur le Drive : mettre l'ancien fichier à la corbeille (connecteur Google Drive, `trash_file`, après avoir vérifié son nom et son dossier), puis renvoyer le nouveau avec `drive_envoi.py "<Sujet>" "<fichier texte>"`.
-
-     Modèle : le fichier « Arc de triomphe — script et publication.txt » du Drive.
-  2. Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<Sujet>" "<travail>/<Sujet> — script et publication.txt" <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3 <travail>/voix/voix_complete.mp3` (le type de chaque fichier est reconnu à son extension).
-     - Le script crée (ou retrouve) le dossier « <Sujet> » dans « Vidéos » (id `1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_`) et y dépose les fichiers, en envoi « resumable ». Il affiche le lien du dossier.
+- **Textes de publication** (rédigés AVANT le dépôt, ils vont dans le BO, plus dans un fichier texte) :
+  - un **titre** accrocheur (≤ 80 caractères) ;
+  - une **description piquante** (2 à 3 phrases dans le ton satirique de la vidéo, avec la chute en clin d'œil, un emoji au plus, sans URL ni nom de domaine) ;
+  - **5 hashtags** (le thème, le personnage, le sujet, puis culturegenerale et un tag large) ;
+  - le **prompt de couverture**, rédigé selon le modèle ci-dessous : le prompt complet en anglais, la ligne `Négatif : …`, la ligne `Midjourney : --ar 9:16 --style raw`, le thème et sa couleur (ex. « rideau couleur du thème ECO, graphite #334155 »), et les 3 titres proposés.
+- **Dépôt sur le Drive Clark** (médias seulement : ⛔ plus aucun fichier texte sur le Drive, tout le texte est dans le BO) :
+  - Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<LIBELLE> — <Sujet>" - <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3 <travail>/voix/voix_complete.mp3` (`LIBELLE` de l'horodatage, ex. « 2026-10-15 04h00 — Le Téflon » ; « - » = pas de fichier texte ; le type de chaque fichier est reconnu à son extension).
+     - Le script crée (ou retrouve) ce dossier dans « Vidéos » (id `1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_`) et y dépose les fichiers, en envoi « resumable ». Il affiche le lien du dossier (`dossier : https://drive.google.com/drive/folders/…`) : garde-le pour le BO et le registre.
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).
      - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
@@ -260,20 +269,26 @@ Pas de nouveau rendu complet. Vérifie seulement :
   | ACTU | Actualités | #DC2626 | #991B1B | bright red |
 
   Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
-- **Dépôt dans le planificateur du backoffice Clark** (en routine comme en session, après le Drive) : le titre, la description et les hashtags arrivent ainsi d'eux-mêmes dans le prochain créneau de publication (page « Publications » du BO), avec le script et le prompt de couverture à côté. L'utilisateur n'a plus qu'à joindre la vidéo montée et la miniature.
-  1. Créneaux candidats (6 h et 17 h, heure de Paris, au moins 24 h après maintenant, sur 14 jours) :
-     `python3 -I -c "from datetime import datetime,timedelta;from zoneinfo import ZoneInfo;p=ZoneInfo('Europe/Paris');n=datetime.now(p)+timedelta(hours=24);print(' '.join(f'{d:%Y-%m-%d}_{h:02d}00' for i in range(15) for d in [(n+timedelta(days=i)).date()] for h in (6,17) if datetime(d.year,d.month,d.day,h,tzinfo=p)>=n))"`
-  2. Crée le document du premier candidat avec le connecteur Firestore Clark, outil **`add_document`** (chercher « Firestore_Clark » avec ToolSearch) : `parent` `projects/clark-app-9b938/databases/(default)/documents`, `collectionId` `video_slots`, `documentId` = le candidat (ex. `2026-10-16_0600`). Refus « already exists » = créneau déjà pris : candidat suivant. Aucun candidat libre : ne rien écrire et le dire dans le résumé.
-     ⛔ **Création seulement** : jamais `update_document`, `delete_document` ni aucune autre écriture Firestore, jamais une autre collection. Un créneau existant (saisi par l'utilisateur ou par une autre routine) ne se touche pas.
-  3. Champs du document (format Firestore typé) :
+- **Dépôt dans le planificateur du backoffice Clark** (en routine comme en session, après le Drive) : le contenu entre dans la **file de programmation** (page « Publications » du BO). Le BO lui donne lui-même sa date de sortie, à la suite des vidéos déjà prévues, selon le rythme réglé par l'utilisateur (départ le 19/10, 6 h puis 17 h). Tu ne choisis jamais de date ni de créneau. L'utilisateur n'a plus qu'à joindre la vidéo montée et la miniature, puis valider.
+  1. Crée le document avec le connecteur Firestore Clark, outil **`add_document`** (chercher « Firestore_Clark » avec ToolSearch) : `parent` `projects/clark-app-9b938/databases/(default)/documents`, `collectionId` `video_slots`, `documentId` = `ID` de l'horodatage (ex. `v_20261015_0400`).
+     - Refus « already exists » : lis ce document (`get_document`, lecture seule). Même `subject` = déjà déposé par toi (rien à refaire). Sinon, réessaie avec le suffixe `_b`, puis `_c` (ex. `v_20261015_0400_b`).
+     - ⛔ **Création seulement** : jamais `update_document`, `delete_document` ni aucune autre écriture Firestore, jamais une autre collection. Un document existant (saisi par l'utilisateur ou par une autre routine) ne se touche pas.
+  2. Champs du document (format Firestore typé), **tous ceux-ci et aucun autre** :
      - `origin` : `stringValue` `routine` ;
-     - `texts` : `mapValue` avec `title` (le titre, ≤ 80 caractères), `description` (la description piquante, sans URL ni nom de domaine) et `hashtags` (`arrayValue` des 5 hashtags, **sans** le `#`) ;
+     - `queued` : `booleanValue` `true` (le contenu entre dans la file) ;
+     - `queuedAt`, `createdAt`, `updatedAt` : `integerValue`, l'instant du dépôt en millisecondes (`python3 -I -c "import time;print(int(time.time()*1000))"`, la même valeur pour les trois) ;
+     - `generatedAt` : `integerValue`, `MS` de l'horodatage (date et heure de la production) ;
+     - `subject` : `stringValue`, le sujet tel qu'au registre (≤ 120 caractères) ;
+     - `texts` : `mapValue` avec `title` (le titre, ≤ 80 caractères), `description` (la description piquante) et `hashtags` (`arrayValue` des 5 hashtags, **sans** le `#`) ;
      - `script` : `stringValue`, le texte lu des 6 plans, un paragraphe par plan (≤ 5 000 caractères, jamais publié) ;
-     - `coverPrompt` : `stringValue`, la section `PROMPT DE COUVERTURE` complète du fichier texte (prompt anglais, ligne `Négatif`, ligne `Midjourney`, thème et couleur, 3 titres) ;
-     - `updatedAt` : `integerValue`, l'instant en millisecondes (`python3 -I -c "import time;print(int(time.time()*1000))"`) ;
+     - `voiceScript` : `stringValue`, la version ElevenLabs telle qu'envoyée (`voix/requete.json`, champ `texte`, ou `voix.txt`), balises comprises (≤ 5 000 caractères) ;
+     - `coverPrompt` : `stringValue`, le prompt de couverture complet (prompt anglais, ligne `Négatif`, ligne `Midjourney`, thème et couleur, 3 titres ; ≤ 5 000 caractères) ;
+     - `driveFolderUrl` : `stringValue`, le lien du dossier Drive affiché par `drive_envoi.py` (omis si l'envoi a échoué) ;
      - seulement si X déborde : `variants` : `mapValue` → `x` → `mapValue` → `description` (`stringValue`). X publie la description + une ligne vide + les hashtags, 280 caractères au plus (un emoji compte double) : au-delà de 270, une phrase courte sans emoji pour X.
-  4. Note le créneau dans le résumé final (ex. « BO : créneau 2026-10-16_0600 »). Un échec d'écriture ne bloque pas la livraison : le Drive reste la référence, donne la cause dans le résumé.
-- Passe le sujet à « livrée » : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>"` (la ligne garde l'id de la question et son `theme_code`, indispensables pour refaire la vidéo ou sa couverture).
+     - ⛔ Jamais `scheduledAt`, `slotId`, `dayKey`, `time`, `pin`, `validation` ni `video` : la date et la validation appartiennent au BO.
+  3. Note l'id du contenu dans le résumé final (ex. « BO : contenu v_20261015_0400, en file »). Un échec d'écriture ne bloque pas la livraison : donne la cause dans le résumé, avec le titre, la description, les hashtags et le prompt de couverture en clair pour que l'utilisateur les saisisse.
+  4. Si le prompt de couverture est retouché après la livraison (retours de l'utilisateur sur l'image générée) : donne-le dans la conversation, l'utilisateur le remplace dans la fiche du BO (jamais d'écriture Firestore de ta part sur un document existant).
+- Passe le sujet à « livrée » : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>" <id du contenu au BO>` (la ligne garde l'id de la question et son `theme_code`, indispensables pour refaire la vidéo ou sa couverture).
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre) et `<travail>/persos.md` dans `outils/bibliotheque/<slug>.md` (mode d'emploi, à lire à la place du `.js`), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé). Un décor de `<travail>/decors/*.js` réutilisable rejoint aussi la bibliothèque (ajouté à `<slug>.js` : `M.dec.x` y devient `M.<espace de la vidéo>.x`, car `M.dec` est propre à chaque vidéo).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas (et, s'il concerne tous les plans, une ligne dans `outils/MEMO-PLAN.md`).
 - Committe et pousse ces fichiers (registre, bibliothèque, charte), jamais les rendus.
