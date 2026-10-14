@@ -6,7 +6,8 @@
 #   m.write('sfx.wav')
 # Tous les niveaux sont des crêtes en dBFS. Les préréglages sont calibrés pour rester SOUS la voix off :
 # un bruitage « principal » ≈ −28, un détail ≈ −34 à −40. Plafond global −24 dBFS (jamais plus fort).
-import numpy as np, wave, os, subprocess, re
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # numpy est fourni à côté (utile sous python3 -I)
+import numpy as np, wave, subprocess, re
 
 SR, DUR = 48000, 10
 N = SR * DUR
@@ -276,3 +277,36 @@ def mux(video, sfx, sortie):
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', video, '-i', sfx, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
                     '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-shortest', sortie], check=True)
     print('→', sortie)
+
+
+DESCRIPTIONS = {
+    'rideau_conduite': "sonorise le rideau d'après rideau.json (toute la vidéo) ; à appeler en premier, rien d'autre à écrire",
+    'decor_monte': "décor qui monte de la trappe : poulie, corde, butée en t1 (poids='lourd' = plus grave)",
+    'decor_descend': "décor qui descend des cintres : câbles qui filent, butée douce en t1",
+    'decor_tombe': "décor de carton qui bascule et tombe à plat en t",
+    'apparition': "marionnette qui entre par la fente : tige qui glisse, clac à l'arrêt (t)",
+    'disparition': "marionnette qui sort par la fente (t = début) : glissement descendant, toc",
+    'glisse': "déplacement sur la tige de t0 à t1 : frottement + clacs aux instants de 'sauts'",
+    'pas': "un pas à chaque instant de la liste 'instants'",
+    'objet_pose': "petit accessoire posé ou attrapé en t",
+    'chute': "marionnette qui tombe à plat sur le plancher en t",
+    'papier': "papier qui se déroule en t (long=True : version longue)",
+    'ambiance': "ambiance du lieu 'nom' de t0 à t1, seulement si elle est visible ; très basse",
+    'place': "pose un son de la bibliothèque 'nom' en 'at' (secondes) ; pour les cas sans préréglage",
+}
+
+
+def aide():
+    import inspect
+    L = ["Structure d'un mixage.py (voir gabarits/mixage.py) : import sys; sys.path.insert(0, sys.argv[1]); from sfx_lib import Mix, events",
+         "  E = events('timeline.js') (repères du plan) ; m = Mix(mots=MOTS) ; m.rideau_conduite() ; préréglages ci-dessous ; m.write(sys.argv[2])",
+         "Temps en secondes du plan (0-10), pan -1 (gauche) à 1 (droite), db = crête en dBFS (plafond -24). 3 à 8 bruitages."]
+    for nom, d in DESCRIPTIONS.items():
+        sig = str(inspect.signature(getattr(Mix, nom))).replace('(self, ', '(').replace('(self)', '()')
+        L.append(f"m.{nom}{sig} : {d}")
+    L += ["m.verifier() -> liste d'alertes ; ATTENTION si un bruitage marqué commence dans un mot-clé de la voix (mots=)."]
+    print('\n'.join(L))
+
+
+if __name__ == '__main__' and '--aide' in sys.argv:
+    aide()

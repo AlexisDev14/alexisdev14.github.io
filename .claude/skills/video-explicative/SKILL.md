@@ -26,17 +26,20 @@ La machine est petite (4 processeurs). Un rendu complet prend ≈ 1 min ; **les 
 | Toi (session principale) | Opus | (session) | Jugement : choix des sujets, script, fiche, conduite du rideau, consignes, contrôle visuel de chaque plan, contrôle final, échanges avec l'utilisateur. |
 | Agent « présélection » | `model: "haiku"` | `effort: "low"` | Étape 1 : lit des centaines de questions Firestore et renvoie une liste courte filtrée (tri en volume : le rôle type de Haiku). |
 | Agent « faits » | `model: "sonnet"` | `effort: "medium"` | Étape 2 : vérifie dates, chiffres et attributions sur le web, avec sources. |
-| Agent « casting » | `model: "opus"` | `effort: "high"` | Étape 3a : crée `persos.js` + planche de casting. Opus car c'est le travail le plus visuel et le plus durable (les personnages rejoignent la bibliothèque) : la plupart des retours de l'utilisateur portaient sur l'apparence des personnages. |
-| Agent « plan N » | `model: "sonnet"` | `effort: "high"` | Étape 3b : code, rend et sonorise UN plan, puis s'arrête. |
+| Agent « casting » | `subagent_type: "video-atelier"` + `model: "opus"` | `high` (fixé par l'agent) | Étape 3a : crée `persos.js`, son mode d'emploi `persos.md` et la planche de casting. Opus car c'est le travail le plus visuel et le plus durable (les personnages rejoignent la bibliothèque) : la plupart des retours de l'utilisateur portaient sur l'apparence des personnages. |
+| Agent « plan N » | `subagent_type: "video-atelier"` (Sonnet) | `high` (fixé par l'agent) | Étape 3b : code, rend et sonorise UN plan, puis s'arrête. |
+
+**Agent dédié `video-atelier`** (`.claude/agents/video-atelier.md` à la racine du dépôt) : Sonnet, effort `high`, outils limités à Bash, Read, Write et Edit, sans le `CLAUDE.md` du projet de la session (`omitClaudeMd`). Chaque appel démarre donc avec un contexte bien plus léger qu'un agent généraliste, et ses règles de lecture (mémos, `persos.md`, jamais un gros fichier en entier) sont dans sa définition. Le casting l'appelle avec `model: "opus"`. S'il n'apparaît pas dans la liste des types d'agents (session lancée hors de ce dépôt, ou ouverte avant son ajout : en local, un lien `~/.claude/agents/video-atelier.md` vers ce fichier le rend disponible partout), prends `general-purpose` avec `model: "sonnet"` (ou `"opus"` pour le casting) et `effort: "high"`, et ajoute en tête du `<contexte>` : « Tes règles de travail sont dans `<dépôt>/.claude/agents/video-atelier.md` (sous l'en-tête) : lis-les d'abord. »
 
 Règles :
-- **Jamais Fable.** Toujours préciser `model` **et `effort`** (valeurs ci-dessus) à l'appel de l'outil Agent : sans `model`, un agent hérite d'Opus et coûte bien plus cher pour rien.
-- **Escalade** : si l'utilisateur renvoie **deux fois le même défaut** sur un plan, ou si l'agent Sonnet échoue deux fois à le corriger, relance ce plan avec un agent `model: "opus"` (même consigne + `scene.js` existant + le défaut précis) au lieu d'insister.
+- **Jamais Fable.** Toujours préciser `model` **et `effort`** (valeurs ci-dessus) à l'appel de l'outil Agent, sauf pour `video-atelier` qui les fixe lui-même (seul le casting passe `model: "opus"`) : sans `model`, un agent généraliste hérite d'Opus et coûte bien plus cher pour rien.
+- **Escalade** : si l'utilisateur renvoie **deux fois le même défaut** sur un plan, ou si l'agent Sonnet échoue deux fois à le corriger, relance ce plan avec un agent `video-atelier` et `model: "opus"` (même consigne + `scene.js` existant + le défaut précis) au lieu d'insister.
 - **Enchaînement en tuilage** : dès que l'agent du plan N rend son rapport, lance l'agent du plan N+1 (en arrière-plan), **puis** fais ton contrôle du plan N. Au plus 2 agents de production actifs (N+1 qui avance, N en correction) ; leurs rendus se suivent grâce au verrou. Pour corriger un plan, relance le même agent avec SendMessage (il garde son contexte).
 - **Langue** : tout reste en français (charte, fiches, consignes, rapports) : Claude y garde ≈ 97–98 % de son niveau en anglais, et l'utilisateur doit pouvoir lire et corriger les règles. Les noms de code (fonctions, options) restent tels quels.
 - **Forme des consignes** : un agent ne voit rien de cette conversation. Structure chaque consigne avec des balises : `<contexte>` (vidéo, plan, fichiers à lire), `<tache>` (étapes numérotées), `<regles>` (interdits, rappels propres à ce plan, défauts déjà relevés par l'utilisateur), `<rapport>` (format court attendu). Le rapport doit rester court : il revient dans ton contexte.
-- Les consignes d'agent **renvoient vers les fichiers** (`CHARTE.md`, `API.md`, `bibliotheque/LISEZMOI.md`, fiche de la vidéo) au lieu de les recopier.
+- Les consignes d'agent **renvoient vers les fichiers** (mémos, `CONSIGNE.md`, `persos.md`) au lieu de les recopier.
 - Tu ne lis jamais le journal complet d'un agent : seulement son rapport, ses planches et les gros plans utiles.
+- **Ton propre contexte** (il est relu à chaque appel, c'est ton premier poste de dépense) : lis `CHARTE.md` en entier une fois, mais `API.md` seulement par section (`grep -n '^## '`, puis `sed -n`) ; jamais un fichier de plus de 150 lignes affiché en entier ; regroupe les commandes. Un agent lancé en arrière-plan te prévient quand il a fini : **attends sa notification**, ne sonde ni son fichier de sortie ni ses dossiers en attendant (pas de `sleep`, pas de `ls` répétés).
 - Ces choix (modèle, effort, langue, forme des consignes) viennent de la documentation Anthropic et de retours d'utilisateurs : détail et sources dans `outils/MODELES.md`. À revoir à chaque nouvelle génération de modèles.
 - Dossier de travail : `<scratchpad>/<slug-du-sujet>/` (jamais dans le dépôt). `OUTILS` = chemin absolu du dossier `outils/` à côté de ce fichier.
 
@@ -83,7 +86,7 @@ Dès le choix : lance l'agent « faits » **en arrière-plan** et commence la fi
    - **Morale finale ironique** et réplique de fin.
    - Cibles satiriques sûres : les gens de l'époque, les puissants, la presse, le spectateur. Le personnage central reste sympathique.
    - Vouvoiement.
-3. **Fiche (toi)** : `<travail>/FICHE.md`, puis `<travail>/rideau.json` :
+3. **Fiche (toi)** : `<travail>/FICHE.md`, puis `<travail>/rideau.json`. **Titres imposés** : `construire.sh` en tire `pN/CONSIGNE.md` (la fiche sans la section qui commence par `## Script` ni les consignes des autres plans), que lit l'agent du plan à la place de la fiche entière. Garde donc : `# Titre`, `## Script…` (script et version ElevenLabs, si tu les mets dans la fiche), `## A. Distribution`, `## B. Conduite du rideau`, `## B2. Plan de scène`, `## C. Consignes des plans`, puis un `### Plan N/6 — …` par plan. Ce qui vaut pour tous les plans se met dans A, B ou B2, jamais sous un `### Plan` :
 
    **A. Distribution** : pour chaque marionnette, accessoire et décor récurrent, une description fixe : silhouette de profil, tenue, couleurs hex dans la palette sourde, pièces articulées utiles, objet emblématique, **taille à l'écran** (personnage principal ≥ 450 px ; plus petit si la scène est nombreuse, tant qu'elle reste claire ; **tout objet porteur d'un mot-clé ≥ 120 px et dégagé**, lisible sur un téléphone : tas, animaux, boîtes, journal…). Les objets d'une même série (conteneurs, uniformes…) ont chacun une couleur **entière** nettement différente. Un nouveau personnage ne doit ressembler à aucun personnage du kit ou de la bibliothèque (chapeau, silhouette). Pour chaque élément, dire d'où il vient : **kit** (`API.md` §4–6), **bibliothèque** (`bibliotheque/LISEZMOI.md` : vache, paysan, moine, chalet, montagnes…) ou **à créer**. Réutiliser d'abord.
 
@@ -120,57 +123,63 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 
 ## Étape 3 — Production (sans arrêt)
 
-### Les outils (`outils/`)
-- `MEMO-PLAN.md` : **mémo d'une page lu par chaque agent « plan N »** (fichiers, ordre de dessin, cadrage, marionnettes, rideau, raccords, règles qui reviennent, bruitages, contrôle). Il évite de relire ≈ 50 000 tokens de documentation à chaque plan. **À tenir à jour** : toute règle ajoutée à `CHARTE.md` §8 ou à `API.md` qui concerne tous les plans y est résumée en une ligne.
-- `CHARTE.md` : règles visuelles, mise en scène, rideau, faune, cadrage, bruitages, erreurs déjà commises, contrôle (lue en entier par toi et par le casting ; par section pour les plans).
-- `API.md` : référence du kit (`kit/marionnettes.js`, assemblé depuis `kit/src/` par `kit/assemble.sh`), de la conduite du rideau (§4b) et de la faune (§4c).
-- `bibliotheque/` : personnages, accessoires et décors validés des vidéos précédentes (index : `LISEZMOI.md`), chargés automatiquement dans chaque plan.
-- `exemples/arc-de-triomphe/m1…m6` : scènes réussies à imiter (sauf leur rideau codé à la main).
-- `gabarits/` : départ de `scene.js` (avec `M.rideau(t)`), `timeline.js` (`TL.EVENTS` et `TL.MOTS`), `mixage.py` (avec `m.rideau_conduite()`).
-- `construire.sh <travail>/pN` : prépare le dossier du plan (gabarits, kit, bibliothèque, conduite du rideau, `persos.js`, `index.html`) et vérifie la syntaxe.
-- `render.cjs <dossier> --stills 0,60,…` : images clés en PNG **et `planche_cles.png`** (toutes sur une image : la regarder d'abord). Rendu processeur, `--workers 3` pour le complet ; ne pas passer `--gpu`. Verrou : les rendus se suivent.
-- `produire.sh <travail>/pN` : rendu complet, puis bruitages, puis `pN_final.mp4`, `planche.png` et `verifier.sh` (≈ 30 à 70 s).
-- `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` : planche de 16 images ou gros plan.
-- `sfx_lib.py` + `sons/` : bruitages tout faits et clips CC0.
-  - Préréglages : `rideau_conduite` (automatique), `decor_monte`, `decor_descend`, `decor_tombe`, `apparition`, `disparition`, `glisse`, `pas`, `objet_pose`, `chute`, `papier`, `ambiance`.
-  - `freesound_cc0.py` sert à chercher un nouveau son ; vérifier sa licence CC0 avant de l'utiliser.
+### Les outils (`outils/`) — carte : qui lit quoi
 
-### 3a. Casting (un agent Opus, seulement pour ce qui est « à créer »)
+| Fichier | Rôle | Qui le lit, et comment |
+|---|---|---|
+| `MEMO-PLAN.md` | Mémo d'une page des agents « plan N » (fichiers, ordre de dessin, cadrage, marionnettes, rideau, décors partagés, raccords, règles qui reviennent, bruitages, contrôle). Évite ≈ 50 000 tokens de documentation par plan. **À tenir à jour** : toute règle de `CHARTE.md` §8 ou d'`API.md` qui concerne tous les plans y est résumée en une ligne. | agents des plans, en entier |
+| `MEMO-CASTING.md` | Mémo de l'agent casting : livrables, style, format d'une marionnette, squelette de `persos.js`, objets tenus, tests obligatoires, `persos.md`. | casting, en entier |
+| `CHARTE.md` | Règles visuelles, mise en scène, rideau, faune, cadrage, bruitages, erreurs déjà commises (§8), contrôle (§9). | toi en entier une fois ; agents : §8 seulement |
+| `API.md` | Référence du kit (`kit/marionnettes.js`, assemblé depuis `kit/src/` par `kit/assemble.sh`), conduite du rideau (§4b), faune (§4c), raccords et décors partagés (§4d), création de personnages (§7), recettes (§8), pièges (§10). | tout le monde **par section** (`grep -n '^## '`) |
+| `MODELES.md` | Choix des modèles, de l'effort et de la forme des consignes, avec sources. | toi, à chaque nouvelle génération de modèles |
+| `bibliotheque/` | Personnages, accessoires et décors validés des vidéos précédentes (index : `LISEZMOI.md`), chargés automatiquement dans chaque plan. | toi pour la distribution ; agents : l'en-tête du fichier utilisé |
+| `exemples/` | `arc-de-triomphe/m1…m6` (scènes réussies, sauf leur rideau codé à la main) ; `persos_chimiste.js` (marionnette complète commentée). | par extrait, pour une recette précise |
+| `gabarits/` | Départ de `scene.js` (avec `M.rideau(t)`), `timeline.js` (`TL.EVENTS`, `TL.MOTS`), `mixage.py` (avec `m.rideau_conduite()`) et `persos.md` (mode d'emploi rempli par le casting). | copiés par `construire.sh` ; `persos.md` par le casting |
+| `construire.sh <travail>/pN` | Prépare le dossier du plan (gabarits, kit, bibliothèque, conduite du rideau, raccords, `persos.js`, `decors.js`, `index.html`), écrit **`pN/CONSIGNE.md`** (la fiche sans le script ni les autres plans) et vérifie la syntaxe. | |
+| `essai.sh <travail>/pN [4.5,8.3]` | `construire.sh` + images clés (secondes 0 à 9, 9,97 et les instants donnés) + `planche_cles.png`, en une commande et une ligne de sortie. | |
+| `render.cjs <dossier> --stills …` | Rendu (processeur, `--workers 3` pour le complet ; jamais `--gpu`). Verrou : les rendus se suivent. | |
+| `produire.sh <travail>/pN` | Rendu complet, bruitages, `pN_final.mp4`, `planche.png`, puis contrôles automatiques : `verifier.sh` (format, durée, son), `sauts.py` (objet qui surgit ou disparaît d'une image à l'autre, fond nu de la scène) et `raccord.sh` (coupe avec le plan précédent). ≈ 30 à 70 s. | |
+| `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` | Planche de 16 images ou gros plan. | |
+| `sfx_lib.py` + `sons/` | Bruitages tout faits et clips CC0. **`python3 -I OUTILS/sfx_lib.py --aide`** liste en 17 lignes les préréglages et leurs paramètres. `freesound_cc0.py` cherche un nouveau son (vérifier sa licence CC0). | agents : `--aide`, jamais le fichier |
+| `drive_envoi.py` | Envoi sur le Drive à la livraison. | |
+
+Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + `persos.md` (casting), `decors.js` (décors partagés entre plans, écrits par les plans : règles dans `MEMO-PLAN.md` §4), `raccords/pN.js`, `pN/`, `casting/`, `out/`.
+
+### 3a. Casting (agent `video-atelier` avec `model: "opus"`, seulement pour ce qui est « à créer »)
 Consigne :
-> Lis `OUTILS/CHARTE.md`, `OUTILS/API.md`, `OUTILS/bibliotheque/LISEZMOI.md` et `<travail>/FICHE.md` (section Distribution). Crée `<travail>/persos.js` (chargé après le kit et la bibliothèque) avec **seulement** les marionnettes, accessoires et décors marqués « à créer », dans le style exact du kit (papier découpé de profil, rivets, tiges, hachures, palette sourde) ; espace de noms propre à la vidéo (jamais `M.reb`). Les accessoires n'ont pas de tige (ils volent) ; les mains peuvent les tenir par leur corps. Pour vérifier, crée `<travail>/casting/scene.js` qui les montre tous sur scène (au repos, en marche, gestes clés, de profil dans les deux sens, objets tenus) **et ces tests obligatoires** : (1) bras pliés à fond (épaule et coude de 0 à 2,4 rad, dans les deux sens, bras levé qui brandit) : articulation ronde, rivet au centre, aucune cassure ; (2) objets d'une même série côte à côte à l'échelle de la vidéo : couleurs nettement distinctes ; (3) chaque nouveau personnage à côté des personnages du kit et de la bibliothèque : aucune ressemblance (chapeau, silhouette) ; (4) la planche réduite à la taille d'un téléphone : chaque objet clé se lit. Lance `bash OUTILS/construire.sh <travail>/casting`, puis `node OUTILS/render.cjs <travail>/casting --out <travail>/out --stills 30,150` et regarde `planche_cles.png`. Itère jusqu'à un résultat propre, au plus 4 fois. Règles : `CHARTE.md` sections 4 et 8. Rapport court : liste des fonctions créées (nom, options, pièces articulées).
+> Lis **`OUTILS/MEMO-CASTING.md` en entier** (il remplace la lecture complète de la charte et de l'API), puis lance `bash OUTILS/construire.sh <travail>/casting` et lis `<travail>/casting/CONSIGNE.md` (distribution). Pour comparer avec l'existant : `OUTILS/bibliotheque/LISEZMOI.md`. Crée `<travail>/persos.js` avec **seulement** les marionnettes, accessoires et décors marqués « à créer », dans le style exact du kit, espace de noms propre à la vidéo ; puis `<travail>/casting/scene.js` (planche et 4 tests obligatoires du mémo §5). Rends avec `bash OUTILS/essai.sh <travail>/casting 1,5` et itère, 4 fois au plus. Termine par `<travail>/persos.md` (gabarit `OUTILS/gabarits/persos.md`, d'après le code final). [Ajouter ici les précisions propres à la vidéo : objets tenus, gestes clés, séries de couleurs.] Rapport court : fonctions créées (nom, options principales), chemin de la planche, ce qui reste fragile.
 
-Toi : regarde la planche de casting **et un gros plan de chaque test obligatoire** (bras pliés, série côte à côte, comparaison). Si un défaut est visible, renvoie-le à l'agent une seule fois. Une fois la distribution figée, ne la change plus.
+Toi : regarde la planche de casting **et un gros plan de chaque test obligatoire** (bras pliés, série côte à côte, comparaison), puis survole `persos.md` (`grep -n '^|\|^##' persos.md`) : chaque élément créé y figure avec ses options. Si un défaut est visible, renvoie-le à l'agent une seule fois. Une fois la distribution figée, ne la change plus.
 
-### 3b. Les 6 plans (un agent Sonnet par plan, en tuilage)
+### 3b. Les 6 plans (un agent `video-atelier` par plan, en tuilage)
 Pour N = 1 à 6 (l'agent N+1 démarre dès le rapport de N, voir §0) :
-> Tu réalises le plan N/6 de la vidéo « … ». Lis dans l'ordre : **`OUTILS/MEMO-PLAN.md` en entier** (il remplace la lecture complète de la charte, de l'API et des exemples), l'en-tête-index de `<travail>/persos.js` et des fichiers de `OUTILS/bibliotheque/` utilisés par le plan, `<travail>/FICHE.md` (distribution, plan de scène, conduite du rideau, consigne du plan N), et le `scene.js` du plan N−1 s'il existe (réutilise ses fonctions). `CHARTE.md`, `API.md` et les exemples ne se lisent **que par section, au besoin** (index : `grep -n "^##" OUTILS/API.md`) [indiquer ici la recette ou la section utile au plan, ex. « API §8 chute », « exemple m4 : décor qui monte »]. Méthode :
-> 1. Lance `bash OUTILS/construire.sh <travail>/pN`.
-> 2. Écris `timeline.js` (instants calés sur les fenêtres de la voix, `TL.MOTS`), puis `scene.js`, puis `mixage.py` (garde `m.rideau_conduite()` ; préréglages de `sfx_lib` uniquement pour les actions visibles).
+> Tu réalises le plan N/6 de la vidéo « … ». `OUTILS` = …, `TRAVAIL` = …. Lis dans l'ordre : **`OUTILS/MEMO-PLAN.md` en entier** (il remplace la lecture complète de la charte, de l'API et des exemples) ; lance `bash OUTILS/construire.sh TRAVAIL/pN` puis lis **`TRAVAIL/pN/CONSIGNE.md`** (distribution, plan de scène, conduite du rideau, consigne de ton plan ; ne lis pas `FICHE.md`) ; **`TRAVAIL/persos.md`** (mode d'emploi des personnages de la vidéo ; n'ouvre pas `persos.js`) ; l'en-tête des fichiers de `OUTILS/bibliotheque/` utilisés par le plan ; `TRAVAIL/decors.js` s'il existe (décors partagés : les appeler, ne pas les recopier) ; du `scene.js` du plan N−1, seulement les extraits utiles (`grep -n`). [Indiquer ici la recette ou la section utile au plan, ex. « API §8 chute », « exemple m4 : décor qui monte ».] Méthode :
+> 1. Écris `timeline.js` (instants calés sur les fenêtres de la voix, `TL.MOTS`), puis `scene.js`, puis `mixage.py` (garde `m.rideau_conduite()` ; préréglages de `python3 -I OUTILS/sfx_lib.py --aide`, uniquement pour les actions visibles).
 >    - Rideau : **`M.rideau(t)`** seulement (jamais codé à la main) ; changement de décor avec `M.rideauApres(t, 'id')`.
->    - Extérieur : la faune et la flore de la fiche (API §4c), petites, pâlies, posées sur un relief.
->    - Personnages et objets de la bibliothèque ou de `persos.js` : ne pas les redessiner.
->    - Positions : celles du plan de scène de la fiche (B2).
->    - **Raccords** (API §4d) : l'image 0 se place d'après `M.RACC['p' + (M.PLAN - 1)]` (jamais de valeurs recopiées à la main) ; à la fin, écris l'état final de ton plan dans `<travail>/raccords/pN.js` (positions, échelles, poses finales, état des objets, décor), puis relance `construire.sh`.
-> 3. Rends les images clés : `node OUTILS/render.cjs <travail>/pN --out <travail>/out --stills 0,30,60,…,299` plus les instants clés. Regarde `planche_cles.png`, puis en grand les images utiles, et corrige ; 3 tours au plus, puis gros plans sur les zones à risque.
-> 4. **Auto-contrôle avant le rendu complet**, point par point sur les images : **lisibilité téléphone** (dans `planche_cles.png`, à petite taille, l'objet de chaque mot-clé se lit en 1 s et n'est caché par rien) ; chaque ligne de `CHARTE.md` §8 ; mains qui tiennent les objets par leur corps ; passages de posture par étapes ; rideau conforme à la conduite à 0 s et à 10 s ; rien d'important dans les zones interdites.
-> 5. Lance `bash OUTILS/produire.sh <travail>/pN`. Regarde `planche.png`. `verifier.sh` doit être tout « OK », et `mixage.py` ne doit afficher aucune ligne « ATTENTION ».
+>    - Positions : celles du plan de scène (B2). Raccords : image 0 d'après `M.RACC['p' + (M.PLAN - 1)]` ; à la fin, ton état final dans `TRAVAIL/raccords/pN.js`.
+>    - Un décor qui servira aussi à un autre plan va dans `TRAVAIL/decors.js` (règles : `MEMO-PLAN.md` §4).
+> 2. Itère avec `bash OUTILS/essai.sh TRAVAIL/pN <instants clés>` : regarde `planche_cles.png`, puis en grand les images utiles, et corrige ; 3 tours au plus, puis gros plans sur les zones à risque.
+> 3. Auto-contrôle avant le rendu complet : `MEMO-PLAN.md` §7, point par point sur les images.
+> 4. Lance `bash OUTILS/produire.sh TRAVAIL/pN`. Regarde `planche.png`. `verifier.sh` tout « OK » ; examine chaque ligne « ATTENTION » (`mixage.py`, `sauts.py`, `raccord.sh`) et corrige-la ou justifie-la dans ton rapport.
 >
-> Interdits : texte, lettres, chiffres, logos (sauf texte explicitement demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu ; rideau codé à la main ; git. Ne modifie ni `OUTILS/`, ni `persos.js`, ni `rideau.json`, ni les raccords des autres plans. Ce qui est propre au plan va dans `scene.js` ; si un correctif de `persos.js` ou de la conduite est indispensable, décris-le dans ton rapport.
+> Interdits : texte, lettres, chiffres, logos (sauf texte explicitement demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu ; rideau codé à la main ; git. Ne modifie ni `OUTILS/`, ni `persos.js`, ni `rideau.json`, ni `FICHE.md`, ni les raccords des autres plans, ni les fonctions de `decors.js` écrites par un autre plan. Ce qui est propre au plan va dans `scene.js` ; si un correctif de `persos.js` ou de la conduite est indispensable, décris-le dans ton rapport.
 >
-> Rapport court : chemin de `pN_final.mp4` ; déroulé seconde par seconde calé sur la voix ; bruitages (instant → préréglage) ; limites connues.
+> Rapport court : chemin de `pN_final.mp4` ; déroulé seconde par seconde calé sur la voix ; bruitages (instant → préréglage) ; ajouts à `decors.js` ; lignes « ATTENTION » restantes et pourquoi ; limites connues.
 
 **Contrôle ciblé (toi), avant d'envoyer le plan** :
 - Lis `planche.png` **à petite taille d'abord** (comme sur un téléphone : l'objet de chaque mot-clé se lit-il ?), puis fais 1 ou 2 gros plans avec `planche.sh` : geste clé et chute, mains et objets tenus, coudes et épaules, transitions de posture, bords du cadre.
+- Lis les lignes « ATTENTION » du rapport (`sauts.py` : objet qui surgit ou disparaît, fond nu ; `raccord.sh` : coupe qui ne raccorde pas) : chacune se vérifie d'un gros plan sur l'instant cité.
 - Vérifie le raccord avec le plan précédent (mêmes personnages, même objet emblématique, **même état du rideau à la coupe**) et la liste « Erreurs déjà commises » (`CHARTE.md` §8).
 - En cas de défaut, renvoie à l'agent du plan (SendMessage) une demande précise et une seule.
-- Sinon, **envoie le plan tout de suite** (SendUserFile, le fichier `pN_final.mp4`) avec un résumé en 3 à 6 lignes.
+- Sinon, **envoie le plan tout de suite** (SendUserFile, le fichier `pN_final.mp4` ; si l'outil n'existe pas, son chemin) avec un résumé en 3 à 6 lignes.
 - Un retour de l'utilisateur sur un plan déjà envoyé : le transmettre à l'agent de ce plan (SendMessage) ; si c'est un défaut général, l'ajouter aussi à `CHARTE.md` §8 et le signaler à l'agent du plan en cours.
-- Un défaut d'un personnage ou objet partagé (bras, couleurs, dessin) : le corriger **une fois** dans `persos.js` (agent casting, même API), puis relancer `construire.sh` + `produire.sh` de tous les plans touchés en une seule commande en arrière-plan (≈ 1 min par plan) ; pas besoin de relancer les agents des plans.
+- Un défaut d'un personnage ou objet partagé (bras, couleurs, dessin) : le corriger **une fois** dans `persos.js` (agent casting, même API, et `persos.md` à jour), puis relancer `construire.sh` + `produire.sh` de tous les plans touchés en une seule commande en arrière-plan (≈ 1 min par plan) ; pas besoin de relancer les agents des plans.
 - Un plan corrigé dont l'état final change : relance `construire.sh` + `produire.sh` du plan suivant (il relit `M.RACC`), puis vérifie la coupe.
 
 ### 3c. Contrôle final ciblé (toi, une fois les 6 plans faits)
 Pas de nouveau rendu complet. Vérifie seulement :
-- les raccords entre les plans : fin de N contre début de N+1 (rideau, objets, tenues, lumière) ;
+- les raccords entre les plans : `bash OUTILS/raccord.sh TRAVAIL N` pour N de 2 à 6 (une ligne par coupe, SSIM ≥ 0,92 ; sinon ouvre `out/pN/raccord.png`), puis un coup d'œil sur les coupes les plus basses (rideau, objets, tenues, lumière) ;
+- les lignes « ATTENTION » de `sauts.py` que les agents ont justifiées plutôt que corrigées : la justification tient-elle à l'œil ? ;
 - l'homogénéité du son : `verifier.sh` sur les 6 fichiers, des crêtes proches d'un plan à l'autre ;
 - que la blague récurrente est bien résolue au dernier plan, et que le rideau s'y ferme après la chute.
 
@@ -236,6 +245,6 @@ Pas de nouveau rendu complet. Vérifie seulement :
 
   Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
 - Passe le sujet à « livrée » dans `videos-realisees.md`, avec **l'id de la question, son `theme_code` et le lien du dossier Drive** (indispensables pour refaire la vidéo ou sa couverture).
-- **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé).
+- **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre) et `<travail>/persos.md` dans `outils/bibliotheque/<slug>.md` (mode d'emploi, à lire à la place du `.js`), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé). Un décor de `<travail>/decors.js` réutilisable rejoint aussi la bibliothèque (ajouté à `<slug>.js` : `M.dec.x` y devient `M.<espace de la vidéo>.x`, car `M.dec` est propre à chaque vidéo).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas (et, s'il concerne tous les plans, une ligne dans `outils/MEMO-PLAN.md`).
 - Committe et pousse ces fichiers (registre, bibliothèque, charte), jamais les rendus.

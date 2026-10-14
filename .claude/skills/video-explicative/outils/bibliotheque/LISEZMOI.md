@@ -2,7 +2,7 @@
 
 Chaque fichier `*.js` de ce dossier est chargé dans **chaque plan** de chaque vidéo (après le kit, avant `persos.js`) par `construire.sh`. Tout ce qui est ici a été **validé par l'utilisateur** : le réutiliser tel quel plutôt que de le recréer, c'est du temps gagné et zéro risque de retour. Une nouvelle vidéo qui a besoin d'une variante la crée dans son propre `persos.js` (noms de `M.chars` nouveaux et espace de noms propre : jamais `M.reb`).
 
-Après chaque vidéo livrée : copier son `persos.js` ici sous `<sujet>.js` (première ligne = description, espace de noms propre), ajouter sa section ci-dessous et committer.
+Après chaque vidéo livrée : copier son `persos.js` ici sous `<sujet>.js` (première ligne = description, espace de noms propre) et son `persos.md` sous `<sujet>.md` (mode d'emploi : un agent lit le `.md`, jamais le `.js` en entier), ajouter sa section ci-dessous et committer. Pour un fichier sans `.md` (vidéos d'avant le 14/10/2026), lire seulement son en-tête-index : `sed -n '1,/^(function/p' <sujet>.js`.
 
 ## `reblochon.js` — « Le reblochon » (Savoie, Moyen Âge → cuisine moderne), espace `M.reb`
 Validé : vache complice (œil rond et joyeux, `humeur`, clin d'œil, clarine), paysan savoyard, contrôleur, seigneur, moine, ustensiles bien tenus, reblochon en coin triangulaire.

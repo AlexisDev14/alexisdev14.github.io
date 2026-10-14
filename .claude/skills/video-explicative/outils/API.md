@@ -4,16 +4,18 @@ Référence EXACTE du kit (`kit/src/*.js`, assemblé en `kit/marionnettes.js`). 
 
 ## 0. Principe et fichiers d'un plan
 
-Un plan = 4 fichiers dans `<video>/pN/` (+ `<video>/persos.js` partagé par tous les plans de la vidéo) :
+Un plan = 4 fichiers dans `<video>/pN/` (+ `<video>/persos.js` et son mode d'emploi `persos.md`, et `<video>/decors.js`, partagés par tous les plans de la vidéo) :
 
 | Fichier | Rôle |
 |---|---|
 | `timeline.js` | `TL.EVENTS` (instants nommés, nombres littéraux), `TL.MOTS` (fenêtres des mots-clés de la voix). Lu par `scene.js` ET `mixage.py`. |
 | `scene.js` | `const SCENE = (() => { … S.init = …; S.draw = (t) => …; return S; })();` — seul identifiant global déclaré. |
-| `persos.js` | personnages / accessoires propres à la vidéo (§7). Chargé après le kit, avant `scene.js`. |
+| `persos.js` | personnages / accessoires propres à la vidéo (§7). Chargé après le kit, avant `decors.js` et `scene.js`. Les plans lisent `persos.md`, pas ce fichier. |
+| `decors.js` | décors partagés entre plans (§4d), espace `M.dec`. Chargé après `persos.js`, avant `scene.js`. |
+| `CONSIGNE.md` | écrit par `construire.sh` : `FICHE.md` sans le script ni les consignes des autres plans. C'est la fiche que lit l'agent du plan. |
 | `mixage.py` | bruitages (§9). |
 
-Commandes : `bash construire.sh <video>/pN` (prépare, copie le kit, `bibliotheque/*.js`, la conduite `rideau.json` et `persos.js`, vérifie la syntaxe) ; `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <video>/pN --name pN --out <video>/out --stills 60,200` (images fixes PNG + **`planche_cles.png`** : toutes les images clés sur une seule image, dans l'ordre demandé — la regarder d'abord, n'ouvrir en grand que les PNG utiles) ; `bash produire.sh <video>/pN` (rendu complet ≈ 1 min + son + `planche.png` + `verifier.sh`).
+Commandes : `bash construire.sh <video>/pN` (prépare, copie le kit, `bibliotheque/*.js`, la conduite `rideau.json`, `persos.js` et `decors.js`, écrit `CONSIGNE.md`, vérifie la syntaxe) ; `bash essai.sh <video>/pN 4.5,8.3` (`construire.sh` + images clés des secondes 0 à 9, 9,97 et des instants donnés + `planche_cles.png`, une ligne de sortie : la commande d'itération) ; `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <video>/pN --name pN --out <video>/out --stills 60,200` (images fixes PNG + **`planche_cles.png`** : toutes les images clés sur une seule image, dans l'ordre demandé — la regarder d'abord, n'ouvrir en grand que les PNG utiles) ; `bash produire.sh <video>/pN` (rendu complet ≈ 1 min + son + `planche.png` + `verifier.sh`).
 
 Les rendus passent **l'un après l'autre** grâce à un verrou dans `render.cjs` : si un autre rendu tourne, le suivant attend (« un autre rendu est en cours : attente… »). Ne jamais le contourner.
 
@@ -156,6 +158,8 @@ Chaque plan **écrit son état final** (ce que le plan suivant doit reprendre à
 `construire.sh` réunit tous ces fichiers dans le `raccords.js` de chaque plan (chargé avant `persos.js`). Le plan N+1 **lit** `M.RACC['p' + (M.PLAN - 1)]` pour placer son image 0 au lieu de recopier des valeurs à la main ; si le plan N est corrigé, il suffit de relancer `construire.sh` et `produire.sh` du plan N+1.
 Contenu utile : positions, échelles, sens (`dir`), poses finales (angles importants), état des objets (couvercles, contenus), décor et ciel, personnages encore en scène.
 
+**Décors partagés — `<video>/decors.js`** : un décor qui sert à plusieurs plans (rivière, cuisine, labo…) s'écrit une seule fois ici au lieu d'être recopié de `scene.js` en `scene.js`. `construire.sh` le copie dans chaque plan, chargé après `persos.js` et avant `scene.js`. Forme : `M.dec = M.dec || {}; M.dec.riviere = function (t, up) { … };` (pas de `const` global : même portée que les autres scripts) ; chaque fonction prend le décalage vertical `up` (le décor qui monte ou descend) ; pré-rendus dans `M.dec.init()`, appelé dans `S.init`. Le premier plan qui en a besoin l'ajoute en fin de fichier ; les suivants l'appellent sans modifier ce qui existe (variante = option ou nouvelle fonction). Fonction pure de `t`, comme `S.draw`.
+
 ## 5. Matériel interne exposé pour personnages propres : `M.X`
 `M.X = { legPts(th=1), armPts(len=98), forePts(kind), foreTuck(), NAP_HEAD, AR_HEAD, GR_HEAD, earPaint(x,y), eye(f,x,y,sz=1), brow(f,x,y,col,lw), mouth(f,x,y,col), handPaint(skin,kind), HAND_OPEN, HAND_FIST }`
 - `legPts(th)` : jambe de profil, hanche en (0,−12), pied en y ≈ 237, bout du pied vers +x ; peindre bottes/chaussettes par un rectangle `y ≥ 214` dans le `paint`.
@@ -273,6 +277,7 @@ Après l'impact : `rot = -π/2 + wob(t, fallLand, 0.05, 2.6, 7)`, petit rebond `
 **Gestes utiles** : atteindre un point = `M.ik` ; saluer = `tilt` + `head` ; gouttes de sueur / larme = goutte `quadraticCurveTo` posée en `r.w('head', lx, ly)` qui coule en `y + 30·easeIn(u)` avec pop `spring` ; support qui grandit (feuille d'architecte, m2) plutôt que l'objet déformé : `spring(t - t0, 0.42, 15)` sur la taille.
 
 ## 9. Bruitages (`sfx_lib.py`, détail dans son en-tête)
+Résumé en 17 lignes (préréglages, signatures, structure de `mixage.py`) : `python3 -I OUTILS/sfx_lib.py --aide`. Le détail ci-dessous ne sert qu'aux cas particuliers.
 `gabarits/mixage.py` : `E = events('timeline.js')` (lit **`TL.EVENTS`** : clés `\w+`, valeurs **numériques littérales** ; ne pas écrire `mot: 3` dans un commentaire de ce bloc ni `};` avant sa fin) ; `MOTS` = paires `[a, b]` de `TL.MOTS = [[a,b],…];` (**une seule instruction, aucun `;` dans ses commentaires**) ; `m = Mix(mots=MOTS, seed=N)` ; `m.write(sys.argv[2])` (limite à −24 dBFS : un son trop fort fait baisser tout le mixage). Lancement : `cd <plan> && python3 -I mixage.py <outils> /tmp/x.wav`.
 Rideau : **`m.rideau_conduite()`** (d'après `rideau.json`, automatique). Préréglages (db = crête dBFS, pan −1 gauche … +1 droite, aucun bruitage > −26) : `rideau_ouvre(t0,t1)`, `rideau_ferme(t0,t1)`, `rideau_change(f0,f1,o0,o1)`, `rideau_demi(a,b,c,d)` (réservés à la conduite), `decor_monte(t0,t1,pan,poids='leger'|'lourd')` (butée à t1), `decor_descend(t0,t1,pan,poids)`, `decor_tombe(t,pan)`, `apparition(t,pan)` (t = arrêt), `disparition(t,pan)` (t = début), `glisse(t0,t1,pan0,pan1,db,sauts=(instants de clac))`, `pas(instants,pan)`, `objet_pose(t,pan)`, `chute(t,pan)`, `papier(t,pan,long=False)`, `ambiance('vent'|'ressac'|'vent_herbe'|'sabots_neige', t0,t1, db=-42, pan, af)` (seulement si visible : neige, mer). Bas niveau : `place(nom,at,db,pan,start,end,af,rate,fin,fout,label)` sur `sons/<nom>.mp3` (si `start` dépasse la durée du clip, rien n'est joué : durées dans `sons/`), `add(sig,at,db,pan)`, `swish`, `rings`, `creak`, `clac`, `carillon`, `murmure`, `applaudissements` (ces deux derniers seulement si une foule **visible** applaudit). `Mix.verifier()` signale (ligne `ATTENTION`) tout bruitage dont le DÉBUT tombe dans `[a−0.05, b]` d'un mot-clé et dépasse −36 dBFS : décaler le son après le mot.
 
