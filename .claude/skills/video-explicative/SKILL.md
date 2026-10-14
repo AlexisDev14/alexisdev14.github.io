@@ -58,15 +58,15 @@ Règles :
 
 ### En routine (session planifiée, sans utilisateur)
 Une routine ne peut pas demander : elle applique le **mode autonome** du début à la fin.
-1. `registre.py etat` ; présélection Haiku limitée aux thèmes conseillés.
+1. `registre.py etat` ; présélection Haiku sur les **questions les plus récentes** (`created_at desc`), limitée aux thèmes conseillés.
 2. Choisis toi-même le meilleur sujet selon les critères ci-dessous, réserve-le aussitôt (`registre.py reserver`) ; s'il est déjà pris, le suivant.
-3. Faits, script, fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
-4. Livraison complète : Drive (fichier texte avec le prompt de couverture + 6 plans), `registre.py livrer`, bibliothèque, charte.
+3. Faits, script, **voix** (`voix.py`, instants réels reportés dans la fiche), fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
+4. Livraison complète : Drive (fichier texte avec titre, description, hashtags, script, version ElevenLabs et prompt de couverture + 6 plans + `voix/p1…p6.mp3` + `voix/voix_complete.mp3`), `registre.py livrer`, bibliothèque, charte. Le résumé final dit : sujet, thème, lien du dossier Drive, crédits ElevenLabs utilisés (caractères envoyés), limites.
 5. Deux routines peuvent tourner le même jour : espace-les de quelques heures (limite d'usage sur 5 h glissantes) et laisse chacune dans sa propre session.
 
 ### Présélection (agent Haiku)
 Lance un agent `model: "haiku"` avec cette consigne (à compléter) :
-> Lis la collection Firestore `questions` du projet `clark-app-9b938` (connecteur Firestore Clark, outil `list_documents`, chercher « Firestore_Clark » avec ToolSearch ; parent `projects/clark-app-9b938/databases/(default)/documents` ; `orderBy: "random_id"`, `pageSize` 300, 2 pages différentes ; `mask` : text, choices, correct_answer_index, theme_code, type, status, qc, explanation, stats). **Lecture seule.** Si une réponse est enregistrée dans un fichier, analyse-la avec `python3 -I`. Garde seulement `status` ACTIVE, `qc.status` pass, `type` EVERGREEN, et écarte les ids et mots-clés suivants : [liste du registre]. Garde en priorité les thèmes suivants : [thèmes conseillés par `registre.py etat`]. Renvoie les 15 meilleures pour une vidéo-récit (anecdote avec ironie ou retournement, personnage ou objet dessinable, lien avec le quotidien, faits intemporels), au moins 10 dans les thèmes prioritaires, sur au moins 5 thèmes : pour chacune id, theme_code, question, réponse, anecdote en 2 lignes, taux de réussite.
+> Lis la collection Firestore `questions` du projet `clark-app-9b938` (connecteur Firestore Clark, outil `list_documents`, chercher « Firestore_Clark » avec ToolSearch ; parent `projects/clark-app-9b938/databases/(default)/documents` ; `orderBy: "created_at desc"` (les **plus récentes** d'abord), `pageSize` 300, 2 pages (les 600 dernières questions) ; `mask` : text, choices, correct_answer_index, theme_code, type, status, qc, explanation, stats). **Lecture seule.** Si une réponse est enregistrée dans un fichier, analyse-la avec `python3 -I`. Garde seulement `status` ACTIVE, `qc.status` pass, `type` EVERGREEN, et écarte les ids et mots-clés suivants : [liste du registre]. Garde en priorité les thèmes suivants : [thèmes conseillés par `registre.py etat`]. Renvoie les 15 meilleures pour une vidéo-récit (anecdote avec ironie ou retournement, personnage ou objet dessinable, lien avec le quotidien, faits intemporels), au moins 10 dans les thèmes prioritaires, sur au moins 5 thèmes : pour chacune id, theme_code, question, réponse, anecdote en 2 lignes, taux de réussite.
 
 ### Choix (toi)
 Critères :
@@ -123,11 +123,12 @@ Vigilance : objets tenus (la main entoure le corps de l'objet), transitions de p
    Rappels : une seule action principale à la fois ; le gag tombe avec la chute ; tout passage de posture se fait par étapes (0,8–1,2 s).
 4. **Livrables de l'arrêt** (un seul message) :
    - le script plan par plan, avec le nombre de mots et la durée ;
-   - la **version ElevenLabs** (Eleven v3) : années en toutes lettres, une ou deux balises d'intention par phrase au plus ([deadpan], [sarcastic], [amused], [sighs]…), pauses par « … ». Conseils : un paragraphe par plan, stabilité « Natural », chutes à plat ;
+   - la **version ElevenLabs** (modèle et voix : étape « Voix » ci-dessous) : années en toutes lettres, une ou deux balises d'intention par phrase au plus ([deadpan], [sarcastic], [amused], [sighs]…), pauses par « … ». Conseils : un paragraphe par plan, stabilité « Natural », chutes à plat ;
    - deux variantes pour l'accroche et pour la chute finale ;
    - les faits incertains ;
    - la fiche résumée : distribution (kit / bibliothèque / à créer), conduite du rideau, et pour chaque plan le décor, le gag et la faune.
-5. **Casting anticipé** : s'il y a des éléments « à créer », lance l'agent casting (3a) **en arrière-plan juste avant de t'arrêter** : il travaille pendant que l'utilisateur lit. Si l'utilisateur change la distribution, corrige-le par SendMessage.
+5. **Voix (ElevenLabs, automatique)** : écris la version ElevenLabs dans `<travail>/voix.txt` (6 paragraphes, un par plan, séparés par une ligne vide), puis `python3 -I OUTILS/voix.py <travail>` : les 6 plans partent en vagues (un appel après l'autre) avec la voix de l'utilisateur (« Alexandre », `gP52hjM48hyNoVCbizxO`) et le modèle `eleven_v4`, et `voix.py` écrit `voix/pN.mp3`, `voix/pN.json` (instant de chaque mot), `voix/MOTS.md` et `voix/voix_complete.mp3` (6 × 10,0 s, à poser telle quelle sous les plans au montage). Une ligne ATTENTION (voix > 9,6 s) : raccourcis ce paragraphe et relance `--plans N` seulement (≈ 1 crédit par caractère, ≈ 1 200 par vidéo ; jamais de voix accélérée). Puis **reporte les vrais instants** de `voix/MOTS.md` dans la fiche (fenêtres de voix et mots-clés de chaque plan) : les agents des plans calent `TL.MOTS` et les gestes clés dessus, sans estimation. Hors routine, fais-le après la validation du script (une réécriture coûterait une nouvelle voix).
+6. **Casting anticipé** : s'il y a des éléments « à créer », lance l'agent casting (3a) **en arrière-plan juste avant de t'arrêter** : il travaille pendant que l'utilisateur lit. Si l'utilisateur change la distribution, corrige-le par SendMessage.
 
 Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et mets à jour la fiche et `rideau.json` (sans nouvel arrêt, sauf changement de fond).
 
@@ -153,7 +154,8 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 | `produire.sh <travail>/pN` | Rendu complet, bruitages, `pN_final.mp4`, `planche.png`, puis contrôles automatiques : `verifier.sh` (format, durée, son), `sauts.py` (objet qui surgit ou disparaît d'une image à l'autre, fond nu de la scène) et `raccord.sh` (coupe avec le plan précédent). ≈ 30 à 70 s. | |
 | `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` | Planche de 16 images ou gros plan. | |
 | `sfx_lib.py` + `sons/` | Bruitages tout faits et clips CC0. **`python3 -I OUTILS/sfx_lib.py --aide`** liste en 17 lignes les préréglages et leurs paramètres. `freesound_cc0.py` cherche un nouveau son (vérifier sa licence CC0). | agents : `--aide`, jamais le fichier |
-| `drive_envoi.py` | Envoi sur le Drive à la livraison. | |
+| `drive_envoi.py` | Envoi sur le Drive à la livraison (vidéos, voix, texte). | |
+| `voix.py <travail> [--plans N]` | Voix ElevenLabs plan par plan (voix « Alexandre », `eleven_v4`), instants réels des mots (`voix/MOTS.md`), piste complète 6 × 10 s. Clé : secret réseau `xi-api-key` sur `api.elevenlabs.io`, jamais lue. | toi |
 | `registre.py etat / reserver / livrer` | Registre partagé entre sessions et routines : état et thèmes conseillés, réservation d'un sujet (commit + push, refus si déjà pris), passage à « livrée ». | toi |
 
 Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + `persos.md` (casting), `decors/pN.js` (décors partagés entre plans, un fichier par plan pour que deux agents en tuilage n'écrivent jamais au même endroit : règles dans `MEMO-PLAN.md` §4), `raccords/pN.js`, `pN/`, `casting/`, `out/`.
@@ -218,7 +220,7 @@ Pas de nouveau rendu complet. Vérifie seulement :
      - Si le prompt est retouché après la livraison (retours de l'utilisateur sur l'image générée), mettre à jour cette section du fichier texte et le **remplacer** sur le Drive : mettre l'ancien fichier à la corbeille (connecteur Google Drive, `trash_file`, après avoir vérifié son nom et son dossier), puis renvoyer le nouveau avec `drive_envoi.py "<Sujet>" "<fichier texte>"`.
 
      Modèle : le fichier « Arc de triomphe — script et publication.txt » du Drive.
-  2. Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<Sujet>" "<travail>/<Sujet> — script et publication.txt" <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4`.
+  2. Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<Sujet>" "<travail>/<Sujet> — script et publication.txt" <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3 <travail>/voix/voix_complete.mp3` (le type de chaque fichier est reconnu à son extension).
      - Le script crée (ou retrouve) le dossier « <Sujet> » dans « Vidéos » (id `1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_`) et y dépose les fichiers, en envoi « resumable ». Il affiche le lien du dossier.
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).

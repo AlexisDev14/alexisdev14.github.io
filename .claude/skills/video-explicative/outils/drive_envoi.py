@@ -48,5 +48,5 @@ if __name__ == '__main__':
     tok = jeton()
     d = dossier(tok, sujet, VIDEOS)
     if texte != '-': envoyer(tok, texte, d, 'text/plain')
-    for v in videos: envoyer(tok, v, d, 'video/mp4')
+    for v in videos: envoyer(tok, v, d, {'.mp3': 'audio/mpeg', '.json': 'application/json', '.md': 'text/markdown', '.png': 'image/png', '.wav': 'audio/wav'}.get(os.path.splitext(v)[1].lower(), 'video/mp4'))
     print(f'dossier : https://drive.google.com/drive/folders/{d}')
