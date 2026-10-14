@@ -44,7 +44,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 3. Rideau conforme à la conduite à 0 s et à 10 s ; image 0 = état final du plan précédent (`M.RACC`).
 4. Chaque ligne de `CHARTE.md` §8 (`sed -n '/^## 8/,/^## 9/p' OUTILS/CHARTE.md` : c'est la seule section de la charte à relire à chaque plan).
 5. Après `produire.sh` : `verifier.sh` tout « OK » ; chaque ligne « ATTENTION » traitée :
-6. Sauts voulus déclarés : Un geste discret prévu (objet posé, chapeau soulevé, couvercle qui claque) fait un « saut » d'une image à l'autre : déclare son instant dans `TL.SAUTS = [ … ];` (timeline.js) pour que `sauts.py` ne le signale pas ; tout autre saut se corrige.
    - `sauts.py` « saut à t » : un objet surgit, disparaît ou change de place en une image (porte qui claque, accessoire posé ou repris sans geste). Regarde `planche.sh <pN_final.mp4> zoom.png --de t-0.3 --a t+0.3` dans la zone donnée ; corrige (fondu, geste qui pose ou reprend, mouvement sur plusieurs images) ou justifie dans le rapport (coupe voulue, éclair).
    - `sauts.py` « fond nu visible » : du noir pur sur scène (décor absent ou trop court) : ajoute ou élargis le décor. Seule exception : une scène de nuit voulue.
    - `raccord.sh` « raccord pN-1 → pN » : ouvre `out/pN/raccord.png` (fin du plan précédent | ton image 0 | différence ×5) et aligne ton image 0 sur `M.RACC`.
+6. Sauts voulus : un geste discret prévu (objet posé, chapeau soulevé, couvercle qui claque) fait un « saut » d'une image à l'autre : déclare son instant dans `TL.SAUTS = [ … ];` (timeline.js) pour que `sauts.py` ne le signale pas ; tout autre saut se corrige.
