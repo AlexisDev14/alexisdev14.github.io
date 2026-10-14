@@ -72,6 +72,8 @@
 - Objets d'une même série qui se confondent (conteneurs du tri distingués par un simple liseré) → chaque objet **entièrement** de sa couleur, nettement différente (ex. vert éteint / ocre / bleu ardoise).
 - Éléments clés trop petits en vignette (tas d'ordures en bande au ras du sol, rats minuscules, boîtes cachées par un meuble) → dimensionner pour le téléphone : l'objet du mot-clé se lit en 1 s, dégagé, à ≥ 120 px.
 - Caricature ou dessin dans l'image qui n'associe pas clairement le personnage à son objet → montrer le personnage reconnaissable (barbe, chapeau) DANS ou AVEC l'objet.
+- Coude « à l'envers » (bras à l'horizontale à hauteur d'épaule, avant-bras qui retombe, coude au-dessus de la ligne épaule–main) → pour écrire, tendre ou tenir, le coude reste **sous** la ligne épaule–main (essayer l'autre `bendSign` de `M.ik`).
+- Personnage qui semble changer d'habit d'un plan à l'autre, ou deux personnages qui se ressemblent assez pour être confondus (même barbe, même stature) → **un personnage = une tenue pour toute la vidéo**, et chaque personnage se distingue au premier coup d'œil (couvre-chef, pilosité, silhouette, couleur dominante différents).
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
 - Animal lointain qui flotte dans le ciel ou sur la toile (pas de relief sous ses pieds) ; faune qui attire l'œil pendant le geste clé.
 - Rideau qui bouge pendant un gag ou sur un mot-clé ; raccord de rideau faux à la coupe (plan qui ne commence pas dans l'état où le précédent finit) → toujours `M.rideau(t)` + `rideau.json`, jamais un rideau codé à la main.
