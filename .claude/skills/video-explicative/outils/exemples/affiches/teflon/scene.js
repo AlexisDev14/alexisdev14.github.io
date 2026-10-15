@@ -11,7 +11,7 @@ const SCENE = (() => {
     M.drawFloor();
     TEF.frigo(870, ST.back, 1, { sueur: 1, gouttes: [0.2, 0.9], tremble: 0.4, t, cast });
     TEF.plunkett({ t, teteMain: 1, goggles: 0, face: { brow: 'worry', mouth: 'o' } }, 190, FEET, 0.95, { dir: 1, slot: ST.slotF, cast });
-    TEF.marc({ t, tenu: 'poele', tenuO: { modele: 'teflon', oeuf: 'glisse', oeufDx: 10 }, fier: 0.5, ang: { armF_up: -1.15, armF_lo: -0.45 }, face: { mouth: 'smile' } }, 660, FEET, 0.95, { dir: -1, slot: ST.slotF, cast });
+    TEF.marc({ t, tenu: 'poele', tenuO: { modele: 'teflon', oeuf: 'glisse', oeufDx: 10 }, fier: 0.3, tenuB: 'canne', tenuBO: { fil: 50, t }, ang: { armF_up: -0.45, armF_lo: -1.05, armB_up: -0.3, armB_lo: -1.8, objetB: -2.2 }, face: { mouth: 'smile' } }, 660, FEET, 0.95, { dir: -1, slot: ST.slotF, cast });
     M.stageLight(t, { spot: { x: 520, y: 1200, r: 620, a: 0.26 } });
     M.curtain(t, 1, {});
     M.drawFrame(t);
