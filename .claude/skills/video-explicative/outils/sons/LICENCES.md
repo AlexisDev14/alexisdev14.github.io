@@ -2,7 +2,7 @@
 
 Tous les clips sont des extraits (recadrés, attaque calée au début, 48 kHz stéréo) d'enregistrements Freesound
 sous licence **CC0 1.0** (domaine public), vérifiée sur la page de chaque son lors des vidéos précédentes.
-Avant d'ajouter un nouveau son : `python3 ../freesound_cc0.py "mots clés"`, ouvrir la page et **vérifier « Creative Commons 0 »**.
+Avant d'ajouter un nouveau son : `python3 ../freesound_cc0.py "mots clés"`, ouvrir la page et **vérifier « Creative Commons 0 »**, puis vérifier sur la page (titre, description, mots-clés) qu'il ne contient **aucune voix humaine** (parole, murmure, rire, foule qui parle, « crowd », « voices », « talking ») : au moindre doute, prendre un autre clip ; l'écrire dans la colonne Contenu (« … , sans voix »).
 
 | Clip | Source Freesound | Contenu | Utilisé par |
 |---|---|---|---|

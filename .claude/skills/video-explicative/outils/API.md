@@ -160,6 +160,13 @@ Contenu utile : positions, échelles, sens (`dir`), poses finales (angles import
 
 **Décors partagés — `<video>/decors/pN.js`** (un fichier par plan : deux agents en tuilage n'écrivent jamais dans le même fichier) : un décor qui sert à plusieurs plans (rivière, cuisine, labo…) s'écrit une seule fois, dans le fichier du plan qui le crée, au lieu d'être recopié de `scene.js` en `scene.js`. `construire.sh` réunit tous les `decors/*.js` (et l'ancien `<video>/decors.js` s'il existe) dans le `decors.js` de chaque plan, chargé après `persos.js` et avant `scene.js`. Forme : `M.dec.riviere = function (t, up) { … };` (`M.dec` existe déjà ; pas de `const` global) ; chaque fonction prend le décalage vertical `up` ; pré-rendus dans `M.dec.init_pN = function () { … };` — `M.dec.init()`, appelé dans `S.init`, lance tous les `init_*`. Les plans suivants appellent ces fonctions sans les modifier (variante = nouvelle fonction dans leur propre fichier). Fonction pure de `t`, comme `S.draw`.
 
+## 4e. Vignette (second lieu) et envoi — action à distance
+Une action à distance (envoyer, écrire à, appeler, penser à quelqu'un) se joue sur **deux lieux** : jamais le destinataire dans la pièce de l'expéditeur.
+- **`M.vignette(t, { x, y, rx=210, ry=260, t0, t1=99, dur=0.6, fond, draw })`** → ouverture `p` (0 = fermée) : médaillon ovale doré suspendu à deux fils, qui descend un peu et s'ouvre **en iris** de `t0` à `t0+dur`, se referme à partir de `t1`. `draw(cx, cy, rx, ry, p)` dessine l'intérieur (fond du second lieu, personnage à petite échelle ≈ 0,45–0,6, pieds vers `cy + ry*0.6`), déjà découpé dans l'ovale. Placement : dans la zone utile (x ± (rx+22) entre 130 et 930, haut de scène de préférence), sans couvrir le geste de la scène principale ; `rx, ry` ≥ 180 × 220 pour la lecture sur téléphone.
+- **`M.envoi(t, { de:[x,y], a:[x,y], t0, t1, haut=220, draw })`** → position ou `null` : un objet (lettre, carte, pigeon, colis) vole en arc de `de` à `a` « comme un oiseau » (léger battement), de `t0` à `t1`. `draw(x, y, ang, k)` dessine l'objet. Après `t1`, la scène (ou la vignette) dessine l'objet à son arrivée : pas de saut.
+- Ordre de dessin : la vignette et l'envoi après les marionnettes, avant `M.stageLight`. Son : `objet_pose` à l'arrivée, `glisse` léger pendant le vol.
+- Exemple : `M.vignette(t, { x: 690, y: 560, t0: 1.0, t1: 8.6, draw: (cx, cy, rx, ry) => { M.puppet(C.emma, pose, cx, cy + ry*0.6, 0.5, { dir: -1 }); } });` puis `M.envoi(t, { de: [380, 1050], a: [690, 640], t0: 3, t1: 5, draw: carte });`
+
 ## 5. Matériel interne exposé pour personnages propres : `M.X`
 `M.X = { legPts(th=1), armPts(len=98), forePts(kind), foreTuck(), NAP_HEAD, AR_HEAD, GR_HEAD, earPaint(x,y), eye(f,x,y,sz=1), brow(f,x,y,col,lw), mouth(f,x,y,col), handPaint(skin,kind), HAND_OPEN, HAND_FIST }`
 - `legPts(th)` : jambe de profil, hanche en (0,−12), pied en y ≈ 237, bout du pied vers +x ; peindre bottes/chaussettes par un rectangle `y ≥ 214` dans le `paint`.
@@ -287,6 +294,7 @@ Rideau : **`m.rideau_conduite()`** (d'après `rideau.json`, automatique). Prér�
 - Pré-rendre dans `S.draw` = rendu extrêmement lent ; l'ombre `cast` de `M.flat` exige `M.withShadow` ; `cv.padB` pour un pied exact.
 - `pose.dy`/`dx` sont en unités du personnage (× `s`) ; `tilt` pivote autour des PIEDS ; `ang` s'ajoute au `rest`.
 - Personnage « sous le plancher » (descente, foule) : `clipAbove(ST.slotX, …)` obligatoire.
+- `python3` sans numpy (routines) : les scripts `.sh` du kit placent déjà `/usr/bin` en tête du PATH ; pour un `python3` lancé à la main, utiliser `/usr/bin/python3`.
 - Tige : `rod:false` dès qu'on pivote ou couche la marionnette ; sinon la tige suit l'inclinaison du corps (absurde à l'horizontale).
 - `handRod` visible = fil noir fin ; ne pas l'utiliser pour une main qui doit paraître libre.
 - Dessin brut dans `paint`/`extra` sans `if (M._sil()) return;` → tache noire/colorée dans l'ombre portée.

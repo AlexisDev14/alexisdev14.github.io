@@ -1,4 +1,6 @@
 #!/bin/bash
+# Le python3 système (/usr/bin) a numpy ; un autre python3 placé avant dans le PATH (routines) ne l'a pas.
+export PATH="/usr/bin:$PATH"
 # Contrôle du raccord entre deux plans : dernière image de p(N-1) contre première image de pN (le rideau est dans le même
 # état des deux côtés, l'écart attendu se limite au mouvement d'une seule image).
 # Usage : raccord.sh <dossier_video> N        (N ≥ 2)   Sortie 0 dans tous les cas : l'ATTENTION ne bloque pas.

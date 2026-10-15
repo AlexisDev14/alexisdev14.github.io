@@ -1,4 +1,6 @@
 #!/bin/bash
+# Le python3 système (/usr/bin) a numpy ; un autre python3 placé avant dans le PATH (routines) ne l'a pas.
+export PATH="/usr/bin:$PATH"
 # Planche de contrôle : 16 images réparties sur la vidéo (8 × 2), ou --de A --a B pour un gros plan temporel.
 # Usage : planche.sh <video.mp4> <sortie.png> [--de 7.5 --a 9.5] [--crop L:H:X:Y]
 V="$1"; S="$2"; shift 2; DE=0; A=10; CROP=""

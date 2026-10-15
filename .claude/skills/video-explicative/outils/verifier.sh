@@ -1,4 +1,6 @@
 #!/bin/bash
+# Le python3 système (/usr/bin) a numpy ; un autre python3 placé avant dans le PATH (routines) ne l'a pas.
+export PATH="/usr/bin:$PATH"
 # Contrôle technique d'un plan livré : format, durée, son, crête audio.  Usage : verifier.sh <video.mp4>
 V="$1"
 python3 - "$V" <<'PY'

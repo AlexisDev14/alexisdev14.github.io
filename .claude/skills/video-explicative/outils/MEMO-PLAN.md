@@ -35,6 +35,8 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
 - Ce que la voix révèle n'apparaît qu'au moment où elle le dit (jamais avant son mot).
+- Lieux et présences : respecte la ligne « Lieux et présences » de ta consigne. Une action à distance (envoyer, écrire à, appeler) se joue sur deux lieux : le destinataire dans une vignette (`M.vignette`, API §4e), l'objet qui voyage par `M.envoi` ; jamais le destinataire dans la pièce de l'expéditeur.
+- Positions : celles du plan de scène ; si l'image exige de s'en écarter, fais-le et donne tes positions réelles dans ton rapport.
 - Chaque figurant d'un groupe a sa propre tenue (jamais de clones).
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
 

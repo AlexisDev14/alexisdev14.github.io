@@ -1,4 +1,6 @@
 #!/bin/bash
+# Le python3 système (/usr/bin) a numpy ; un autre python3 placé avant dans le PATH (routines) ne l'a pas.
+export PATH="/usr/bin:$PATH"
 # Rendu complet d'un plan + bruitages + planche de contrôle + contrôles automatiques.  Usage : produire.sh <dossier_video>/pN [workers=3]
 # Sorties : <dossier_video>/out/pN/pN.mp4 (muet), pN_final.mp4 (avec bruitages), planche.png (16 images), sfx.wav
 # Contrôles, dans l'ordre :

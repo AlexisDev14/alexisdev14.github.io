@@ -88,6 +88,9 @@
 - Son qui ressemble à une voix humaine (murmure, brouhaha, foule, son ralenti) sous la voix off → interdit ; ambiance du lieu, machine, faune ou nature à la place.
 - Plan sans aucun son d'ambiance, trop sec → au moins une ambiance du lieu par plan, très basse, hors mots-clés.
 - Dernière image du plan 6 qui laisse le spectateur croire autre chose que la morale (qui est moqué, qui a gagné) → se demander « qu'est-ce que le spectateur croit à ce moment-là ? ».
+- Destinataire d'une action à distance placé dans la pièce de l'expéditeur (« il envoie à sa femme », et la femme est dans son bureau pour recevoir la carte) → deux lieux : vignette (`M.vignette`) ou changement de décor ; l'histoire à l'image se contrôle comme la technique.
+- Nouveau personnage qui ressemble à un personnage de la bibliothèque (Daimler au chapeau ≈ propriétaire de `poubelle.js`) → comparaison côte à côte nommée dans la consigne du casting, changée avant de continuer.
+- Plan corrigé sans vérifier ses voisins → après une correction du plan N, revoir N−1 et N+1 (histoire et raccords).
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.

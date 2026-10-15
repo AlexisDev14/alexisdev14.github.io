@@ -1,4 +1,6 @@
 #!/bin/bash
+# Le python3 système (/usr/bin) a numpy ; un autre python3 placé avant dans le PATH (routines) ne l'a pas.
+export PATH="/usr/bin:$PATH"
 # Essai rapide d'un plan : prépare le dossier (construire.sh) puis rend des images clés et leur planche.
 # Usage : essai.sh <dossier_video>/pN [instants en secondes séparés par des virgules, ex. 4.5,8.3]
 # Images rendues : 0,30,60,…,270,299 plus les instants donnés (t×30 arrondi, borné à 0–299). Sortie : <dossier_video>/out/…/planche_cles.png

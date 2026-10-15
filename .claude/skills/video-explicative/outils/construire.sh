@@ -1,4 +1,6 @@
 #!/bin/bash
+# Le python3 système (/usr/bin) a numpy ; un autre python3 placé avant dans le PATH (routines) ne l'a pas.
+export PATH="/usr/bin:$PATH"
 # Prépare le dossier d'un plan pour le rendu.  Usage : construire.sh <dossier_video>/pN ["titre"]
 #  - crée scene.js / timeline.js / mixage.py à partir des gabarits s'ils n'existent pas ;
 #  - copie le kit (outils/kit/marionnettes.js), la bibliothèque commune (outils/bibliotheque/*.js),
