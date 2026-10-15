@@ -469,6 +469,13 @@
   const pale = (C, k, fog) => { const o = {}; for (const n in C) o[n] = M.mixc(C[n], fog, k); return o; };
   CH.benTouriste = mkTouriste(TO_BASE, 7600);
   CH.benTouristeMini = mkTouriste(pale(TO_BASE, 0.42, '#c9cdd0'), 7700);
+  // Trois tenues nettement différentes pour les touristes du fond (o.tenue 0, 1, 2) ; aucune ne reprend celle du touriste principal.
+  const TO_TENUES = [
+    { tee: '#b8913a', teeD: '#977530', short: '#56698a', shortD: '#465672', cap: '#5d6b3a', capD: '#4a562e', sac: '#7a7a72', sacD: '#5f5f58', cheveux: '#2e2420' },  // moutarde, jean, casquette olive
+    { tee: '#e2d9c2', teeD: '#c4b99f', short: '#6b6a45', shortD: '#57563a', cap: '#2f3d5a', capD: '#232e45', sac: '#8a3a33', sacD: '#6d2d28', cheveux: '#b08a50' },  // ivoire, kaki, casquette bleu nuit, sac rouge
+    { tee: '#9a4b5e', teeD: '#7d3c4c', short: '#8d8a84', shortD: '#74716c', cap: '#d8cfb4', capD: '#b9b096', sac: '#4f6b55', sacD: '#3f5644', cheveux: '#5a3a28' },  // prune, gris, casquette ivoire, sac vert
+  ];
+  CH.benTouristeMiniT = TO_TENUES.map((T, i) => mkTouriste(pale(Object.assign({}, TO_BASE, T), 0.3, '#c9cdd0'), 7800 + i * 50));
   BEN.touristePose = function (p) {
     const q = prep(p), A = q.ang;
     if (q.tenu == null) q.tenu = 'appareil';
@@ -484,7 +491,10 @@
     return finish(q);
   };
   BEN.touriste = (pose, x, y, s, o) => run(CH.benTouriste, BEN.touristePose(pose), x, y, s == null ? 0.9 : s, Object.assign({ slot: M.ST.slotF }, o));
-  BEN.touristeMini = (pose, x, y, s, o) => run(CH.benTouristeMini, BEN.touristePose(pose), x, y, s == null ? 0.72 : s, Object.assign({ slot: M.ST.slotB }, o));
+  BEN.touristeMini = (pose, x, y, s, o) => {
+    const ch = (o && o.tenue != null) ? CH.benTouristeMiniT[((o.tenue | 0) % 3 + 3) % 3] : CH.benTouristeMini;
+    return run(ch, BEN.touristePose(pose), x, y, s == null ? 0.72 : s, Object.assign({ slot: M.ST.slotB }, o));
+  };
 
   // =====================================================================
   // ACCESSOIRES SEULS — M.puppet à une pièce invisible ; l'objet se dessine dans l'extra (ombre portée possible)

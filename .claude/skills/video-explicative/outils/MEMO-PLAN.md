@@ -34,6 +34,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
+- Figurants d'un groupe : une tenue différente chacun (option de tenue du personnage si elle existe). Ce que la voix révèle n'entre en scène qu'au moment où on le dit.
 
 ## 6. Bruitages (`mixage.py`)
 - Garder `m.rideau_conduite()` (son du rideau automatique). Seulement des actions **visibles**, 3 à 8 par plan, préréglages calibrés (ne pas monter les niveaux). **`python3 -I OUTILS/sfx_lib.py --aide`** donne en 17 lignes tous les préréglages, leurs paramètres et la structure de `mixage.py` : ne lis pas `sfx_lib.py`.

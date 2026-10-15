@@ -82,6 +82,8 @@
 - Accessoire qui surgit à la coupe (balance absente à la fin du plan 1, présente au début du plan 2) → tout objet dont le plan suivant a besoin est déjà en place dans la dernière image du plan précédent.
 - Geste clé coupé par un rideau à demi fermé (officier arrêté à x 120, salut caché par le pan) → avec une cue `demi`, garder le personnage et son geste dans la bande restée visible (x ≥ 240).
 - Changement de décor à vue qui découvre le noir des coulisses (toile de rivière qui remonte avant que la cuisine ne soit descendue : bande sombre sur un mot-clé) → une toile de fond peinte est déjà en place derrière l'ancien décor ; seuls les éléments du nouveau descendent ou montent.
+- Figurants d'un même groupe habillés pareil (trois touristes, copies pâles du touriste principal) → chaque figurant a **sa propre tenue** (couleurs du haut, du bas et du couvre-chef toutes différentes, et différentes du personnage principal).
+- Objet de la révélation présent à l'image avant d'être révélé (cloche déjà sur scène pendant que le touriste photographie la tour) → ce que la voix « dévoile » n'entre en scène qu'au moment où on le dit ; avant, l'image montre ce que tout le monde croit.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
