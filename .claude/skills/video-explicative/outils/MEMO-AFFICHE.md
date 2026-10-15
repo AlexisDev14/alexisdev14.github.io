@@ -18,13 +18,14 @@ Exemples validés par l'utilisateur (à lire avant d'écrire) : `OUTILS/exemples
 - **Jamais de main levée paume ouverte** (rappelle un salut), ni de geste ou de symbole ambigu.
 - Les gestes demandés par l'utilisateur passent par `M.ik` vers un point de la tête ou du corps (`r.w('head', x, y)`) ; aucune ligne « ATTENTION coude à l'envers » au rendu.
 - Un objet qui vole (carte ailée, lettre) : petites ailes de papier ivoire bordées de blanc, l'objet penché vers son destinataire, un pointillé depuis l'expéditeur (voir `mercedes/scene.js`, `aile` et `carteAilee`).
+- Les personnages de l'affiche sont ceux du **cœur de l'histoire** (l'inventeur et celui qui en tire l'idée, le héros et sa victime) ; un personnage secondaire de la vidéo n'y figure pas (Téflon : Colette retirée, Plunkett et Marc Grégoire gardés).
 - Coffres, couvercles, objets orientés : vérifier qu'ils s'ouvrent vers le centre et ne sortent pas du cadre (`dir`).
 
 ## 3. Le titre (`affiche.py`)
 `python3 -I OUTILS/affiche.py <travail>/out/affiche/still_0042.png "<travail>/out/<Sujet> — affiche.png" <THEME> "LIGNE 1" "petite ligne" "LIGNE 3"`
 - Trois lignes : **deux grandes en capitales**, une **petite en minuscules** au milieu (liaison, entre deux filets). Chaque ligne est ajustée à la largeur de l'enseigne : le titre ne déborde jamais.
 - La couleur de l'enseigne suit `<THEME>` (`theme_code` de la question : HIST, GEO, SCI, ART, MUS, POP, SPORT, VIE, ECO, LANG, ACTU), assourdie pour la palette du théâtre.
-- **Le titre intrigue, il ne répète pas l'évidence** : « Barbe Noire, le pirate qui fumait » a été refusé (« qui fumait, on s'en doute ») ; validés : « BARBE NOIRE — qui jouait — LA TERREUR », « LE FROMAGE — de la — FRAUDE », « L'ÉTOILE — née sur une — CARTE POSTALE ». Il fait sentir le retournement sans le dévoiler.
+- **Le titre intrigue, il ne répète pas l'évidence** : « Barbe Noire, le pirate qui fumait » a été refusé (« qui fumait, on s'en doute ») ; refusé aussi : « LE PRÉFET — qui finit à — LA POUBELLE » ; validés : « BARBE NOIRE — qui jouait — LA TERREUR », « LE FROMAGE — de la — FRAUDE », « L'ÉTOILE — née sur une — CARTE POSTALE ». Il fait sentir le retournement sans le dévoiler.
 - 4 à 7 mots en tout, orthographe et accents vérifiés.
 
 ## 4. Contrôle (toi, avant le Drive)
