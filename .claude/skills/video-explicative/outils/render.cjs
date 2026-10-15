@@ -58,9 +58,10 @@ const args = gpu ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '-
   const { FRAMES, FPS } = await first.evaluate(() => ({ FRAMES: window.FRAMES, FPS: window.FPS }));
   const list = stills || [...Array(FRAMES).keys()];
   const pages = [first]; for (let i = 1; i < Math.min(workers, list.length); i++) pages.push(await open());
-  const t0 = Date.now(); let next = 0, done = 0;
+  const t0 = Date.now(); let next = 0, done = 0; const COUDES = {};
   const grab = async (p, f) => {
-    const data = await p.evaluate(([f, fmt]) => { window.renderFrame(f); return (window.captureCanvas || document.querySelector('canvas')).toDataURL(fmt, 0.95); }, [f, stills ? 'image/png' : 'image/jpeg']);
+    const [data, coudes] = await p.evaluate(([f, fmt]) => { window.COUDES = []; window.renderFrame(f); return [(window.captureCanvas || document.querySelector('canvas')).toDataURL(fmt, 0.95), [...new Set(window.COUDES)]]; }, [f, stills ? 'image/png' : 'image/jpeg']);
+    for (const k of coudes) (COUDES[k] = COUDES[k] || []).push(f);
     const file = stills ? `still_${String(f).padStart(4, '0')}.png` : `frames/${String(f).padStart(4, '0')}.jpg`;
     fs.writeFileSync(path.join(out, file), Buffer.from(data.split(',')[1], 'base64'));
     if (!stills && ++done % 30 === 0) console.log(`image ${done}/${list.length} — ${((Date.now() - t0) / 1000).toFixed(0)} s`);
@@ -69,6 +70,13 @@ const args = gpu ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '-
   const chunk = Math.ceil(list.length / pages.length);
   await Promise.all(pages.map(async (p, k) => { for (const f of list.slice(k * chunk, (k + 1) * chunk)) await grab(p, f); }));
   await browser.close(); server.close();
+  // coudes à l'envers (contrôle du kit) : une ligne par bras, avec les plages de temps
+  for (const [k, fs_] of Object.entries(COUDES)) {
+    const v = [...fs_].sort((a, b) => a - b), plages = []; let a0 = v[0], b0 = v[0];
+    for (const f of v.slice(1)) { if (f - b0 <= (stills ? 45 : 2)) b0 = f; else { plages.push([a0, b0]); a0 = b0 = f; } }
+    plages.push([a0, b0]);
+    console.log(`ATTENTION coude à l'envers : ${k} à ${plages.map(([a, b]) => a === b ? (a / FPS).toFixed(2) + ' s' : (a / FPS).toFixed(2) + '–' + (b / FPS).toFixed(2) + ' s').join(', ')} (coude au-dessus de la ligne épaule–main : essayer l'autre bendSign de M.ik)`);
+  }
   if (stills) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'planche-'));
     list.forEach((f, i) => fs.copyFileSync(path.join(out, `still_${String(f).padStart(4, '0')}.png`), path.join(tmp, `${String(i).padStart(3, '0')}.png`)));

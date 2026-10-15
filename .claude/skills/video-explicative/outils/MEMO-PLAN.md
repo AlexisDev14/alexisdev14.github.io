@@ -7,12 +7,13 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Un plan = `<video>/pN/` : `timeline.js` (`TL.EVENTS` nombres littéraux ; `TL.MOTS = [[a,b],…];` une seule instruction), `scene.js` (`const SCENE = (() => { S.init = …; S.draw = (t) => …; return S; })();` seul global), `mixage.py`. Partagés : `persos.js` (+ son mode d'emploi `persos.md`), `decors.js`, `rideau.json`, `raccords/pN.js`.
 - `bash OUTILS/construire.sh <video>/pN` (une fois, au début) → itérations avec **`bash OUTILS/essai.sh <video>/pN 4.5,8.3`** (reconstruit le dossier et rend la planche `planche_cles.png` des secondes 0, 1, …, 9, 9,97 plus les instants donnés, en une seule commande et une seule ligne de sortie) → `bash OUTILS/produire.sh <video>/pN` (rendu complet ≈ 1 min, son, `planche.png`, contrôles automatiques). Les rendus attendent leur tour (verrou) : normal.
 - **Lecture des fichiers** : jamais un fichier de plus de 150 lignes affiché en entier (ni `cat`, ni `Read` sans bornes). `grep -n` d'abord, puis `sed -n 'a,bp'` sur l'extrait utile. Vaut pour `API.md`, `CHARTE.md`, `persos.js`, `decors.js`, la bibliothèque, les exemples et le `scene.js` du plan précédent.
+- Python : si `python3` n'a pas numpy, les outils (`sfx_lib.py`, `sauts.py`) se relancent seuls avec `/usr/bin/python3` ; à la main, utilise `/usr/bin/python3`. Essais : 3 tours d'`essai.sh` au plus, puis gros plans et `produire.sh`.
 - `S.draw(t)` = fonction **pure de t** (3 workers en parallèle) : jamais `Math.random`/`Date.now`/état accumulé ; `M.rng(seed)`. Tout pré-rendu (`M.pre`, `M.cutFlat`, `M.withShadow`, `POU.init()`…) dans `S.init`, jamais dans `S.draw`. Aucun `const` global hors `SCENE`.
 
 ## 2. Scène, ordre de dessin, cadrage
 - `M.ST = { L:46, R:1034, top:150, back:1395, slotB:1410, slotF:1450, front:1640 }`. Pieds : `FEET = ST.slotF - 34` (fente avant, échelle ≈ 0,9–1), `FEETB = ST.slotB - 30` (fente arrière, 0,72–0,9). Décors posés sur `ST.back`.
 - **Ordre** : ciel → oiseaux → décors suspendus/coulisses → animaux lointains → fermes basses → fleurs → décors qui montent/descendent → `M.drawFloor()` → marionnettes (arrière puis avant) → accessoires/effets → `M.stageLight(t, {spot:{x,y,r,a}})` → **`M.rideau(t)`** → `M.drawFrame(t)`.
-- **Zones** : tout ce qui compte dans x 130–930, y 150–1430 ; y > 1430 plancher seulement (sous-titres) ; x > 930 décor seulement ; coin x < 220, y < 220 calme (logo).
+- **Zones** : tout ce qui compte dans x 130–930, y 150–1430 ; **pendant une fermeture ou un mouvement du rideau, rien de clé à x < 250 ni x > 780** (les pans le couvrent) ; personnages d'un groupe espacés d'au moins 130 px (2 ou 3 lisibles plutôt que 4 serrés) ; y > 1430 plancher seulement (sous-titres) ; x > 930 décor seulement ; coin x < 220, y < 220 calme (logo).
 - **Lisibilité téléphone** : l'objet de chaque mot-clé ≥ 120 px, contrasté, dégagé (rien devant : meuble, personnage, chapeau) ; personnage principal ≥ 450 px ; positions du **plan de scène** de la fiche.
 
 ## 3. Marionnettes (`M.puppet(def, pose, x, y, s, {dir, slot: ST.slotF, cast:{dx:22,dy:10,a:0.3}})`)
@@ -33,11 +34,13 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Geste clé sur le mot clé (± 0,2 s) ; gag avec la chute, jamais avant ; une action principale à la fois ; anticipation → action → rebond ; durées mini : geste 0,3 s, expression 0,6 s, gag 1,5–2 s ; changement de posture par étapes sur 0,8–1,2 s.
 - Toute action finie à 9 s (9,6 s au plus) ; puis image stable (respiration, flammes) ou rideau si la conduite le prévoit. Jamais figé.
 - Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
+- ⛔ **Aucune mort ni violence montrée** (pas de tête coupée, de sang, de coup qui touche, de corps à terre, même en carton) : on la suggère comme au théâtre (rideau qui tombe, ombre sur la toile, chapeau qui roule, fumée, objet qui tombe à la place).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
 - Ce que la voix révèle n'apparaît qu'au moment où elle le dit (jamais avant son mot).
 - Lieux et présences : respecte la ligne « Lieux et présences » de ta consigne. Une action à distance (envoyer, écrire à, appeler) se joue sur deux lieux : le destinataire dans une vignette (`M.vignette`, API §4e), l'objet qui voyage par `M.envoi` ; jamais le destinataire dans la pièce de l'expéditeur.
 - Positions : celles du plan de scène ; si l'image exige de s'en écarter, fais-le et donne tes positions réelles dans ton rapport.
 - Chaque figurant d'un groupe a sa propre tenue (jamais de clones).
+- Bras : tout bras plié passe par `M.ik` avec le `bendSign` indiqué dans `persos.md` pour ce bras et cette direction ; le rendu signale « ATTENTION coude à l'envers » : à corriger, jamais à justifier.
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
 
 ## 6. Bruitages (`mixage.py`)

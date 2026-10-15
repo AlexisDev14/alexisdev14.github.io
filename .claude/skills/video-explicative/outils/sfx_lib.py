@@ -7,7 +7,14 @@
 # Tous les niveaux sont des crêtes en dBFS. Les préréglages sont calibrés pour rester SOUS la voix off :
 # un bruitage « principal » ≈ −28, un détail ≈ −34 à −40. Plafond global −24 dBFS (jamais plus fort).
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # numpy est fourni à côté (utile sous python3 -I)
-import numpy as np, wave, subprocess, re
+try:
+    import numpy as np
+except ImportError:  # python3 sans numpy (routines) : relance la même commande avec le python3 système, qui l'a
+    import os as _o, sys as _s
+    if _o.environ.get('CLARK_PY_RELANCE') or not _o.path.exists('/usr/bin/python3'): raise
+    _o.environ['CLARK_PY_RELANCE'] = '1'
+    _o.execv('/usr/bin/python3', ['/usr/bin/python3'] + list(getattr(_s, 'orig_argv', [_s.executable] + _s.argv))[1:])
+import wave, subprocess, re
 
 SR, DUR = 48000, 10
 N = SR * DUR

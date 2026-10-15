@@ -5,7 +5,7 @@
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
-# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 180 caractères et au plus un « … » par paragraphe (sinon refus :
+# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 180 caractères (≤ 165 avec un « … »), au plus un « … » et une durée estimée ≤ 9,8 s par paragraphe (sinon refus :
 #    corriger voix.txt et relancer, rien n'est facturé) ; 25 à 28 mots et 160 à 180 caractères conseillés (simple note :
 #    un paragraphe trop court laisse un trou dans le plan, le rallonger d'une précision utile).
 # 2. Envoie les 6 paragraphes en UN appel (séparés par une ligne vide). Écrit dans <travail>/voix/ :
@@ -36,6 +36,8 @@ MODELE = 'eleven_v4'                   # choix de l'utilisateur
 MAX = 9.6                              # secondes : au-delà, la voix déborde du plan de 10 s
 CARS = 180                             # caractères par paragraphe, balises comprises (160 à 180 conseillés)
 CARS_MIN = 160
+CARS_SUSP = 165                        # caractères au plus pour un paragraphe qui contient un « … » (le « … » coûte ≈ 0,5 s)
+EST_MAX = 9.8                          # durée estimée au-delà de laquelle le texte est refusé avant l'envoi
 URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voix}/with-timestamps?output_format=mp3_44100_128'
 MOT = re.compile(r"[\wÀ-ÿ'’-]")
 
@@ -58,13 +60,29 @@ def hors_balises(p):
     return res
 
 
+def estimer(p):
+    """Durée estimée (s) d'un paragraphe, sans appel : texte dit (balises ôtées, chiffres comptés comme des mots
+    écrits en lettres) à ≈ 17,5 caractères/s, plus 0,5 s par « … ». Estimation grossière (± 1 s sur les mesures Téflon et Barbe Noire) : elle écarte les paragraphes nettement trop longs."""
+    dit = re.sub(r'\s+', ' ', re.sub(r'\[[^\]]*\]', ' ', p)).strip()
+    dit = re.sub(r'\d+', lambda m: 'x' * (9 * len(m.group())), dit)   # « 1718 » se dit « mille sept cent dix-huit »
+    return len(dit) / 17.5 + 0.5 * (p.count('…') + p.count('...'))
+
+
 def controler(ps):
     refus = []
     for n, p in enumerate(ps, 1):
+        susp = p.count('…') + p.count('...')
         if len(p) > CARS:
             refus.append(f'p{n} : {len(p)} caractères (> {CARS})')
-        if p.count('…') + p.count('...') > 1:
+        if susp > 1:
             refus.append(f'p{n} : plus d’un « … »')
+        if susp == 1 and len(p) > CARS_SUSP:
+            refus.append(f'p{n} : {len(p)} caractères avec un « … » (> {CARS_SUSP})')
+        est = estimer(p)
+        if est > EST_MAX:
+            refus.append(f'p{n} : durée estimée {est:.1f} s (> {EST_MAX} s)')
+        elif est > 9.4 or est < 8.5:
+            print(f'NOTE p{n} : durée estimée {est:.1f} s (viser 8,8 à 9,4 s)')
         nb = len(re.findall(r"[\wÀ-ÿ'’-]+", re.sub(r'\[[^\]]*\]', ' ', p)))
         if not 25 <= nb <= 28:
             print(f'NOTE p{n} : {nb} mots écrits (25 à 28 conseillés ; un nombre en chiffres se dit en plusieurs mots)')

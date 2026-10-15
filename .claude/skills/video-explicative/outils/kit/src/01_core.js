@@ -216,11 +216,33 @@ function drawRod(T0, x0, y0, ang, slotY, w, col) {
 const ROD_WOOD = ['#5b3d22', '#c8a06a', '#6e4a2a'];
 const ROD_WIRE = ['#1a1a1a', '#77736b', '#222'];
 
+// Contrôle automatique « coude à l'envers » : un bras plié dont le coude passe AU-DESSUS de la ligne épaule–main
+// (à l'écran) est noté dans window.COUDES ; render.cjs le signale (ligne « ATTENTION coude »). Bras quasi vertical,
+// bras tendu ou bras caché : pas de contrôle. Nom affiché : o.nom (option de M.puppet), def.nom, sinon la position x.
+function controleCoudes(def, pose, mats, sc, nom) {
+  if (typeof window === 'undefined' || !def.handLen) return;
+  for (const arm of ['armF', 'armB']) {
+    const up = mats[arm + '_up'], lo = mats[arm + '_lo'];
+    if (!up || !lo || (pose.hide && (pose.hide[arm + '_up'] || pose.hide[arm + '_lo']))) continue;
+    const S = wpt(up, 0, 0), E = wpt(lo, 0, 0), Hd = wpt(lo, 0, def.handLen);
+    const sx = Hd[0] - S[0], sy = Hd[1] - S[1], L = Math.hypot(sx, sy);
+    if (L < 1 || Math.abs(sx) < 0.35 * L) continue;
+    const u = ((E[0] - S[0]) * sx + (E[1] - S[1]) * sy) / (L * L);
+    if (u <= 0.05 || u >= 0.95) continue;
+    const a1 = Math.atan2(E[1] - S[1], E[0] - S[0]), a2 = Math.atan2(Hd[1] - E[1], Hd[0] - E[0]);
+    let pli = Math.abs(a2 - a1); if (pli > Math.PI) pli = TAU - pli;
+    if (pli < 0.3) continue;
+    const yLigne = S[1] + u * sy;
+    if (E[1] < yLigne - Math.max(6, 10 * sc)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm);
+  }
+}
+
 function puppet(def, pose, x, y, s, o = {}) {
   const dir = o.dir || 1;
   const { T0, root, mats } = partMatrices(def, pose, x, y, s, dir);
   const sc = Math.hypot(T0.a, T0.b) * s;
   const slot = o.slot != null ? o.slot : y + 18 * s;
+  if (!SIL) controleCoudes(def, pose, mats, sc, o.nom || def.nom || `x≈${Math.round(x)}`);
   const doDraw = () => {
     const prevLW = LW; LW = 1 / sc;
     if (!SIL && o.floorShadow !== false) {

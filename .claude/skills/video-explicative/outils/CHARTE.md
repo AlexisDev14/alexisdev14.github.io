@@ -91,6 +91,9 @@
 - Destinataire d'une action à distance placé dans la pièce de l'expéditeur (« il envoie à sa femme », et la femme est dans son bureau pour recevoir la carte) → deux lieux : vignette (`M.vignette`) ou changement de décor ; l'histoire à l'image se contrôle comme la technique.
 - Nouveau personnage qui ressemble à un personnage de la bibliothèque (Daimler au chapeau ≈ propriétaire de `poubelle.js`) → comparaison côte à côte nommée dans la consigne du casting, changée avant de continuer.
 - Plan corrigé sans vérifier ses voisins → après une correction du plan N, revoir N−1 et N+1 (histoire et raccords).
+- Coude plié à l'envers dans 4 plans sur 6 (Barbe Noire), vu par l'utilisateur seulement → test de chaque geste de bras au casting, `bendSign` noté dans `persos.md` par bras et direction, contrôle automatique « ATTENTION coude à l'envers » au rendu, gros plans des bras avant d'envoyer.
+- Élément clé posé à x ≈ 200 sous un pan de rideau qui se ferme (la chute devient illisible) → rien de clé à x < 250 ni x > 780 pendant un mouvement du rideau.
+- Violence montrée (tête coupée en carton) → jamais de mort ni de violence à l'image : rideau, ombre, chapeau qui roule, fumée.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.

@@ -12,7 +12,13 @@
 # signalé « OK saut voulu » au lieu d'ATTENTION. timeline.js est cherché à côté de la vidéo, sinon dans <video>/pN/.
 import os, re, subprocess, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import numpy as np
+try:
+    import numpy as np
+except ImportError:  # python3 sans numpy (routines) : relance la même commande avec le python3 système, qui l'a
+    import os as _o, sys as _s
+    if _o.environ.get('CLARK_PY_RELANCE') or not _o.path.exists('/usr/bin/python3'): raise
+    _o.environ['CLARK_PY_RELANCE'] = '1'
+    _o.execv('/usr/bin/python3', ['/usr/bin/python3'] + list(getattr(_s, 'orig_argv', [_s.executable] + _s.argv))[1:])
 
 FPS = 30
 W, H, S = 270, 480, 4                 # image réduite ; S = facteur vers 1080×1920

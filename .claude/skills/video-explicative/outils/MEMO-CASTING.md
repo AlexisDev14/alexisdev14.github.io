@@ -61,7 +61,7 @@ Ce qui a coûté le plus de retours au Téflon, à régler dès le casting : mai
 
 ## 5. Planche de casting et tests obligatoires
 `<video>/casting/scene.js` montre chaque élément créé sur scène (au repos, en marche, gestes clés, de profil dans les deux sens, objets tenus), plus :
-1. **Bras pliés à fond** : épaule et coude de 0 à 2,4 rad, dans les deux sens, et bras levé qui brandit : articulation ronde, rivet au centre, aucune cassure.
+1. **Bras pliés à fond, puis chaque geste de bras prévu par la fiche** (tendre, main à la poche, au chapeau, à la barbe, haussement d'épaules…), avec `M.ik`, coude bien visible, dans les deux directions (`dir` 1 et −1) ; le rendu ne doit afficher aucune ligne « ATTENTION coude à l'envers ». Puis épaule et coude de 0 à 2,4 rad, dans les deux sens, et bras levé qui brandit : articulation ronde, rivet au centre, aucune cassure.
 2. **Série côte à côte** à l'échelle de la vidéo : couleurs nettement distinctes.
 3. **Comparaison** : chaque nouveau personnage à la même échelle, côte à côte avec les personnages existants **nommés dans ta consigne** (et sinon tous ceux du kit et de la bibliothèque qui portent la même coiffe ou la même silhouette) : aucune ressemblance. Un doute (même chapeau, même carrure, mêmes couleurs) = change la coiffe, la silhouette ou la couleur dominante avant de continuer, et dis-le dans ton rapport.
 4. **Téléphone** : la planche réduite : chaque objet clé se lit.
@@ -69,7 +69,7 @@ Ce qui a coûté le plus de retours au Téflon, à régler dès le casting : mai
 Commandes : `bash OUTILS/essai.sh <video>/casting 1,5` (prépare le dossier et rend la planche en une ligne ; la planche s'affiche à petite taille d'abord, puis gros plans des tests). 4 itérations au plus.
 
 ## 6. `persos.md`
-Remplis le gabarit `OUTILS/gabarits/persos.md` **après** la dernière itération, d'après le code réel (pas d'après ton intention) : chaque option citée existe, chaque taille est mesurée sur la planche. Une option que tu ajoutes ensuite à `persos.js` s'ajoute aussi à `persos.md`.
+Écris dans `persos.md`, pour chaque personnage, **le `bendSign` de `M.ik` pour chaque bras et chaque direction** (tableau : bras avant / arrière × `dir` 1 / −1), vérifié sur les tests de gestes. Remplis le gabarit `OUTILS/gabarits/persos.md` **après** la dernière itération, d'après le code réel (pas d'après ton intention) : chaque option citée existe, chaque taille est mesurée sur la planche. Une option que tu ajoutes ensuite à `persos.js` s'ajoute aussi à `persos.md`.
 
 ## 7. Rapport
 Court : liste des fonctions créées (nom, options principales), chemin de la planche, ce qui reste fragile.

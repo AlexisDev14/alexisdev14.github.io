@@ -19,8 +19,9 @@ PY
 IM=$(echo "$IMG" | sed -n 1p); LST=$(echo "$IMG" | sed -n 2p)
 RC=0
 NODE_PATH=${NODE_PATH:-/opt/node22/lib/node_modules} node "$OUT/render.cjs" "$P" --name "$N" --out "$V/out" --stills "$IM" >"$LOG" 2>&1 || RC=$?
-grep -E '^\[page\]|rreur|rror' "$LOG" | head -20
+grep -E '^\[page\]|rreur|rror|^ATTENTION' "$LOG" | head -20
 [ "$RC" -eq 0 ] || exit "$RC"
-PL=$(find "$V/out" -name planche_cles.png -newer "$P/index.html" | head -1)
+PL="$V/out/$N/planche_cles.png"   # la planche de CE plan (jamais celle d'un autre agent en tuilage)
+[ "$PL" -nt "$P/index.html" ] || PL=
 [ -n "$PL" ] || { echo "ERREUR : planche_cles.png introuvable"; tail -5 "$LOG"; exit 1; }
 echo "planche → $PL (images : $LST)"
