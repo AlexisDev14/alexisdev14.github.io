@@ -67,3 +67,7 @@ Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (
 Livré le 15/10/2026 (routine, aucun retour d'Alexis à ce jour). Mode d'emploi : `bigben.md`. Dans `S.init` : `BEN.init();` (pré-rend `BEN.K` = ciel, ville, tour, cour, fonderie, beffroi).
 Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BEN.ondes`), marteau lourd/léger, ouvrier-fondeur, sir (haut-de-forme), touriste (+ mini), chariot, appareil photo, décors Westminster. Le beffroi partagé (`M.dec.beffroi`, `cloche_beffroi`, `ciel_beffroi`, écrit pour la vidéo en `decors/p3.js`) est gardé en `bigben-beffroi.txt` (non chargé : à copier dans `decors/pN.js` si besoin).
 À vérifier : fêlure en zigzag très régulier ; le sir partage le bleu nuit du préfet Poubelle ; `deuxMains` du marteau fait un petit saut de main.
+
+## `manneken.js` — « Manneken-Pis, mille costumes » (Bruxelles), espace `M.man` (MAN) — mode d'emploi : `manneken.md`
+Livré le 15/10/2026 (routine, aucun retour à ce jour). Dans `S.init` : `MAN.init();`. Contenu : statue de bronze lisse sans anatomie sur sa fontaine (`MAN.manneken`, `habit` bronze/dracula/noel/sax/smoking, `jet`, `humeur`), habilleur (veste prune, lunettes, mètre ruban, parapluie), parapluie, colis cadeaux, habits sur cintre (12), portant extensible, décors rue de Bruxelles et façade de musée.
+Fragilités : changement d'habit instantané (le cacher sous un poof de fumée) ; portant à s 1 ; `jet` plafonne à 1 (jet redoublé dessiné dans la scène) ; le bonnet de l'original (plan 2) se lit comme un bonnet de Père Noël.
