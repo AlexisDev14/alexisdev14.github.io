@@ -49,8 +49,8 @@
 
 ## 7. Bruitages (voir `sfx_lib.py`)
 - **Seulement des bruitages d'action**, liés à ce qu'on voit. Pas de fond sonore continu, pas de musique, pas de voix.
-- ⛔ **Aucun son qui ressemble à une voix humaine** (murmure, rumeur de foule, « petites voix », souffle vocal, synthèse aux formants de voix, échantillon ralenti ou accéléré qui « parle ») : la seule voix est la voix off. Écouter chaque son ajouté, et au moindre doute le remplacer.
-- **Bruitages d'ambiance du lieu** : chaque plan a au moins un bruitage qui situe l'ambiance de la scène, en accord avec le décor visible (horloge qui tictaque et pigeons à Londres, four qui ronfle dans une fonderie, charpente qui craque dans un beffroi, vent en montagne, ressac à la mer…), très bas (≤ −38 dBFS), jamais sur un mot-clé ; toujours sans voix ni foule.
+- ⛔ **Personne ne parle à part la voix off** : pas de paroles, de mots, de phrases ni de voix qu'on distingue (« petites voix » ; échantillon ralenti qui « parle »). Une **rumeur de foule** reste permise si elle se voit (foule, marché, gare) : brouhaha lointain, indistinct et très bas, où l'on n'entend aucun mot ni aucune voix isolée.
+- **Bruitages d'ambiance du lieu** : chaque plan a au moins un bruitage qui situe l'ambiance de la scène, en accord avec ce qu'on voit (horloge qui tictaque et pigeons à Londres, machine qui tourne quand on en parle, four qui ronfle dans une fonderie, charpente qui craque, vent en montagne, ressac, rumeur de foule…), très bas (≤ −38 dBFS), sous la voix off, jamais sur un mot-clé.
 - Toujours sonoriser : **le rideau** (automatique : `m.rideau_conduite()`, y compris un mouvement à cheval sur la coupe), **décors qui changent** (`decor_monte`, `decor_descend`, `decor_tombe`), **marionnettes qui apparaissent ou partent** (`apparition`, `disparition`, `glisse` avec les sautillements), plus les **détails** visibles : pas, objet posé, chute, papier, maillet… La faune lointaine est muette ; un animal au premier plan qui fait une vraie action visible (meuglement, coq) peut avoir un son très bas. Une ambiance de lieu (`ambiance('vent' | 'ressac' | 'vent_herbe' | 'sabots_neige', …)`) seulement si elle se voit (neige, mer) et très basse.
 - **Pas fort, juste ce qu'il faut** : préréglages déjà calibrés (principal ≈ −28 dBFS, détails −33 à −40), plafond global −24 dBFS. Ne pas monter les niveaux.
 - Aucun bruitage marqué sur un mot-clé de la voix (`TL.MOTS`, contrôlé par `Mix.verifier()`), sauf s'il illustre exactement ce mot et reste ≤ −32.
@@ -87,7 +87,7 @@
 - Figurants d'un même groupe habillés pareil (trois touristes, copies pâles du touriste principal) → chaque figurant a **sa propre tenue** (couleurs du haut, du bas et du couvre-chef toutes différentes, et différentes du personnage principal).
 - Objet de la révélation présent à l'image avant d'être révélé (cloche déjà sur scène pendant que le touriste photographie la tour) → ce que la voix « dévoile » n'entre en scène qu'au moment où on le dit ; avant, l'image montre ce que tout le monde croit.
 
-- « Petites voix de personnes » entendues dans le mixage du plan final de Big Ben (2026-10) → aucun son vocal ni rumeur de foule ; la scène se sonorise par son ambiance (lieu, matières, mécanique du théâtre).
+- « Petites voix de personnes » entendues dans le mixage du plan final de Big Ben (2026-10) → personne ne parle à part la voix off ; l'ambiance (lieu, machine, foule en brouhaha indistinct) est permise, très basse.
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.

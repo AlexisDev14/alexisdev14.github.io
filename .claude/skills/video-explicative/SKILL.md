@@ -126,7 +126,7 @@ Marionnettes : qui (kit / bibliothèque / persos), taille, fente avant/arrière,
 | Instant | Voix | Image (geste clé sur le mot clé) |
 | … | … | … |
 | 9–10 s | — | stable, ou fermeture du rideau si la conduite la prévoit |
-Bruitages (actions visibles + au moins un d'ambiance du lieu, très bas ; jamais de son qui ressemble à une voix ; le rideau est automatique) : instant → préréglage sfx_lib
+Bruitages (actions visibles + au moins un d'ambiance du lieu, très bas : machine, lieu, foule en brouhaha indistinct ; personne ne parle à part la voix off ; le rideau est automatique) : instant → préréglage sfx_lib
 Vigilance : objets tenus (la main entoure le corps de l'objet), transitions de posture par étapes, proportions, superpositions, raccord avec le plan précédent
 ```
    Rappels : une seule action principale à la fois ; le gag tombe avec la chute ; tout passage de posture se fait par étapes (0,8–1,2 s).
