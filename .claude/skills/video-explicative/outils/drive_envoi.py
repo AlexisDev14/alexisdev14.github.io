@@ -1,5 +1,7 @@
 # Envoi d'une vidéo terminée sur le Drive Clark : dossier « <Sujet> » dans « Vidéos », 6 plans MP4 + fichier texte.
 # Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <p6_final.mp4>   (« - » : pas de fichier texte)
+# Rangement dans le dossier du sujet : sous-dossier « Plans » (vidéos .mp4), sous-dossier « Audio » (.mp3, .wav) ; le reste
+# (fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
 # Renvoi sans doublon : un fichier de même nom déjà présent dans le dossier est REMPLACÉ (nouvelle version du même
 # fichier, même lien), jamais dupliqué ni mis à la corbeille. Relancer le script après une correction est donc sans risque.
 # Identifiants : secret réseau « GOOGLE_DRIVE » (type Body parameter, site oauth2.googleapis.com, chemin /token,
@@ -57,10 +59,20 @@ def envoyer(tok, chemin, parent, mime):
     print('→', nom, json.loads(b)['id'], '(remplacé)' if fid else '')
 
 
+MIME = {'.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.json': 'application/json', '.md': 'text/markdown', '.png': 'image/png',
+        '.txt': 'text/plain', '.mp4': 'video/mp4'}
+RANGEMENT = {'.mp4': 'Plans', '.mp3': 'Audio', '.wav': 'Audio'}
+
+
 if __name__ == '__main__':
-    sujet, texte, videos = sys.argv[1], sys.argv[2], sys.argv[3:]
+    sujet, texte, fichiers = sys.argv[1], sys.argv[2], sys.argv[3:]
     tok = jeton()
     d = dossier(tok, sujet, VIDEOS)
+    sous = {}
     if texte != '-': envoyer(tok, texte, d, 'text/plain')
-    for v in videos: envoyer(tok, v, d, {'.mp3': 'audio/mpeg', '.json': 'application/json', '.md': 'text/markdown', '.png': 'image/png', '.wav': 'audio/wav'}.get(os.path.splitext(v)[1].lower(), 'video/mp4'))
+    for f in fichiers:
+        ext = os.path.splitext(f)[1].lower()
+        nom = RANGEMENT.get(ext)
+        if nom and nom not in sous: sous[nom] = dossier(tok, nom, d)
+        envoyer(tok, f, sous[nom] if nom else d, MIME.get(ext, 'video/mp4'))
     print(f'dossier : https://drive.google.com/drive/folders/{d}')
