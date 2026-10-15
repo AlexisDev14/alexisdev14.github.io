@@ -91,6 +91,7 @@
 - Destinataire d'une action à distance placé dans la pièce de l'expéditeur (« il envoie à sa femme », et la femme est dans son bureau pour recevoir la carte) → deux lieux : vignette (`M.vignette`) ou changement de décor ; l'histoire à l'image se contrôle comme la technique.
 - Nouveau personnage qui ressemble à un personnage de la bibliothèque (Daimler au chapeau ≈ propriétaire de `poubelle.js`) → comparaison côte à côte nommée dans la consigne du casting, changée avant de continuer.
 - Plan corrigé sans vérifier ses voisins → après une correction du plan N, revoir N−1 et N+1 (histoire et raccords).
+- Bras de Barbe Noire plié à l'envers (plans 4 et 5) : tout bras tendu ou plié passe par `M.ik` avec `bendSign` +1 (coude sous la ligne épaule–main, vers l'arrière du corps) ; vérifier chaque geste de bras par un gros plan, et ne jamais laisser le `bendSign` suivre le sens du regard. Un personnage accroché ou suspendu (tête au bout du beaupré) se montre grand (≥ 200 px), dans le cadre, hors de portée du pan de rideau à sa fermeture.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
