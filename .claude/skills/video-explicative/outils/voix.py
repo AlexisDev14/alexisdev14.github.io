@@ -5,8 +5,9 @@
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
-# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 155 caractères et au plus un « … » par paragraphe (sinon refus :
-#    corriger voix.txt et relancer, rien n'est facturé) ; 20 à 24 mots conseillés (simple note).
+# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 180 caractères et au plus un « … » par paragraphe (sinon refus :
+#    corriger voix.txt et relancer, rien n'est facturé) ; 25 à 28 mots et 160 à 180 caractères conseillés (simple note :
+#    un paragraphe trop court laisse un trou dans le plan, le rallonger d'une précision utile).
 # 2. Envoie les 6 paragraphes en UN appel (séparés par une ligne vide). Écrit dans <travail>/voix/ :
 #      requete.json   le texte envoyé, écrit AVANT l'envoi
 #      brut.json      la réponse brute d'ElevenLabs, écrite avant tout traitement
@@ -17,8 +18,7 @@
 #                       balises exclues ; duree = fin du dernier mot)
 #      MOTS.md          par plan, la durée et chaque mot avec ses instants (à recopier dans la fiche : fenêtres de voix,
 #                       mots-clés, TL.MOTS)
-#      voix_complete.mp3  plan N posé à 10 × (N − 1) s, 60 s bout à bout (se pose telle quelle sous les 6 plans au montage).
-#                       Si un plan déborde, le suivant est posé 0,1 s après la fin de sa voix et le décalage est signalé.
+#    Pas de voix complète : l'utilisateur pose lui-même p1…p6 au montage (seuls p1…p6.mp3 vont sur le Drive).
 #
 # UN SEUL APPEL PAR VIDÉO, JAMAIS D'ITÉRATION :
 #   - si brut.json existe, voix.py ne rappelle jamais ElevenLabs : il redécoupe seulement (gratuit) ;
@@ -34,7 +34,8 @@ import base64, difflib, json, os, re, shutil, socket, subprocess, sys, time, url
 VOIX = 'gP52hjM48hyNoVCbizxO'          # « Alexandre – Calm, Warm & Authentic » (choix de l'utilisateur)
 MODELE = 'eleven_v4'                   # choix de l'utilisateur
 MAX = 9.6                              # secondes : au-delà, la voix déborde du plan de 10 s
-CARS = 155                             # caractères par paragraphe, balises comprises
+CARS = 180                             # caractères par paragraphe, balises comprises (160 à 180 conseillés)
+CARS_MIN = 160
 URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voix}/with-timestamps?output_format=mp3_44100_128'
 MOT = re.compile(r"[\wÀ-ÿ'’-]")
 
@@ -65,8 +66,10 @@ def controler(ps):
         if p.count('…') + p.count('...') > 1:
             refus.append(f'p{n} : plus d’un « … »')
         nb = len(re.findall(r"[\wÀ-ÿ'’-]+", re.sub(r'\[[^\]]*\]', ' ', p)))
-        if not 20 <= nb <= 24:
-            print(f'NOTE p{n} : {nb} mots écrits (20 à 24 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
+        if not 25 <= nb <= 28:
+            print(f'NOTE p{n} : {nb} mots écrits (25 à 28 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
+        if len(p) < CARS_MIN:
+            print(f'NOTE p{n} : {len(p)} caractères (< {CARS_MIN}) : la voix laissera un trou, rallonge d’une précision utile')
     if refus:
         sys.exit('Texte refusé AVANT tout appel (rien n’est facturé) :\n  ' + '\n  '.join(refus) +
                  '\nRaccourcis ces paragraphes dans voix.txt puis relance voix.py.')
@@ -168,25 +171,12 @@ def decouper(d, ps, r, voix, modele):
         pl['duree'], pl['long'] = duree, pl['b'] - a
         ok = duree <= MAX
         print(f'{"OK  " if ok else "ATTENTION"} p{n} : {duree:.2f} s, {len(mots)} mots, {len(pl["texte"])} caractères' +
-              ('' if ok else f' : déborde (> {MAX} s). Pas de nouvelle voix : signale-le ; voix_complete décale la suite.'))
+              ('' if ok else f' : déborde (> {MAX} s). Pas de nouvelle voix : signale-le dans le résumé (recalage au montage).'))
     lignes = ['# Voix off : instants réels des mots (secondes du plan)', '']
     for pl in plans:
         j = json.load(open(os.path.join(d, f'p{pl["n"]}.json'), encoding='utf-8'))
         lignes += [f'## Plan {pl["n"]} : {j["duree"]:.2f} s', ' '.join(f'{w}({a:.2f}–{b:.2f})' for w, a, b in j['mots']), '']
     open(os.path.join(d, 'MOTS.md'), 'w', encoding='utf-8').write('\n'.join(lignes))
-    # voix complète calée sur la vidéo : plan N à 10 × (N − 1) s, sauf débordement du précédent
-    pose = [0.0]
-    for i in range(1, 6):
-        pose.append(max(10.0 * i, pose[-1] + plans[i - 1]['duree'] + 0.1))
-    durees = [pose[i + 1] - pose[i] for i in range(5)] + [max(60.0 - pose[5], plans[5]['long'])]
-    filt = ''.join(f'[{i}:a]apad=whole_dur={durees[i]:.3f},atrim=0:{durees[i]:.3f}[a{i}];' for i in range(6)) + \
-        ''.join(f'[a{i}]' for i in range(6)) + 'concat=n=6:v=0:a=1[o]'
-    mp3 = [os.path.join(d, f'p{n}.mp3') for n in range(1, 7)]
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', *sum((['-i', f] for f in mp3), []), '-filter_complex', filt, '-map', '[o]',
-                    '-b:a', '192k', os.path.join(d, 'voix_complete.mp3')], check=True)
-    decal = [f'p{i + 1} +{pose[i] - 10.0 * i:.2f} s' for i in range(6) if pose[i] - 10.0 * i > 0.05]
-    print('→ ' + os.path.join(d, 'voix_complete.mp3') + f' ({sum(durees):.1f} s)' +
-          (' ; DÉCALÉE par débordement : ' + ', '.join(decal) + ' (à recaler au montage)' if decal else ' (6 × 10,0 s)'))
     print('→ ' + os.path.join(d, 'MOTS.md'))
 
 

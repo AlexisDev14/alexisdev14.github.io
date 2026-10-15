@@ -113,13 +113,10 @@ class Mix:
             x[i0:] += (np.sin(2 * np.pi * f * tt[:L - i0]) + 0.3 * np.sin(2 * np.pi * 2.76 * f * tt[:L - i0]) * np.exp(-tt[:L - i0] / 0.08)) * e
         self.add(x, at, db, pan, 'carillon')
 
-    def murmure(self, t0, t1, db=-40, pan=0.0):
-        """Rumeur polie de foule de marionnettes (bruit rose filtré « voix », vagues lentes)."""
-        n = int((t1 - t0) * SR)
-        p = np.cumsum(self.rng.standard_normal(n)); p -= np.convolve(p, np.ones(4800) / 4800, 'same')
-        x = self.bandpass(p + 0.4 * self.rng.standard_normal(n), 250, 1300); d = np.arange(n) / SR
-        x *= (0.75 + 0.25 * np.sin(2 * np.pi * 0.7 * d) * np.sin(2 * np.pi * 1.9 * d + 1)) * np.minimum(1, d / 0.5) * np.minimum(1, (t1 - t0 - d) / 0.7)
-        self.add(x, t0, db, pan, 'murmure de foule')
+    def murmure(self, *a, **k):
+        """INTERDIT : aucun son qui ressemble à une voix humaine (murmure, brouhaha, foule qui parle, voix ralentie) :
+        il brouillerait la voix off. Une foule visible se rend par des pas, un piétinement, des objets."""
+        raise ValueError('murmure interdit : aucun son de voix humaine sous la voix off (foule = pas, piétinement, objets)')
 
     def applaudissements(self, t0, t1, db=-36, n_people=30):
         """Applaudissements polis (impulsions filtrées) — seulement s'ils sont visibles à l'image."""
@@ -241,14 +238,41 @@ class Mix:
     def papier(self, t, pan=0.0, long=False, db=-30):
         self.place('papier_deroule_long' if long else 'papier_deroule_court', t - 0.01, db, pan, af='highpass=f=150', fout=0.12, label='papier')
 
-    def ambiance(self, nom, t0, t1, db=-42, pan=0.0, af=None):
-        """Ambiance du lieu seulement si elle est visible (vent avec neige, mer, herbe) ; très basse."""
-        self.place(nom, t0, db, pan, end=t1 - t0, af=af, fin=0.5, fout=0.8, label=f'ambiance {nom}')
+    AMBIANCES_SYNTH = ('interieur', 'machine', 'horloge', 'feu', 'eau')
+
+    def ambiance(self, nom, t0=0.0, t1=10.0, db=-42, pan=0.0, af=None):
+        """Ambiance du lieu, très basse (au moins une par plan) : un clip de sons/ ('vent', 'ressac', 'vent_herbe',
+        'sabots_neige'…) ou une ambiance synthétisée : 'interieur' (salle calme), 'machine' (ronron mécanique), 'horloge'
+        (tic-tac), 'feu' (crépitement), 'eau' (ruissellement). Jamais de voix humaine."""
+        if nom not in self.AMBIANCES_SYNTH:
+            self.place(nom, t0, db, pan, end=t1 - t0, af=af, fin=0.5, fout=0.8, label=f'ambiance {nom}')
+            return
+        n = int((t1 - t0) * SR); d = np.arange(n) / SR; r = self.rng.standard_normal
+        if nom == 'interieur':
+            x = self.bandpass(np.cumsum(r(n)) * 0.02 + r(n) * 0.2, 60, 600)
+        elif nom == 'machine':
+            x = np.sin(2 * np.pi * 55 * d) + 0.5 * np.sin(2 * np.pi * 110 * d) + 0.3 * self.bandpass(r(n), 200, 1500)
+            x *= 0.8 + 0.2 * np.sin(2 * np.pi * 2.2 * d)
+        elif nom == 'horloge':
+            x = np.zeros(n); L = int(0.03 * SR); tt = np.arange(L) / SR
+            for k, t in enumerate(np.arange(0.2, t1 - t0, 0.5)):
+                i0 = int(t * SR); i1 = min(n, i0 + L)
+                x[i0:i1] += (self.bandpass(r(L), 1800 if k % 2 else 2600, 6000) * np.exp(-tt / 0.006))[:i1 - i0]
+        elif nom == 'feu':
+            x = self.bandpass(r(n), 150, 900) * 0.3
+            for t in self.rng.uniform(0, t1 - t0, int((t1 - t0) * 9)):
+                i0 = int(t * SR); L = int(0.02 * SR); i1 = min(n, i0 + L)
+                x[i0:i1] += (self.bandpass(r(L), 1500, 7000) * np.exp(-np.arange(L) / SR / 0.004))[:i1 - i0] * self.rng.uniform(0.5, 2)
+        else:  # eau
+            x = self.bandpass(r(n), 400, 4000) * (0.7 + 0.3 * np.sin(2 * np.pi * 0.4 * d) * np.sin(2 * np.pi * 1.3 * d))
+        x *= np.minimum(1, d / 0.5) * np.minimum(1, (t1 - t0 - d) / 0.8)
+        self.add(x, t0, db, pan, f'ambiance {nom}')
 
     # ------------------------------------------------------------ sortie
     def verifier(self):
-        """Signale tout bruitage marqué (> −32 dBFS localement) qui démarre sur un mot-clé de la voix."""
-        alertes = []
+        """Signale tout bruitage marqué (> −32 dBFS localement) qui démarre sur un mot-clé de la voix, et un plan sans ambiance."""
+        alertes = [] if any(lab.startswith('ambiance') for _, lab in self.log) else \
+            ["aucune ambiance du lieu : ajouter m.ambiance(...) très basse (lieu, machine, faune, nature ; jamais de voix)"]
         for (t, lab) in self.log:
             for (a, b) in self.mots:
                 if a - 0.05 <= t <= b:
@@ -291,7 +315,7 @@ DESCRIPTIONS = {
     'objet_pose': "petit accessoire posé ou attrapé en t",
     'chute': "marionnette qui tombe à plat sur le plancher en t",
     'papier': "papier qui se déroule en t (long=True : version longue)",
-    'ambiance': "ambiance du lieu 'nom' de t0 à t1, seulement si elle est visible ; très basse",
+    'ambiance': "ambiance du lieu, AU MOINS UNE PAR PLAN, très basse : clip de sons/ ('vent', 'ressac', 'vent_herbe', 'sabots_neige') ou synthèse ('interieur', 'machine', 'horloge', 'feu', 'eau') ; jamais de voix humaine",
     'place': "pose un son de la bibliothèque 'nom' en 'at' (secondes) ; pour les cas sans préréglage",
 }
 
@@ -300,7 +324,7 @@ def aide():
     import inspect
     L = ["Structure d'un mixage.py (voir gabarits/mixage.py) : import sys; sys.path.insert(0, sys.argv[1]); from sfx_lib import Mix, events",
          "  E = events('timeline.js') (repères du plan) ; m = Mix(mots=MOTS) ; m.rideau_conduite() ; préréglages ci-dessous ; m.write(sys.argv[2])",
-         "Temps en secondes du plan (0-10), pan -1 (gauche) à 1 (droite), db = crête en dBFS (plafond -24). 3 à 8 bruitages."]
+         "Temps en secondes du plan (0-10), pan -1 (gauche) à 1 (droite), db = crête en dBFS (plafond -24). 3 à 8 bruitages + au moins une ambiance du lieu ; AUCUN son de voix humaine (murmure, foule qui parle, voix ralentie)."]
     for nom, d in DESCRIPTIONS.items():
         sig = str(inspect.signature(getattr(Mix, nom))).replace('(self, ', '(').replace('(self)', '()')
         L.append(f"m.{nom}{sig} : {d}")

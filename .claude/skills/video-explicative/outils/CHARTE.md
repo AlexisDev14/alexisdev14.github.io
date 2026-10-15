@@ -48,8 +48,9 @@
 - y > 1430 : plancher, rampe, souffleur seulement (sous-titres). x > 930 : décor seulement (boutons). Coin haut gauche (x < 220, y < 220) calme (logo).
 
 ## 7. Bruitages (voir `sfx_lib.py`)
-- **Seulement des bruitages d'action**, liés à ce qu'on voit. Pas de fond sonore continu, pas de musique, pas de voix.
-- Toujours sonoriser : **le rideau** (automatique : `m.rideau_conduite()`, y compris un mouvement à cheval sur la coupe), **décors qui changent** (`decor_monte`, `decor_descend`, `decor_tombe`), **marionnettes qui apparaissent ou partent** (`apparition`, `disparition`, `glisse` avec les sautillements), plus les **détails** visibles : pas, objet posé, chute, papier, maillet… La faune lointaine est muette ; un animal au premier plan qui fait une vraie action visible (meuglement, coq) peut avoir un son très bas. Une ambiance de lieu (`ambiance('vent' | 'ressac' | 'vent_herbe' | 'sabots_neige', …)`) seulement si elle se voit (neige, mer) et très basse.
+- Des sons qui **animent** la vidéo : **au moins une ambiance du lieu par plan**, très basse, sur tout le plan (salle, machine, atelier, rue, faune, nature, eau, feu : `m.ambiance(…)`), plus les bruitages d'action liés à ce qu'on voit. Pas de musique.
+- ⛔ **Aucun son de voix humaine** : ni parole, ni murmure, ni brouhaha de foule, ni rire, ni voix ralentie ou filtrée. Seule la voix off parle. Une foule visible se rend par des pas, un piétinement, des chaises, des objets.
+- Toujours sonoriser : **le rideau** (automatique : `m.rideau_conduite()`, y compris un mouvement à cheval sur la coupe), **décors qui changent** (`decor_monte`, `decor_descend`, `decor_tombe`), **marionnettes qui apparaissent ou partent** (`apparition`, `disparition`, `glisse` avec les sautillements), plus les **détails** visibles : pas, objet posé, chute, papier, maillet… La faune lointaine est muette ; un animal au premier plan qui fait une vraie action visible (meuglement, coq) peut avoir un son très bas. L'ambiance du lieu (`ambiance('vent' | 'ressac' | 'vent_herbe' | 'sabots_neige' | 'interieur' | 'machine' | 'horloge' | 'feu' | 'eau', …)`, ou un clip CC0 ajouté à `sons/` après avoir vérifié qu'on n'y entend aucune voix) reste très basse (≈ −42) et n'est jamais une voix.
 - **Pas fort, juste ce qu'il faut** : préréglages déjà calibrés (principal ≈ −28 dBFS, détails −33 à −40), plafond global −24 dBFS. Ne pas monter les niveaux.
 - Aucun bruitage marqué sur un mot-clé de la voix (`TL.MOTS`, contrôlé par `Mix.verifier()`), sauf s'il illustre exactement ce mot et reste ≤ −32.
 - 3 à 8 bruitages par plan. Sons organiques = échantillons CC0 de `sons/` (licences dans `sons/LICENCES.md`) ; synthèse pour velours, anneaux, poulies, clacs.
@@ -82,6 +83,11 @@
 - Accessoire qui surgit à la coupe (balance absente à la fin du plan 1, présente au début du plan 2) → tout objet dont le plan suivant a besoin est déjà en place dans la dernière image du plan précédent.
 - Geste clé coupé par un rideau à demi fermé (officier arrêté à x 120, salut caché par le pan) → avec une cue `demi`, garder le personnage et son geste dans la bande restée visible (x ≥ 240).
 - Changement de décor à vue qui découvre le noir des coulisses (toile de rivière qui remonte avant que la cuisine ne soit descendue : bande sombre sur un mot-clé) → une toile de fond peinte est déjà en place derrière l'ancien décor ; seuls les éléments du nouveau descendent ou montent.
+- Révélation montrée avant que la voix la dise (objet, personnage ou chiffre déjà visible) → ce que la voix révèle n'apparaît qu'au moment de son mot.
+- Foule de figurants habillés pareil → chaque figurant d'un groupe a sa propre tenue (couleurs, coiffe).
+- Son qui ressemble à une voix humaine (murmure, brouhaha, foule, son ralenti) sous la voix off → interdit ; ambiance du lieu, machine, faune ou nature à la place.
+- Plan sans aucun son d'ambiance, trop sec → au moins une ambiance du lieu par plan, très basse, hors mots-clés.
+- Dernière image du plan 6 qui laisse le spectateur croire autre chose que la morale (qui est moqué, qui a gagné) → se demander « qu'est-ce que le spectateur croit à ce moment-là ? ».
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.

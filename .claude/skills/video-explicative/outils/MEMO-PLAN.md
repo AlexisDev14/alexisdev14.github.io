@@ -3,6 +3,7 @@
 Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples. Il résume ce qui sert à chaque plan. Ton cahier des charges est `<video>/pN/CONSIGNE.md` (écrit par `construire.sh` : la fiche sans le script ni les consignes des autres plans) : ne lis pas `FICHE.md`. **Lis le reste seulement au besoin, par section** (`grep -n "^##" API.md` donne l'index) : une recette (API §8), un personnage du kit (API §6), la faune (API §4c), un piège (API §10). Un exemple `exemples/arc-de-triomphe/mN/scene.js` ne se lit que pour copier une recette précise, jamais en entier.
 
 ## 1. Fichiers et commandes
+- Ton dossier est donné en **chemin absolu se terminant par `/pN`** : utilise-le tel quel dans toutes les commandes. Une écriture refusée ou interdite (autre plan, `OUTILS/`, permission) ne se contourne jamais : arrête-toi et signale-la dans ton rapport.
 - Un plan = `<video>/pN/` : `timeline.js` (`TL.EVENTS` nombres littéraux ; `TL.MOTS = [[a,b],…];` une seule instruction), `scene.js` (`const SCENE = (() => { S.init = …; S.draw = (t) => …; return S; })();` seul global), `mixage.py`. Partagés : `persos.js` (+ son mode d'emploi `persos.md`), `decors.js`, `rideau.json`, `raccords/pN.js`.
 - `bash OUTILS/construire.sh <video>/pN` (une fois, au début) → itérations avec **`bash OUTILS/essai.sh <video>/pN 4.5,8.3`** (reconstruit le dossier et rend la planche `planche_cles.png` des secondes 0, 1, …, 9, 9,97 plus les instants donnés, en une seule commande et une seule ligne de sortie) → `bash OUTILS/produire.sh <video>/pN` (rendu complet ≈ 1 min, son, `planche.png`, contrôles automatiques). Les rendus attendent leur tour (verrou) : normal.
 - **Lecture des fichiers** : jamais un fichier de plus de 150 lignes affiché en entier (ni `cat`, ni `Read` sans bornes). `grep -n` d'abord, puis `sed -n 'a,bp'` sur l'extrait utile. Vaut pour `API.md`, `CHARTE.md`, `persos.js`, `decors.js`, la bibliothèque, les exemples et le `scene.js` du plan précédent.
@@ -33,11 +34,14 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Toute action finie à 9 s (9,6 s au plus) ; puis image stable (respiration, flammes) ou rideau si la conduite le prévoit. Jamais figé.
 - Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
+- Ce que la voix révèle n'apparaît qu'au moment où elle le dit (jamais avant son mot).
+- Chaque figurant d'un groupe a sa propre tenue (jamais de clones).
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
 
 ## 6. Bruitages (`mixage.py`)
-- Garder `m.rideau_conduite()` (son du rideau automatique). Seulement des actions **visibles**, 3 à 8 par plan, préréglages calibrés (ne pas monter les niveaux). **`python3 -I OUTILS/sfx_lib.py --aide`** donne en 17 lignes tous les préréglages, leurs paramètres et la structure de `mixage.py` : ne lis pas `sfx_lib.py`.
-- Aucun début de son dans un mot-clé (`ATTENTION` de `Mix.verifier()`) : décaler juste après. Faune muette.
+- Garder `m.rideau_conduite()` (son du rideau automatique). **Au moins une ambiance du lieu** très basse sur tout le plan (`m.ambiance('interieur' | 'machine' | 'horloge' | 'feu' | 'eau' | 'vent' | 'ressac' | …)` ; `Mix.verifier()` signale son absence), plus les actions **visibles**, 3 à 8 par plan, préréglages calibrés (ne pas monter les niveaux). **`python3 -I OUTILS/sfx_lib.py --aide`** donne en 17 lignes tous les préréglages, leurs paramètres et la structure de `mixage.py` : ne lis pas `sfx_lib.py`.
+- Aucun début de son dans un mot-clé (`ATTENTION` de `Mix.verifier()`) : décaler juste après. Faune lointaine muette.
+- ⛔ Aucun son qui ressemble à une voix humaine (parole, murmure, brouhaha, rire, son ralenti) : seule la voix off parle. Une foule = pas, piétinement, objets.
 
 ## 7. Contrôle avant `produire.sh` (cocher chaque ligne sur les images)
 1. `planche_cles.png` (sortie d'`essai.sh`) **à petite taille** : chaque mot-clé se lit en 1 s ; rien de clé caché ni hors zone.
