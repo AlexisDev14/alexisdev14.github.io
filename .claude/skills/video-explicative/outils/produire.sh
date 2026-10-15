@@ -9,6 +9,9 @@
 # La sortie du rendu est allégée : les lignes de progression « image k/300 » de render.cjs sont filtrées (les erreurs restent).
 set -eo pipefail
 OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
+# garde-fou : seul un dossier de plan (p1…p6) ou casting est accepté (lancé sur la racine de la vidéo ou sur outils/, il écrasait persos.js et rideau.json)
+case "$N" in p[1-6]|casting) ;; *) echo "REFUS : $P n'est pas un dossier de plan (attendu <dossier_video>/p1…p6 ou casting)" >&2; exit 2;; esac
+python3 -c 'import numpy' 2>/dev/null || export PATH="/usr/bin:$PATH"   # python3 sans numpy en tête du PATH : prendre celui du système
 "$OUT/construire.sh" "$P" >/dev/null
 NODE_PATH=${NODE_PATH:-/opt/node22/lib/node_modules} node "$OUT/render.cjs" "$P" --name "$N" --out "$V/out" --workers "${2:-3}" 2>&1 | { grep -v '^image [0-9]*/[0-9]* ' || true; }
 ( cd "$P" && python3 -I mixage.py "$OUT" sfx.wav )

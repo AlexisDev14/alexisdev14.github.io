@@ -70,7 +70,7 @@ Une routine ne peut pas demander : elle applique le **mode autonome** du début 
 1. `registre.py etat` ; présélection Haiku sur les **questions les plus récentes** (`created_at desc`), limitée aux thèmes conseillés.
 2. Choisis toi-même le meilleur sujet selon les critères ci-dessous, réserve-le aussitôt (`registre.py reserver`) ; s'il est déjà pris, le suivant.
 3. Faits, script, **voix** (`voix.py`, **un seul appel ElevenLabs pour toute la vidéo**, instants réels reportés dans la fiche), fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
-4. Livraison complète (voir « Livraison ») : Drive (médias seulement : 6 plans + `voix/p1…p6.mp3` + `voix/voix_complete.mp3`, dans le dossier « <LIBELLE> — <Sujet> ») ; contenu du planificateur du BO (création seule, id `ID` de l'horodatage, avec titre, description, hashtags, script, version ElevenLabs, prompt de couverture et lien du dossier Drive) ; `registre.py livrer` ; bibliothèque ; charte. Le résumé final dit : sujet, thème, horodatage (`LIBELLE`), lien du dossier Drive, id du contenu au BO, crédits ElevenLabs utilisés (caractères envoyés, un seul appel), limites.
+4. Livraison complète (voir « Livraison ») : Drive (médias seulement : 6 plans + `voix/p1…p6.mp3`, sans `voix_complete.mp3`, dans le dossier « <LIBELLE> — <Sujet> ») ; contenu du planificateur du BO (création seule, id `ID` de l'horodatage, avec titre, description, hashtags, script, version ElevenLabs, prompt de couverture et lien du dossier Drive) ; `registre.py livrer` ; bibliothèque ; charte. Le résumé final dit : sujet, thème, horodatage (`LIBELLE`), lien du dossier Drive, id du contenu au BO, crédits ElevenLabs utilisés (caractères envoyés, un seul appel), limites.
 5. Deux routines peuvent tourner le même jour : espace-les de quelques heures (limite d'usage sur 5 h glissantes) et laisse chacune dans sa propre session.
 
 ### Présélection (agent Haiku)
@@ -87,7 +87,7 @@ Critères :
 6. Trois thèmes différents.
 7. La nouveauté par rapport au registre.
 
-Une question souvent ratée (`stats.success_rate` bas) est un bon signe.
+Une question souvent ratée (`stats.success_rate` bas) est un bon signe (en 10/2026, ce champ vaut encore 0 partout : ne pas en tenir compte tant qu'il n'est pas calculé).
 Pour chacun des 3 sujets : titre, type de récit, question d'origine, accroche (une phrase), chute pressentie, idée du gag principal **en théâtre de marionnettes** (quel décor monte, quel effet de rideau). Demande le choix (AskUserQuestion). **Arrête-toi.**
 Si Firestore est inaccessible, propose 3 sujets de ta connaissance selon les mêmes critères et dis-le.
 
@@ -99,9 +99,9 @@ Dès le choix : lance l'agent « faits » **en arrière-plan** et commence la fi
 
 1. **Faits** : agent `model: "sonnet"` : « Vérifie sur le web (sources de la question + au moins une source indépendante) chaque date, chiffre, nom et attribution de ce récit : […]. Renvoie un tableau fait → confirmé / nuancé / faux, avec URL. » En cas de doute : formuler plus largement ou retirer, et le signaler.
 2. **Script (toi)** :
-   - **6 paragraphes, un par plan, de 20 à 24 mots prononcés et ≤ 155 caractères balises comprises, au plus un « … » par paragraphe** (la voix « Alexandre » en `eleven_v4` dit ≈ 2,3 mots/s et chaque « … » ajoute ≈ 0,5 s ; mesuré sur le Téflon : 147–188 caractères → 9,4–11,8 s, les paragraphes à 2 « … » débordent). Cible : voix ≤ 9,3 s. Compter comme c'est dit : « 1836 » = « mille huit cent trente-six » = 5 mots. Total ≈ 145–150 mots.
+   - **6 paragraphes, un par plan, de 25 à 28 mots prononcés et 160 à 175 caractères balises comprises, au plus un « … » par paragraphe.** Cible : voix de **8,8 à 9,4 s** par plan. L'utilisateur veut **remplir les 10 s** : plus de mots = plus d'explication ; une voix de 7 s est trop courte (Big Ben : 20–24 mots, 139–153 caractères → 6,6–7,9 s seulement, soit ≈ 3,2 mots/s et ≈ 19 caractères/s en appel unique). Chaque « … » ajoute ≈ 0,5 s. Compter comme c'est dit : « 1836 » = « mille huit cent trente-six » = 5 mots. Total ≈ 160–165 mots. Avant `voix.py`, estime chaque paragraphe à 19 caractères/s : sous 8,5 s, rallonge d'une précision utile (un chiffre, un nom, une cause), jamais d'un remplissage.
    - **Plan 1 — accroche** : mystère léger, sans formule trop appuyée.
-   - Le fait clé arrive quand on le découvre à l'image.
+   - Le fait clé arrive quand on le découvre à l'image : ce que la voix « révèle » n'est pas à l'image avant d'être dit (Big Ben : la tour seule d'abord, la cloche ne descend qu'au moment où on la nomme).
    - **Une chute par plan**, courte, sur sa propre phrase, dite à plat (« Évidemment. », « Modestement. »).
    - **Une blague récurrente** posée tôt et résolue au dernier plan. En marionnettes, c'est idéalement un objet ou un personnage emblématique (le bicorne de l'Arc de triomphe, la vache complice du reblochon).
    - **Morale finale ironique** et réplique de fin.
@@ -126,7 +126,7 @@ Marionnettes : qui (kit / bibliothèque / persos), taille, fente avant/arrière,
 | Instant | Voix | Image (geste clé sur le mot clé) |
 | … | … | … |
 | 9–10 s | — | stable, ou fermeture du rideau si la conduite la prévoit |
-Bruitages (actions visibles seulement ; le rideau est automatique) : instant → préréglage sfx_lib
+Bruitages (actions visibles + au moins un d'ambiance du lieu, très bas ; jamais de son qui ressemble à une voix ; le rideau est automatique) : instant → préréglage sfx_lib
 Vigilance : objets tenus (la main entoure le corps de l'objet), transitions de posture par étapes, proportions, superpositions, raccord avec le plan précédent
 ```
    Rappels : une seule action principale à la fois ; le gag tombe avec la chute ; tout passage de posture se fait par étapes (0,8–1,2 s).
@@ -137,10 +137,10 @@ Vigilance : objets tenus (la main entoure le corps de l'objet), transitions de p
    - les faits incertains ;
    - la fiche résumée : distribution (kit / bibliothèque / à créer), conduite du rideau, et pour chaque plan le décor, le gag et la faune.
 5. **Voix (ElevenLabs, automatique, UN SEUL APPEL PAR VIDÉO)** : écris la version ElevenLabs dans `<travail>/voix.txt` (6 paragraphes, un par plan, séparés par une ligne vide), puis `python3 -I OUTILS/voix.py <travail>`.
-   - `voix.py` contrôle d'abord les longueurs sans rien envoyer (≤ 155 caractères et au plus un « … » par paragraphe). S'il refuse, raccourcis `voix.txt` et relance : rien n'est facturé.
-   - Puis il envoie **les 6 paragraphes en un seul appel** (voix de l'utilisateur « Alexandre », `gP52hjM48hyNoVCbizxO`, modèle `eleven_v4`), garde la réponse brute (`voix/brut.json`) et découpe hors ligne : `voix/pN.mp3`, `voix/pN.json` (instant de chaque mot), `voix/MOTS.md` et `voix/voix_complete.mp3` (6 × 10,0 s, à poser telle quelle sous les plans au montage). ≈ 1 crédit par caractère, ≈ 950 par vidéo.
+   - `voix.py` contrôle d'abord les longueurs sans rien envoyer (≤ 175 caractères et au plus un « … » par paragraphe). S'il refuse, raccourcis `voix.txt` et relance : rien n'est facturé.
+   - Puis il envoie **les 6 paragraphes en un seul appel** (voix de l'utilisateur « Alexandre », `gP52hjM48hyNoVCbizxO`, modèle `eleven_v4`), garde la réponse brute (`voix/brut.json`) et découpe hors ligne : `voix/pN.mp3`, `voix/pN.json` (instant de chaque mot), `voix/MOTS.md` et `voix/voix_complete.mp3` (6 × 10,0 s, pour contrôle local seulement : **il ne va pas sur le Drive**). ≈ 1 crédit par caractère, ≈ 1 050 par vidéo.
    - ⛔ **Jamais un second appel** : l'utilisateur ne veut qu'une génération par vidéo chez ElevenLabs. Relancer `voix.py` redécoupe seulement (gratuit) ; il n'y a plus de `--plans N` ; ne supprime jamais `voix/brut.json` ni `voix/requete.json` ; `--forcer` seulement si l'utilisateur le demande (jamais en routine). Si `voix.py` s'arrête sur « ÉCHEC… Ne relance pas », continue sans voix : les plans se calent alors sur les fenêtres estimées (2,3 mots/s), et le résumé le dit.
-   - Une ligne ATTENTION (voix > 9,6 s) ne se corrige plus par une nouvelle voix : garde-la, cale le plan sur ses vrais instants, et signale le débordement dans le résumé (`voix_complete.mp3` décale alors la suite, à recaler au montage).
+   - Une ligne ATTENTION (voix > 9,6 s) ne se corrige plus par une nouvelle voix : garde-la, cale le plan sur ses vrais instants, et signale le débordement dans le résumé (à recaler au montage).
    - Puis **reporte les vrais instants** de `voix/MOTS.md` dans la fiche (fenêtres de voix et mots-clés de chaque plan) : les agents des plans calent `TL.MOTS` et les gestes clés dessus, sans estimation. Hors routine, lance `voix.py` seulement après la validation du script : une réécriture ensuite coûterait une nouvelle voix.
 6. **Casting anticipé** : s'il y a des éléments « à créer », lance l'agent casting (3a) **en arrière-plan juste avant de t'arrêter** : il travaille pendant que l'utilisateur lit. Si l'utilisateur change la distribution, corrige-le par SendMessage.
 
@@ -176,7 +176,7 @@ Fichiers d'une vidéo (`<travail>/`) : `FICHE.md`, `rideau.json`, `persos.js` + 
 
 ### 3a. Casting (agent `video-atelier` avec `model: "opus"`, seulement pour ce qui est « à créer »)
 Consigne :
-> Lis **`OUTILS/MEMO-CASTING.md` en entier** (il remplace la lecture complète de la charte et de l'API), puis lance `bash OUTILS/construire.sh <travail>/casting` et lis `<travail>/casting/CONSIGNE.md` (distribution). Pour comparer avec l'existant : `OUTILS/bibliotheque/LISEZMOI.md`. Crée `<travail>/persos.js` avec **seulement** les marionnettes, accessoires et décors marqués « à créer », dans le style exact du kit, espace de noms propre à la vidéo ; puis `<travail>/casting/scene.js` (planche et 4 tests obligatoires du mémo §5). Rends avec `bash OUTILS/essai.sh <travail>/casting 1,5` et itère, 4 fois au plus. Termine par `<travail>/persos.md` (gabarit `OUTILS/gabarits/persos.md`, d'après le code final). [Ajouter ici les précisions propres à la vidéo : objets tenus, gestes clés, séries de couleurs.] Rapport court : fonctions créées (nom, options principales), chemin de la planche, ce qui reste fragile.
+> Lis **`OUTILS/MEMO-CASTING.md` en entier** (il remplace la lecture complète de la charte et de l'API), puis lance `bash OUTILS/construire.sh <travail>/casting` et lis `<travail>/casting/CONSIGNE.md` (distribution). Pour comparer avec l'existant : `OUTILS/bibliotheque/LISEZMOI.md`. Crée `<travail>/persos.js` avec **seulement** les marionnettes, accessoires et décors marqués « à créer », dans le style exact du kit, espace de noms propre à la vidéo ; puis `<travail>/casting/scene.js` (planche et 4 tests obligatoires du mémo §5). Rends avec `bash OUTILS/essai.sh <travail>/casting 1,5` et itère, 4 fois au plus. Termine par `<travail>/persos.md` (gabarit `OUTILS/gabarits/persos.md`, d'après le code final). Tout groupe de figurants (touristes, passants, ouvriers) a une option de tenue (`o.tenue` 0, 1, 2…) : une tenue nettement différente par figurant, aucune ne reprend celle d'un personnage principal. [Ajouter ici les précisions propres à la vidéo : objets tenus, gestes clés, séries de couleurs.] Rapport court : fonctions créées (nom, options principales), chemin de la planche, ce qui reste fragile.
 
 Toi : regarde la planche de casting **et un gros plan de chaque test obligatoire** (bras pliés, série côte à côte, comparaison), puis survole `persos.md` (`grep -n '^|\|^##' persos.md`) : chaque élément créé y figure avec ses options. Si un défaut est visible, renvoie-le à l'agent une seule fois. Une fois la distribution figée, ne la change plus.
 
@@ -229,7 +229,7 @@ Pas de nouveau rendu complet. Vérifie seulement :
   - **5 hashtags** (le thème, le personnage, le sujet, puis culturegenerale et un tag large) ;
   - le **prompt de couverture**, rédigé selon le modèle ci-dessous : le prompt complet en anglais, la ligne `Négatif : …`, la ligne `Midjourney : --ar 9:16 --style raw`, le thème et sa couleur (ex. « rideau couleur du thème ECO, graphite #334155 »), et les 3 titres proposés.
 - **Dépôt sur le Drive Clark** (médias seulement : ⛔ plus aucun fichier texte sur le Drive, tout le texte est dans le BO) :
-  - Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<LIBELLE> — <Sujet>" - <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3 <travail>/voix/voix_complete.mp3` (`LIBELLE` de l'horodatage, ex. « 2026-10-15 04h00 — Le Téflon » ; « - » = pas de fichier texte ; le type de chaque fichier est reconnu à son extension).
+  - Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<LIBELLE> — <Sujet>" - <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3` (**jamais `voix_complete.mp3`** : l'utilisateur ne veut que les voix plan par plan ; `LIBELLE` de l'horodatage, ex. « 2026-10-15 04h00 — Le Téflon » ; « - » = pas de fichier texte ; le type de chaque fichier est reconnu à son extension).
      - Le script crée (ou retrouve) ce dossier dans « Vidéos » (id `1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_`) et y dépose les fichiers, en envoi « resumable ». Il affiche le lien du dossier (`dossier : https://drive.google.com/drive/folders/…`) : garde-le pour le BO et le registre.
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).

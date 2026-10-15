@@ -39,6 +39,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 ## 6. Bruitages (`mixage.py`)
 - Garder `m.rideau_conduite()` (son du rideau automatique). Seulement des actions **visibles**, 3 à 8 par plan, préréglages calibrés (ne pas monter les niveaux). **`python3 -I OUTILS/sfx_lib.py --aide`** donne en 17 lignes tous les préréglages, leurs paramètres et la structure de `mixage.py` : ne lis pas `sfx_lib.py`.
 - Aucun début de son dans un mot-clé (`ATTENTION` de `Mix.verifier()`) : décaler juste après. Faune muette.
+- ⛔ Aucun son qui ressemble à une voix (murmure, foule, « petites voix », échantillon ralenti qui « parle ») : la seule voix est la voix off. Au moins un bruitage d'**ambiance du lieu** par plan (horloge, pigeons, four, charpente, vent…), ≤ −38 dBFS, hors mots-clés.
 
 ## 7. Contrôle avant `produire.sh` (cocher chaque ligne sur les images)
 1. `planche_cles.png` (sortie d'`essai.sh`) **à petite taille** : chaque mot-clé se lit en 1 s ; rien de clé caché ni hors zone.

@@ -7,6 +7,9 @@
 #  - écrit index.html et vérifie la syntaxe de chaque fichier.
 set -e
 OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
+# garde-fou : seul un dossier de plan (p1…p6) ou casting est accepté (lancé sur la racine de la vidéo ou sur outils/, il écrasait persos.js et rideau.json)
+case "$N" in p[1-6]|casting) ;; *) echo "REFUS : $P n'est pas un dossier de plan (attendu <dossier_video>/p1…p6 ou casting)" >&2; exit 2;; esac
+python3 -c 'import numpy' 2>/dev/null || export PATH="/usr/bin:$PATH"   # python3 sans numpy en tête du PATH : prendre celui du système
 if [ ! -f "$OUT/kit/marionnettes.js" ] || [ -n "$(find "$OUT/kit/src" -newer "$OUT/kit/marionnettes.js" -name "*.js")" ]; then "$OUT/kit/assemble.sh" >/dev/null; fi
 for f in scene.js timeline.js mixage.py; do [ -f "$P/$f" ] || sed "s/__PLAN__/$N/g" "$OUT/gabarits/$f" > "$P/$f"; done
 cp "$OUT/kit/marionnettes.js" "$P/marionnettes.js"

@@ -5,7 +5,7 @@
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
-# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 155 caractères et au plus un « … » par paragraphe (sinon refus :
+# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 175 caractères et au plus un « … » par paragraphe (sinon refus :
 #    corriger voix.txt et relancer, rien n'est facturé) ; 20 à 24 mots conseillés (simple note).
 # 2. Envoie les 6 paragraphes en UN appel (séparés par une ligne vide). Écrit dans <travail>/voix/ :
 #      requete.json   le texte envoyé, écrit AVANT l'envoi
@@ -34,7 +34,7 @@ import base64, difflib, json, os, re, shutil, socket, subprocess, sys, time, url
 VOIX = 'gP52hjM48hyNoVCbizxO'          # « Alexandre – Calm, Warm & Authentic » (choix de l'utilisateur)
 MODELE = 'eleven_v4'                   # choix de l'utilisateur
 MAX = 9.6                              # secondes : au-delà, la voix déborde du plan de 10 s
-CARS = 155                             # caractères par paragraphe, balises comprises
+CARS = 175                             # caractères par paragraphe, balises comprises
 URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voix}/with-timestamps?output_format=mp3_44100_128'
 MOT = re.compile(r"[\wÀ-ÿ'’-]")
 

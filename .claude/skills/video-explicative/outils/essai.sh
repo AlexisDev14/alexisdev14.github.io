@@ -4,6 +4,9 @@
 # Images rendues : 0,30,60,…,270,299 plus les instants donnés (t×30 arrondi, borné à 0–299). Sortie : <dossier_video>/out/…/planche_cles.png
 # N'affiche que les erreurs ([page], syntaxe) et une ligne finale « planche → … » ; code de sortie non nul en cas d'erreur.
 OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
+# garde-fou : seul un dossier de plan (p1…p6) ou casting est accepté (lancé sur la racine de la vidéo ou sur outils/, il écrasait persos.js et rideau.json)
+case "$N" in p[1-6]|casting) ;; *) echo "REFUS : $P n'est pas un dossier de plan (attendu <dossier_video>/p1…p6 ou casting)" >&2; exit 2;; esac
+python3 -c 'import numpy' 2>/dev/null || export PATH="/usr/bin:$PATH"   # python3 sans numpy en tête du PATH : prendre celui du système
 LOG=$(mktemp); trap 'rm -f "$LOG"' EXIT
 if ! "$OUT/construire.sh" "$P" >"$LOG" 2>&1; then cat "$LOG"; exit 1; fi
 IMG=$(python3 -I - "${2:-}" <<'PY'
