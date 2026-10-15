@@ -1,0 +1,32 @@
+// Décors partagés écrits par le plan 3 : le beffroi (P3, P4, P5). Chaque fonction prend le décalage vertical `up`
+// (0 = en place ; > 0 = enfoncé sous la trappe, découpé à ST.back+1 ; < 0 = suspendu plus haut).
+(function () {
+  const dec = M.dec;
+  const BS = 0.9;                                    // échelle du beffroi
+  const clipTrappe = (up, fn) => {
+    const ctx = M.ctx();
+    if (up > 0.5) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 1080, M.ST.back + 1); ctx.clip(); fn(); ctx.restore(); } else fn();
+  };
+  // ciel de Londres + silhouette pâle du palais derrière le beffroi (toile de fond, ne bouge pas)
+  dec.ciel_beffroi = function (t) {
+    M.ctx().drawImage(M.ben.K.ciel, 0, 0);
+    M.flat(M.ben.K.ville, 540, M.ST.back, { alpha: 0.5 });
+    const c = M.ctx(), g = c.createLinearGradient(0, 700, 0, M.ST.back);       // pénombre du beffroi : le bas est plus sombre
+    g.addColorStop(0, 'rgba(34,26,20,0.1)'); g.addColorStop(1, 'rgba(34,26,20,0.6)');
+    c.fillStyle = g; c.fillRect(0, 700, 1080, M.ST.back - 700 + 5);
+  };
+  // charpente du beffroi, centrée en x 540
+  dec.beffroi = function (t, up, o) {
+    o = o || {};
+    clipTrappe(up, () => M.flat(M.ben.K.beffroi, 540, M.ST.back + up, { scale: BS, cast: o.cast || { dx: 22, dy: 10, a: 0.3 } }));
+  };
+  // la cloche pendue au crochet du beffroi (x 540, échelle 0,8 par défaut) ; options de BEN.cloche (fele, balance, tourne, vibre, t…) ;
+  // renvoie le r de la cloche (r.pt('centre'), 'fele'…)
+  dec.cloche_beffroi = function (t, up, o) {
+    o = o || {}; const s = o.s || 0.8; let r;
+    clipTrappe(up, () => {
+      r = M.ben.cloche(o.x || 540, M.ST.back + up + M.ben.BEFFROI.crochet.dy * BS + 440 * s, s, Object.assign({ t, cast: { dx: 22, dy: 10, a: 0.3 } }, o));
+    });
+    return r;
+  };
+})();
