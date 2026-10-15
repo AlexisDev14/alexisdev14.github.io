@@ -1,5 +1,7 @@
 # Envoi d'une vidéo terminée sur le Drive Clark : dossier « <Sujet> » dans « Vidéos », 6 plans MP4 + fichier texte.
 # Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <p6_final.mp4>   (« - » : pas de fichier texte)
+#   "<Sujet>" peut être « id:<id du dossier> » pour déposer dans un dossier existant précis (lien du registre).
+#   Le type MIME suit toujours l'extension (.png → image/png, .txt → text/plain…), y compris pour le 2e argument.
 # Rangement dans le dossier du sujet : sous-dossier « Plans » (vidéos .mp4), sous-dossier « Audio » (.mp3, .wav) ; le reste
 # (fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
 # Renvoi sans doublon : un fichier de même nom déjà présent dans le dossier est REMPLACÉ (nouvelle version du même
@@ -50,7 +52,7 @@ def envoyer(tok, chemin, parent, mime):
     fid = existant(tok, nom, parent)
     up = {'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': mime, 'X-Upload-Content-Length': taille}
     if fid:   # remplace le contenu du fichier existant (même id, même lien) : pas de doublon
-        h, _ = appel(tok, f'{UP}/{fid}?uploadType=resumable&supportsAllDrives=true', b'{}', 'PATCH', up)
+        h, _ = appel(tok, f'{UP}/{fid}?uploadType=resumable&supportsAllDrives=true', json.dumps({'mimeType': mime}).encode(), 'PATCH', up)
     else:
         h, _ = appel(tok, UP + '?uploadType=resumable&supportsAllDrives=true',
                      json.dumps({'name': nom, 'parents': [parent]}).encode(), 'POST', up)
@@ -59,7 +61,7 @@ def envoyer(tok, chemin, parent, mime):
     print('→', nom, json.loads(b)['id'], '(remplacé)' if fid else '')
 
 
-MIME = {'.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.json': 'application/json', '.md': 'text/markdown', '.png': 'image/png',
+MIME = {'.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.json': 'application/json', '.md': 'text/markdown', '.png': 'image/png', '.jpg': 'image/jpeg',
         '.txt': 'text/plain', '.mp4': 'video/mp4'}
 RANGEMENT = {'.mp4': 'Plans', '.mp3': 'Audio', '.wav': 'Audio'}
 
@@ -67,9 +69,9 @@ RANGEMENT = {'.mp4': 'Plans', '.mp3': 'Audio', '.wav': 'Audio'}
 if __name__ == '__main__':
     sujet, texte, fichiers = sys.argv[1], sys.argv[2], sys.argv[3:]
     tok = jeton()
-    d = dossier(tok, sujet, VIDEOS)
+    d = sujet[3:] if sujet.startswith('id:') else dossier(tok, sujet, VIDEOS)
     sous = {}
-    if texte != '-': envoyer(tok, texte, d, 'text/plain')
+    if texte != '-': fichiers = [texte] + fichiers     # le type suit l'extension (une image passée là reste une image)
     for f in fichiers:
         ext = os.path.splitext(f)[1].lower()
         nom = RANGEMENT.get(ext)

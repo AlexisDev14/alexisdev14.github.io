@@ -12,8 +12,8 @@ Le style est **unique** : un petit théâtre de marionnettes à tiges, plus matu
 **Déroulé : 3 étapes, 2 arrêts pour validation (1. le sujet ; 2. le script + la fiche des plans), puis les 6 plans sans arrêt.** Ne saute jamais un arrêt, sauf en **mode autonome** (ci-dessous).
 
 - **Mode autonome** : si l'utilisateur dit d'enchaîner sans lui (« je pars, fais les six plans »), saute les arrêts restants ; écris la fiche, lance le casting et la production, et donne la fiche résumée (distribution, conduite du rideau, gag de chaque plan) dans le premier message de production. Les choix de fond déjà validés (sujet, script) ne changent pas.
-- **Refaire une vidéo déjà livrée** (autre style, nouvelle version) : pas d'étape 1. Retrouve d'abord, dans l'ordre : la ligne du registre (id de la question, thème, lien du dossier Drive, id du contenu au BO) ; le contenu du planificateur du BO (connecteur Firestore Clark, `get_document` sur `video_slots/<id du contenu>`, lecture seule : script, version ElevenLabs, prompt de couverture, titre, description) ; pour une vidéo livrée avant le 15/10, le fichier texte de son dossier Drive ; à défaut l'historique des sessions. Puis **liste les gags et idées de mise en scène de l'ancienne version** (rapports, fiche, fichiers `scene.js` s'ils existent, sinon demande à l'utilisateur ce qu'il avait aimé) : la fiche les reprend par défaut, adaptés au nouveau style. (Leçon de « Monsieur Poubelle » : l'inconnu qui sort de la poubelle, oublié puis redemandé.)
-- **Retour ambigu** : après la livraison, si un retour vise un élément présent à la fois dans les vidéos et sur la couverture (ou dans plusieurs plans), pose une question courte avant de lancer quoi que ce soit. (« Le chapeau fait trop Napoléon » visait le prompt de couverture, pas les vidéos.)
+- **Refaire une vidéo déjà livrée** (autre style, nouvelle version) : pas d'étape 1. Retrouve d'abord, dans l'ordre : la ligne du registre (id de la question, thème, lien du dossier Drive, id du contenu au BO) ; le contenu du planificateur du BO (connecteur Firestore Clark, `get_document` sur `video_slots/<id du contenu>`, lecture seule : script, version ElevenLabs, titre de l'affiche, titre, description) ; pour une vidéo livrée avant le 15/10, le fichier texte de son dossier Drive ; à défaut l'historique des sessions. Puis **liste les gags et idées de mise en scène de l'ancienne version** (rapports, fiche, fichiers `scene.js` s'ils existent, sinon demande à l'utilisateur ce qu'il avait aimé) : la fiche les reprend par défaut, adaptés au nouveau style. (Leçon de « Monsieur Poubelle » : l'inconnu qui sort de la poubelle, oublié puis redemandé.)
+- **Retour ambigu** : après la livraison, si un retour vise un élément présent à la fois dans les vidéos et sur la couverture (ou dans plusieurs plans), pose une question courte avant de lancer quoi que ce soit. (« Le chapeau fait trop Napoléon » visait la couverture, pas les vidéos.)
 
 ---
 
@@ -69,8 +69,8 @@ Une routine ne peut pas demander : elle applique le **mode autonome** du début 
 0. **Horodatage** (ci-dessus), avant toute autre commande.
 1. `registre.py etat` ; présélection Haiku sur les **questions les plus récentes** (`created_at desc`), limitée aux thèmes conseillés.
 2. Choisis toi-même le meilleur sujet selon les critères ci-dessous. Avant de le réserver, relis son `explanation` dans Firestore (`get_document`) et vérifie toi-même que l'anecdote retenue s'y trouve bien (la présélection peut déformer : « mort pauvre et oublié », chiffres inventés) ; puis réserve-le (`registre.py reserver`) ; s'il est déjà pris, le suivant.
-3. Faits, script, **voix** (`voix.py`, **un seul appel ElevenLabs pour toute la vidéo**, instants réels reportés dans la fiche), fiche, casting, 6 plans, contrôle final : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
-4. Livraison complète (voir « Livraison ») : Drive (médias seulement : les 6 `pN_final.mp4` + `voix/p1…p6.mp3`, jamais `voix_complete.mp3`, dans le dossier « <LIBELLE> — <Sujet> ») ; contenu du planificateur du BO (création seule, id `ID` de l'horodatage, avec titre, description, hashtags, script, version ElevenLabs, prompt de couverture et lien du dossier Drive) ; `registre.py livrer` ; bibliothèque ; charte. Le résumé final dit : sujet, thème, horodatage (`LIBELLE`), lien du dossier Drive, id du contenu au BO, crédits ElevenLabs utilisés (caractères envoyés, un seul appel), limites.
+3. Faits, script, **voix** (`voix.py`, **un seul appel ElevenLabs pour toute la vidéo**, instants réels reportés dans la fiche), fiche, casting, 6 plans, contrôle final, **affiche** (3d) : sans arrêt. Les faits incertains sont retirés du script (jamais laissés en doute).
+4. Livraison complète (voir « Livraison ») : Drive (médias seulement : les 6 `pN_final.mp4` + `voix/p1…p6.mp3` + l'affiche PNG, jamais `voix_complete.mp3`, dans le dossier « <LIBELLE> — <Sujet> ») ; contenu du planificateur du BO (création seule, id `ID` de l'horodatage, avec titre, description, hashtags, script, version ElevenLabs, titre de l'affiche et lien du dossier Drive) ; `registre.py livrer` ; bibliothèque ; charte. Le résumé final dit : sujet, thème, horodatage (`LIBELLE`), lien du dossier Drive, id du contenu au BO, crédits ElevenLabs utilisés (caractères envoyés, un seul appel), limites.
 5. Deux routines peuvent tourner le même jour : espace-les de quelques heures (limite d'usage sur 5 h glissantes) et laisse chacune dans sa propre session.
 
 ### Présélection (agent Haiku)
@@ -173,6 +173,7 @@ Demande validation. **Arrête-toi.** Si le texte change, recompte les mots et me
 | `produire.sh <travail>/pN` | Rendu complet, bruitages, `pN_final.mp4`, `planche.png`, puis contrôles automatiques : `verifier.sh` (format, durée, son), `sauts.py` (objet qui surgit ou disparaît d'une image à l'autre, fond nu de la scène) et `raccord.sh` (coupe avec le plan précédent). ≈ 30 à 70 s. | |
 | `planche.sh <mp4> <png> [--de A --a B] [--crop L:H:X:Y]` | Planche de 16 images ou gros plan. | |
 | `sfx_lib.py` + `sons/` | Bruitages tout faits et clips CC0. **`python3 -I OUTILS/sfx_lib.py --aide`** liste en 17 lignes les préréglages et leurs paramètres. `freesound_cc0.py` cherche un nouveau son (vérifier sa licence CC0). | agents : `--aide`, jamais le fichier |
+| `MEMO-AFFICHE.md` + `affiche.py` + `exemples/affiches/` | L'affiche (couverture) : scène d'une image avec les marionnettes de la vidéo, règles tirées des retours de l'utilisateur, titre sur enseigne à la couleur du thème (`affiche.py`, police `polices/Rye-Regular.woff`). | agent « affiche », en entier ; toi pour le contrôle |
 | `drive_envoi.py` | Envoi sur le Drive à la livraison : dossier du sujet avec sous-dossiers « Plans » (vidéos) et « Audio » (voix) ; renvoi sans doublon ; plus de fichier texte. | |
 | `voix.py <travail>` | Voix ElevenLabs de toute la vidéo en **un seul appel** (voix « Alexandre », `eleven_v4`), découpe hors ligne en 6 plans, instants réels des mots (`voix/MOTS.md`), piste complète 6 × 10 s. Relancé, il redécoupe sans rappeler ElevenLabs. Clé : secret réseau `xi-api-key` sur `api.elevenlabs.io`, jamais lue. | toi |
 | `registre.py etat / reserver / livrer` | Registre partagé entre sessions et routines : état et thèmes conseillés, réservation d'un sujet (commit + push, refus si déjà pris), passage à « livrée ». | toi |
@@ -231,6 +232,12 @@ Chaque défaut grave se corrige (agent du plan, puis plans voisins) avant le Dri
 
 **Ne fais pas de montage assemblant les 6 plans** (l'utilisateur n'en veut pas). Ne pousse jamais les rendus dans Git.
 
+### 3d. L'affiche (agent `video-atelier` avec `model: "opus"`, après la relecture, avant le Drive)
+La couverture n'est plus un prompt pour un générateur externe : c'est **une image rendue avec le kit et les marionnettes de la vidéo**, titre compris, déposée sur le Drive avec les plans. Choisis d'abord le titre (3 lignes, `MEMO-AFFICHE.md` §3), puis :
+> Tu réalises l'affiche de la vidéo « … » (`TRAVAIL` = …, thème `<THEME>`). Lis `OUTILS/MEMO-AFFICHE.md` en entier, puis les trois exemples `OUTILS/exemples/affiches/*/scene.js`, `TRAVAIL/persos.md` et la fiche (`TRAVAIL/FICHE.md`, distribution et plan 6). Scène voulue : [personnage central, objet emblématique ou gag, second personnage ; leur action et leur expression]. Copie un exemple dans `TRAVAIL/affiche/` (scene.js et timeline.js), adapte-le, puis `bash OUTILS/construire.sh TRAVAIL/affiche` et `node OUTILS/render.cjs TRAVAIL/affiche --out TRAVAIL/out --stills 42`. Regarde l'image et 2 gros plans (mains, objets tenus, visages), corrige (3 tours au plus) ; aucune ligne « ATTENTION coude ». Puis `python3 -I OUTILS/affiche.py TRAVAIL/out/affiche/still_0042.png "TRAVAIL/out/<Sujet> — affiche.png" <THEME> "<LIGNE 1>" "<petite ligne>" "<LIGNE 3>"`. Ne modifie ni `OUTILS/` ni `persos.js` ; pas de git. Rapport : le chemin de l'affiche et ce qu'elle montre en deux phrases.
+
+Toi : regarde l'affiche entière et réduite (≈ 270 × 480), vérifie la liste de `MEMO-AFFICHE.md` §2 ; un défaut → une demande précise à l'agent (SendMessage), une seule fois. En session, montre l'affiche à l'utilisateur avec la vidéo.
+
 ### Livraison
 - Chaque plan est envoyé dans la conversation dès qu'il a passé ton contrôle.
 - À la fin, rappelle à l'utilisateur :
@@ -244,48 +251,14 @@ Chaque défaut grave se corrige (agent du plan, puis plans voisins) avant le Dri
   - une **description piquante** (2 à 3 phrases dans le ton satirique de la vidéo, avec la chute en clin d'œil, un emoji au plus, sans URL ni nom de domaine) ;
   - **5 hashtags** (le thème, le personnage, le sujet, puis culturegenerale et un tag large) ;
   - la **version Snapchat** (toujours) : une phrase courte qui garde la chute (≤ 100 caractères, un emoji au plus) et 2 ou 3 hashtags pris parmi les 5 (le sujet, puis culturegenerale), car Snapchat publie la description + une ligne vide + les hashtags en **160 caractères au plus**. Vérifie avec `python3 -I -c 'd="<phrase>";t=["<tag1>","<tag2>"];print(len(d+"\n\n"+" ".join("#"+x for x in t)))'` : le résultat doit être ≤ 160 ;
-  - le **prompt de couverture**, rédigé selon le modèle ci-dessous : le prompt complet en anglais, la ligne `Négatif : …`, la ligne `Midjourney : --ar 9:16 --style raw`, le thème et sa couleur (ex. « rideau couleur du thème ECO, graphite #334155 »), et les 3 titres proposés.
+  - le **titre de l'affiche** (3 lignes, `MEMO-AFFICHE.md` §3), déjà posé sur l'affiche en 3d.
 - **Dépôt sur le Drive Clark** (médias seulement : ⛔ plus aucun fichier texte sur le Drive, tout le texte est dans le BO) :
-  - Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<LIBELLE> — <Sujet>" - <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3` (seulement ces 12 fichiers : jamais `voix_complete.mp3` ; le script les range lui-même dans le dossier du sujet : les 6 plans dans le sous-dossier « Plans », les 6 voix dans « Audio » ; `LIBELLE` de l'horodatage, ex. « 2026-10-15 04h00 — Le Téflon » ; « - » = pas de fichier texte ; le type de chaque fichier est reconnu à son extension).
+  - Envoie tout d'un coup : `python3 -I OUTILS/drive_envoi.py "<LIBELLE> — <Sujet>" - <travail>/out/p1/p1_final.mp4 … <travail>/out/p6/p6_final.mp4 <travail>/voix/p1.mp3 … <travail>/voix/p6.mp3 "<travail>/out/<Sujet> — affiche.png"` (seulement ces 13 fichiers : jamais `voix_complete.mp3` ; le script les range lui-même dans le dossier du sujet : les 6 plans dans le sous-dossier « Plans », les 6 voix dans « Audio », l'affiche à la racine du dossier ; `LIBELLE` de l'horodatage, ex. « 2026-10-15 04h00 — Le Téflon » ; « - » = pas de fichier texte ; le type de chaque fichier est reconnu à son extension).
      - Le script crée (ou retrouve) ce dossier dans « Vidéos » (id `1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_`) et y dépose les fichiers, en envoi « resumable ». Il affiche le lien du dossier (`dossier : https://drive.google.com/drive/folders/…`) : garde-le pour le BO et le registre.
      - Il passe par le secret réseau `GOOGLE_DRIVE` de l'environnement : type Body parameter sur `oauth2.googleapis.com/token`, avec `client_id`, `client_secret` et `refresh_token`. Le proxy injecte ces valeurs : ne jamais chercher à les lire ni à les afficher.
      - Ne pas passer par le connecteur Drive pour les vidéos (base64 impossible au-delà de quelques Ko).
      - Si le jeton est refusé (`invalid_grant`), le refresh token a été révoqué. Livre alors les vidéos dans la conversation et dis à l'utilisateur de régénérer le jeton dans OAuth Playground, en mode « Offline », puis de mettre à jour le secret.
-- **Prompt de couverture** (miniature TikTok, générée par l'utilisateur dans un générateur d'images) : à donner aussi dans la conversation, prêt à copier. Validé par l'utilisateur : **rideau fermé en fond, l'objet emblématique du sujet seul devant (pas de personnage), un titre accrocheur dans le tiers haut**, **le rideau à la couleur du thème Clark de la question** (tableau ci-dessous), l'objet **posé** sur le plancher (pas de tige, pas en lévitation), le tout **dans la DA de la vidéo** (carton découpé plat, pas de rendu réaliste) et un titre en **lettres de papier doré découpées, style affiche de théâtre XIXᵉ** (pas de serif classique fin). C'est la seule image où du texte est permis. Prompt **en anglais**, titre en français entre guillemets, **court** (4 à 7 mots : les générateurs écrivent mal les titres longs), sur ce modèle :
-  ```
-  Flat cut-paper illustration in the style of a 19th-century paper toy theatre, vertical 9:16, elegant and minimalist.
-  NOT photographic, NOT 3D: matte layered cardstock, flat colour areas, crisp die-cut edges with a thin white border,
-  fine engraving-style hatching for shading, visible paper grain, small soft drop shadows between paper layers.
-  Background: only a closed theatre curtain drawn as flat painted paper — [COULEUR DU THÈME : nom + hex primary]
-  with darker folds [hex dark] — the curtain is NOT red, NOT crimson (sauf thème rouge) — stylised regular vertical folds in two or three tones, a thin aged-gold fringe at the
-  bottom; no proscenium, no stage frame, no landscape, no audience, no characters.
-  In front of the curtain, in the lower half: [L'OBJET EMBLÉMATIQUE SEUL, simplifié en carton découpé : formes nettes,
-  aplats, couleurs sourdes, brass paper-fastener rivets if it has parts], resting firmly and flat on a simple strip of
-  dark wooden floorboards, with a soft contact shadow under it — no rod, no stick, no stand, not floating —
-  lit by a soft warm spotlight.
-  In the upper third, the French title, exactly: "[TITRE]", made of letters hand-cut from gold paper, in the style of
-  a 19th-century wood-type theatre playbill (bold condensed slab-serif capitals), each letter very slightly uneven and
-  casting a tiny shadow on the curtain, centered on two or three lines, perfectly spelled with French accents.
-  Palette strictly muted: the theme colour, ivory, ochre, aged gold. Centered, uncluttered, gentle vignette,
-  fine paper grain. No other text, no logo, no watermark.
-  ```
-  Couleur du rideau = `theme_code` de la question choisie (Firestore `questions/<id>.theme_code`, noté dans le registre). Source : app Clark, `packages/shared/src/constants/themeVisuals.ts` (à relire si le dépôt `AlexisDev14/clark` est disponible, les couleurs peuvent changer) :
-
-  | Code | Thème | primary | dark | Dans le prompt |
-  |---|---|---|---|---|
-  | HIST | Histoire & politique | #7C2D12 | #5B1A0E | deep terracotta brick red |
-  | GEO | Géographie & monde | #15803D | #14532D | forest green |
-  | SCI | Sciences & technologie | #06B6D4 | #0E7490 | laboratory cyan (muted) |
-  | ART | Arts & littérature | #C026D3 | #86198F | ink magenta |
-  | MUS | Musique, cinéma & TV | #7C3AED | #5B21B6 | velvet violet |
-  | POP | Culture pop & médias | #FCAF3C | #92560B | golden amber |
-  | SPORT | Sports & jeux | #F97316 | #C2410C | pitch orange |
-  | VIE | Vie quotidienne | #EC4899 | #BE185D | vivid rose pink (muted) |
-  | ECO | Affaires, économie & société | #334155 | #0F172A | slate graphite |
-  | LANG | Langue, culture & religions | #4D7C0F | #365314 | sage olive green |
-  | ACTU | Actualités | #DC2626 | #991B1B | bright red |
-
-  Négatif : `rod, stick, pole, stand, floating, levitating, red curtain, crimson, burgundy (ces trois-là si le thème n'est pas rouge), photorealistic, realistic texture, photograph, 3D render, CGI, glossy, plastic, real velvet, depth of field, extra text, misspelled words, thin serif font, script font, logo, watermark, person, animal, landscape, stage frame, proscenium, audience seats, anime, clutter`. Format 9:16 (Midjourney : `--ar 9:16 --style raw`). Proposer 3 titres au choix ; si le générateur écorche le titre, l'utilisateur peut l'ajouter au montage (prompt sans la ligne du titre).
+- **Affiche** : faite en 3d (`MEMO-AFFICHE.md`), envoyée avec les médias. Couleur de l'enseigne = `theme_code` de la question (Firestore `questions/<id>.theme_code`, noté dans le registre) ; les couleurs des thèmes sont dans `affiche.py` (`THEMES`, d'après l'app Clark `packages/shared/src/constants/themeVisuals.ts` : à mettre à jour si elles changent). ⛔ Plus de prompt pour un générateur d'images externe.
 - **Dépôt dans le planificateur du backoffice Clark** (en routine comme en session, après le Drive) : le contenu entre dans la **file de programmation** (page « Publications » du BO). Le BO lui donne lui-même sa date de sortie, à la suite des vidéos déjà prévues, selon le rythme réglé par l'utilisateur (départ le 19/10, 6 h puis 17 h). Tu ne choisis jamais de date ni de créneau. L'utilisateur n'a plus qu'à joindre la vidéo montée et la miniature, puis valider.
   1. Crée le document avec le connecteur Firestore Clark, outil **`add_document`** (chercher « Firestore_Clark » avec ToolSearch) : `parent` `projects/clark-app-9b938/databases/(default)/documents`, `collectionId` `video_slots`, `documentId` = `ID` de l'horodatage (ex. `v_20261015_0400`).
      - Refus « already exists » : lis ce document (`get_document`, lecture seule). Même `subject` = déjà déposé par toi (rien à refaire). Sinon, réessaie avec le suffixe `_b`, puis `_c` (ex. `v_20261015_0400_b`).
@@ -299,14 +272,14 @@ Chaque défaut grave se corrige (agent du plan, puis plans voisins) avant le Dri
      - `texts` : `mapValue` avec `title` (le titre, ≤ 80 caractères), `description` (la description piquante) et `hashtags` (`arrayValue` des 5 hashtags, **sans** le `#`) ;
      - `script` : `stringValue`, le texte lu des 6 plans, un paragraphe par plan (≤ 5 000 caractères, jamais publié) ;
      - `voiceScript` : `stringValue`, la version ElevenLabs telle qu'envoyée (`voix/requete.json`, champ `texte`, ou `voix.txt`), balises comprises (≤ 5 000 caractères) ;
-     - `coverPrompt` : `stringValue`, le prompt de couverture complet (prompt anglais, ligne `Négatif`, ligne `Midjourney`, thème et couleur, 3 titres ; ≤ 5 000 caractères) ;
+     - `coverPrompt` : `stringValue`, la description de l'affiche : « Affiche : <ligne 1> — <petite ligne> — <ligne 3> · fichier « <Sujet> — affiche.png » dans le dossier Drive · thème <THEME> » (le champ garde son nom pour le BO) ;
      - `driveFolderUrl` : `stringValue`, le lien du dossier Drive affiché par `drive_envoi.py` (omis si l'envoi a échoué) ;
      - `variants` : `mapValue`, avec **toujours** `snapchat` → `mapValue` → `description` (`stringValue`, la phrase courte de la version Snapchat) et `hashtags` (`arrayValue` de ses 2 ou 3 hashtags, **sans** le `#`) ; total vérifié ≤ 160 caractères (voir « Textes de publication »). L'utilisateur la copie depuis la fiche du BO et la colle dans Snapchat, qu'il publie à la main.
        - en plus, seulement si X déborde : `x` → `mapValue` → `description` (`stringValue`). X publie la description + une ligne vide + les hashtags, 280 caractères au plus (un emoji compte double) : au-delà de 270, une phrase courte sans emoji pour X.
      - ⛔ Jamais `scheduledAt`, `slotId`, `dayKey`, `time`, `pin`, `validation` ni `video` : la date et la validation appartiennent au BO.
-  3. Note l'id du contenu dans le résumé final (ex. « BO : contenu v_20261015_0400, en file »). Un échec d'écriture ne bloque pas la livraison : donne la cause dans le résumé, avec le titre, la description, les hashtags, la version Snapchat et le prompt de couverture en clair pour que l'utilisateur les saisisse.
-  4. Si le prompt de couverture est retouché après la livraison (retours de l'utilisateur sur l'image générée) : donne-le dans la conversation, l'utilisateur le remplace dans la fiche du BO (jamais d'écriture Firestore de ta part sur un document existant).
-- Passe le sujet à « livrée » : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>" <id du contenu au BO>` (la ligne garde l'id de la question et son `theme_code`, indispensables pour refaire la vidéo ou sa couverture).
+  3. Note l'id du contenu dans le résumé final (ex. « BO : contenu v_20261015_0400, en file »). Un échec d'écriture ne bloque pas la livraison : donne la cause dans le résumé, avec le titre, la description, les hashtags, la version Snapchat et le titre de l'affiche en clair pour que l'utilisateur les saisisse.
+  4. Si l'affiche est retouchée après la livraison (retours de l'utilisateur) : renvoie-la avec `drive_envoi.py "id:<id du dossier>" - "<…> — affiche.png"` (même nom : le fichier est remplacé, même lien) ; si le titre change, donne la nouvelle ligne `coverPrompt` dans la conversation, l'utilisateur la remplace dans la fiche du BO (jamais d'écriture Firestore de ta part sur un document existant).
+- Passe le sujet à « livrée » : `python3 -I OUTILS/registre.py livrer "<Sujet>" "<lien du dossier Drive>" <id du contenu au BO>` (la ligne garde l'id de la question et son `theme_code`, indispensables pour refaire la vidéo ou son affiche).
 - **Enrichis la bibliothèque** : copie `<travail>/persos.js` (s'il existe) dans `outils/bibliotheque/<slug>.js` (première ligne = description, espace de noms propre) et `<travail>/persos.md` dans `outils/bibliotheque/<slug>.md` (mode d'emploi, à lire à la place du `.js`), ajoute sa section à `bibliotheque/LISEZMOI.md` (contenu, options éprouvées, ce que l'utilisateur a validé). Un décor de `<travail>/decors/*.js` réutilisable rejoint aussi la bibliothèque (ajouté à `<slug>.js` : `M.dec.x` y devient `M.<espace de la vidéo>.x`, car `M.dec` est propre à chaque vidéo).
 - Ajoute à `outils/CHARTE.md` §8 tout nouveau défaut relevé par l'utilisateur, pour qu'il ne revienne pas (et, s'il concerne tous les plans, une ligne dans `outils/MEMO-PLAN.md`).
 - Committe et pousse ces fichiers (registre, bibliothèque, charte), jamais les rendus.

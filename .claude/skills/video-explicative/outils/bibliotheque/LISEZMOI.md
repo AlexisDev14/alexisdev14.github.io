@@ -54,3 +54,11 @@ DÉCORS       : TEF.K.labo (plein écran), TEF.K.paillasse (M.flat à TEF.PAILLA
                TEF.K.poele.teflon / alu (pour M.hung)
 ```
 Réglages éprouvés : marionnettes à `s` 0,9 (Colette 0,88), frigo à 1 posé sur `ST.back` à x ≈ 770 ; balance à 0,6 sur la paillasse (x 400) ; garder un personnage à x ≥ 240 quand le rideau est à demi fermé (cue `demi`), sinon son geste est coupé. Passage d'un objet de main en main : `objetB` ≈ −0,4 pour écarter la canne du champ.
+
+## `barbenoire.js` — « Barbe Noire, le pirate qui fumait » (1718), espace `M.bn` — mode d'emploi : `barbenoire.md`
+Livré le 15/10/2026 (aucun retour à ce jour) : Barbe Noire (tricorne noir, barbe de jais, mèches fumantes, gestes caresse/révérence/coup/chute/perruque), marins a/b/c, otages conseiller/planteur/marchand (option tonneau), coffre d'or, tête seule, `BN.fumee`. Fragile : `perruque` sur le tricorne (la redessiner agrandie), `tonneau` à mi-course. Décors du pont pirate/marchand, Charleston, Ocracoke : dans les `decors/pN.js` de la vidéo, non repris.
+
+## `mercedes.js` — « L'étoile Mercedes, une carte postale » (Deutz 1870s → 1926 → aujourd'hui), espace `M.mer` (MER)
+Livré le 15/10/2026 (aucun retour à ce jour). Mode d'emploi complet : `mercedes.md` (à lire à la place du `.js`). Dans `S.init` : `MER.init();`.
+Contenu : Daimler (barbe, redingote brune, plume), Emma (robe verte à tournure, tape du pied), Paul (canotier) et Adolf (melon, tampon), publicitaire moderne ; étoile à trois branches (`branche`, `halo`), voiture (moderne/ancienne, `emblem`), carte postale à maison, bulle de pensée + usine, tampon/document, icônes terre/eau/airs, moteur, couronne de lauriers, facture, sac de pièces, chevalet, piédestal ; décors `salon`, `salonVieux`, `avenue`, `toile`.
+Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (laisser le chapeau sur le pupitre) ; `reflechir` avec `tenu:'rien'` ; cibles de `ecrire`/`tamponner` calées sur `POU.pupitre`.
