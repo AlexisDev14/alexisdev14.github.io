@@ -12,5 +12,6 @@ Le « type de récit » sert à varier : ne pas proposer un type utilisé par l'
 | 2026-10 | L'Arc de triomphe de l'Étoile | NMBLoKwuSiLMp88Z4J8F | HIST | ironie du destin | Arc de triomphe, Napoléon, Étoile, retour des cendres, arche en toile 1810 | livrée | [Arc de triomphe](https://drive.google.com/drive/folders/1kVNI6RX3LKWzwxE-Dv_zvMmaMnVt1XXA) |
 | 2026-10 | Le Téflon, un frigo raté | UNIk4MQqzbqgcIgshSbm | VIE | invention par accident | Téflon, PTFE, Plunkett, DuPont, poêle antiadhésive, Tefal, Marc Grégoire, gaz réfrigérant, frigo | livrée | — |
 | 2026-10-15 | Big Ben, la cloche fêlée | ORtSSyOOZNmfgd4AmILU | GEO | idée reçue fausse | Big Ben, cloche fêlée, Westminster, Londres, horloge, Palace of Westminster, Elizabeth Tower | livrée (BO v_20261015_0401) | [Big Ben, la cloche fêlée](https://drive.google.com/drive/folders/1IgitM7NK3C3sS8hw6VZPig04RRSYjka-) |
+| 2026-10-15 | L'étoile Mercedes, carte postale | BEfEVCvqzQYMAi0HgshP | ECO | objet du quotidien à l'origine inattendue | Mercedes, étoile à trois branches, Daimler, carte postale, Deutz, Benz, Cannstatt | en cours | — |
 
 Types de récit possibles (pour varier) : nom propre devenu nom commun · étymologie d'une ruse · invention par accident · erreur célèbre · loi absurde · idée reçue fausse · record ou exploit improbable · animal héros · objet du quotidien à l'origine inattendue · rivalité.
