@@ -62,3 +62,8 @@ Livré le 15/10/2026 (aucun retour à ce jour) : Barbe Noire (tricorne noir, bar
 Livré le 15/10/2026 (aucun retour à ce jour). Mode d'emploi complet : `mercedes.md` (à lire à la place du `.js`). Dans `S.init` : `MER.init();`.
 Contenu : Daimler (barbe, redingote brune, plume), Emma (robe verte à tournure, tape du pied), Paul (canotier) et Adolf (melon, tampon), publicitaire moderne ; étoile à trois branches (`branche`, `halo`), voiture (moderne/ancienne, `emblem`), carte postale à maison, bulle de pensée + usine, tampon/document, icônes terre/eau/airs, moteur, couronne de lauriers, facture, sac de pièces, chevalet, piédestal ; décors `salon`, `salonVieux`, `avenue`, `toile`.
 Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (laisser le chapeau sur le pupitre) ; `reflechir` avec `tenu:'rien'` ; cibles de `ecrire`/`tamponner` calées sur `POU.pupitre`.
+
+## `bigben.js` — « Big Ben, la cloche fêlée » (Londres, 1856 → aujourd'hui), espace `M.ben`
+Livré le 15/10/2026 (routine, aucun retour d'Alexis à ce jour). Mode d'emploi : `bigben.md`. Dans `S.init` : `BEN.init();` (pré-rend `BEN.K` = ciel, ville, tour, cour, fonderie, beffroi).
+Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BEN.ondes`), marteau lourd/léger, ouvrier-fondeur, sir (haut-de-forme), touriste (+ mini), chariot, appareil photo, décors Westminster. Le beffroi partagé (`M.dec.beffroi`, `cloche_beffroi`, `ciel_beffroi`, écrit pour la vidéo en `decors/p3.js`) est gardé en `bigben-beffroi.txt` (non chargé : à copier dans `decors/pN.js` si besoin).
+À vérifier : fêlure en zigzag très régulier ; le sir partage le bleu nuit du préfet Poubelle ; `deuxMains` du marteau fait un petit saut de main.
