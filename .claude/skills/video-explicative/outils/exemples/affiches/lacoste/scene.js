@@ -11,7 +11,11 @@ const SCENE = (() => {
     M.flat(LAC.K.vitre, 540, ST.back);
     M.drawFloor();
     LAC.capitaine({ t, tendre: 0.85, face: { mouth: 'smile' } }, 840, FEET, 0.92, { dir: -1, slot: ST.slotB, cast });
-    LAC.lacoste({ t, dos: 1, ang: { head: -0.12 }, face: { eyes: 'wide', brow: 'up', mouth: 'o' } }, 330, FEET, 1.0, { dir: 1, slot: ST.slotF, cast });
+    // Lacoste : avant-bras vers l'avant (coude plié vers l'avant, jamais vers le dos), main tendue vers la valise
+    const pl = { t, ang: { head: -0.12 }, face: { eyes: 'wide', brow: 'up', mouth: 'o' } };
+    const ik = M.ik(LAC.lacosteDef(pl), pl, 330, FEET, 1.0, 1, 'armF', [445, 1085], 1);
+    pl.ang.armF_up = ik.up; pl.ang.armF_lo = ik.lo; pl.handF = 'open';
+    LAC.lacoste(pl, 330, FEET, 1.0, { dir: 1, slot: ST.slotF, cast });
     M.stageLight(t, { spot: { x: 600, y: 1050, r: 600, a: 0.28 } });
     M.curtain(t, 1, {});
     M.drawFrame(t);
