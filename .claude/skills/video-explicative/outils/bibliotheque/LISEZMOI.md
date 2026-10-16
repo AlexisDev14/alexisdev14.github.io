@@ -72,3 +72,7 @@ Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BE
 Livré le 16/10/2026 (routine, aucun retour à ce jour). Mode d'emploi : `autruche.md` (à lire à la place du `.js`). Dans `S.init` : `AUT.init();`.
 Contenu : autruche (cou à bosse d'avalement `avale`, ventre translucide `ventre`/`ventreObj`, expressions, marche, ailes), gardien de zoo (bonnet rouge à pompon, toise, journal, trousseau), chercheur Dekeyser (pince, `plonge`, `brandir`), clé, objets métalliques, cuve, plateau, pince, toise, journal ; décors `AUT.enclos` (porte à serrure) et `AUT.labo` + table.
 Fragilités : `leve` du gardien passe la toise devant son visage (utiliser `atteint`/`cible`) ; cou `rentre` un peu anguleux ; clé dans le ventre petite (~120–150 px) ; `affiche.py` demande `/usr/bin/python3` (PIL).
+
+## `lacoste.js` — « Le crocodile Lacoste, né d'un alligator » (Boston 1925 → 1933), espace `M.lac`
+Livré le 15/10/2026 (aucun retour d'Alexis à ce jour). Mode d'emploi : `lacoste.md` (à lire à la place du `.js`). Contenu : Lacoste (tenues `longues` / `polo`), capitaine à canotier, journalistes J1/J2, valise en peau d'alligator, `LAC.reptile` croco/alligator (jumeaux), polo et portant, raquette, balle, calepin, appareil photo, vitrine bostonienne, court de tennis avec filet et gradins. Dans `S.init` : `LAC.init();`. Réglages éprouvés : marionnettes à `s` 0,9, `bendSign` 1 pour tous les gestes sauf main dans le dos (−1).
+Affiche : `exemples/affiches/lacoste` (Lacoste ébahi devant la valise en alligator que le capitaine lui présente).
