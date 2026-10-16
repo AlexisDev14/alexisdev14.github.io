@@ -102,3 +102,4 @@
 3. `verifier.sh` tout « OK » (format, durée, son, crête ≤ −22).
 4. Raccord de rideau : première image du plan = dernière image du plan précédent pour le rideau (ouvert, fermé ou en mouvement).
 5. Aucune ligne « ATTENTION » de `sauts.py` (objet qui surgit, disparaît ou saute en une image ; fond nu de la scène) ni de `raccord.sh` (SSIM < 0,92 avec la fin du plan précédent) laissée sans correction ou sans justification écrite. Ces deux contrôles tournent dans `produire.sh` ; au Téflon, `sauts.py` aurait relevé 13 sauts réels (porte du frigo qui claque d'une image à l'autre, bocal et spatule qui disparaissent, poêle qui apparaît d'un coup).
+- Livre ou objet tenu qui semble flotter, sans main visible (Guiraud, P3/P4/P6 « pieds dans le plat ») → toujours montrer la main ou le coude qui le soutient ; un petit nuage de soupir (< 60 px) ne se lit pas sur téléphone : le prévoir ≥ 100 px et l'achever avant la fermeture du rideau.

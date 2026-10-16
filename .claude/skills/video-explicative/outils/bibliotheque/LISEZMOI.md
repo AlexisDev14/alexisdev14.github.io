@@ -67,3 +67,8 @@ Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (
 Livré le 15/10/2026 (routine, aucun retour d'Alexis à ce jour). Mode d'emploi : `bigben.md`. Dans `S.init` : `BEN.init();` (pré-rend `BEN.K` = ciel, ville, tour, cour, fonderie, beffroi).
 Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BEN.ondes`), marteau lourd/léger, ouvrier-fondeur, sir (haut-de-forme), touriste (+ mini), chariot, appareil photo, décors Westminster. Le beffroi partagé (`M.dec.beffroi`, `cloche_beffroi`, `ciel_beffroi`, écrit pour la vidéo en `decors/p3.js`) est gardé en `bigben-beffroi.txt` (non chargé : à copier dans `decors/pN.js` si besoin).
 À vérifier : fêlure en zigzag très régulier ; le sir partage le bleu nuit du préfet Poubelle ; `deuxMains` du marteau fait un petit saut de main.
+
+## `piedsplat.js` — « Mettre les pieds dans le plat » (expression, XIXe siècle), espace `M.plat` (PLT) — mode d'emploi : `piedsplat.md`
+Livré le 16/10/2026 (routine, aucun retour à ce jour). Dans `S.init` : `PLT.init();`.
+Contenu : convive (redingote bordeaux, serviette, jambe levée `pied`), Pierre Guiraud (lunettes d'écaille, nœud papillon, livre sans titre, baguette), promeneur (chapeau mou olive, sac, canne, `leve_pied`, `salue_gene`), rôti sous cloche d'argent (`cloche`, `sueur`, `tremble`, `soupir`), table nappée et chaise. Mare, bureau, salle et canard : décors propres à la vidéo, non repris.
+Fragilités : semelle du convive à ≈ 10 px au-dessus du rôti (`piedAng` −2,12 à x 470) ; livre tenu sans main visible quand Guiraud le porte fermé ; bordeaux du convive proche du seigneur de `reblochon.js`.
