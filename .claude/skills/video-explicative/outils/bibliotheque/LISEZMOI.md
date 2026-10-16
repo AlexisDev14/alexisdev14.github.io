@@ -67,3 +67,8 @@ Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (
 Livré le 15/10/2026 (routine, aucun retour d'Alexis à ce jour). Mode d'emploi : `bigben.md`. Dans `S.init` : `BEN.init();` (pré-rend `BEN.K` = ciel, ville, tour, cour, fonderie, beffroi).
 Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BEN.ondes`), marteau lourd/léger, ouvrier-fondeur, sir (haut-de-forme), touriste (+ mini), chariot, appareil photo, décors Westminster. Le beffroi partagé (`M.dec.beffroi`, `cloche_beffroi`, `ciel_beffroi`, écrit pour la vidéo en `decors/p3.js`) est gardé en `bigben-beffroi.txt` (non chargé : à copier dans `decors/pN.js` si besoin).
 À vérifier : fêlure en zigzag très régulier ; le sir partage le bleu nuit du préfet Poubelle ; `deuxMains` du marteau fait un petit saut de main.
+
+## `conteneur.js` — « Le conteneur, né d'une journée d'attente » (New Jersey 1937 → Newark 1956), espace `M.cont` (CON)
+Livré le 15/10/2026 (routine, aucun retour à ce jour). Mode d'emploi : `conteneur.md`. Dans `S.init` : `CON.init()` (pré-rend `CON.K` = quai37, port56, grues, navire).
+Contenu : McLean (casquette de chauffeur, gilet moutarde), dockers A (bonnet bleu) et B (gavroche brune), sablier (retourne, chaise longue, chapeau de paille), goéland (dort, vieux), camion 1937, caisses, balles, conteneurs 4 couleurs (ruban/scellé), grue portique, navire, bateau-pompe.
+À vérifier : casquette de McLean proche de `TEF.officier` ; chaise longue chargée ; navire pré-rendu (pas de `dir`) ; grues de fond translucides qui brouillent le navire ; dockers qui restent figés derrière McLean (grouper avec ≥ 130 px).
