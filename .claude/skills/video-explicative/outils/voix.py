@@ -2,11 +2,13 @@
 # Voix off ElevenLabs de toute la vidéo en UN SEUL appel, puis découpe hors ligne en 6 plans, avec l'instant exact de chaque mot.
 #
 #   python3 -I voix.py <travail> [--voix ID] [--modele eleven_v4] [--forcer]
+#   python3 -I voix.py <travail> --refaire N     (seule exception à l'appel unique : voir plus bas)
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
-# 1. Contrôle d'abord les longueurs et les tics (« Évidemment. » seul en phrase, phrases d'un ou deux mots : une au plus), sans rien envoyer : ≤ 180 caractères (≤ 165 avec un « … »), au plus un « … » et une durée estimée ≤ 9,8 s par paragraphe (sinon refus :
-#    corriger voix.txt et relancer, rien n'est facturé) ; 25 à 28 mots et 160 à 180 caractères conseillés (simple note :
+# 1. Contrôle d'abord les longueurs et les tics (« Évidemment. » seul en phrase, phrases d'un ou deux mots : une au plus), sans rien envoyer : ≤ 195 caractères (≤ 180 avec un « … »), au plus un « … » et une durée estimée ≤ 10,6 s par paragraphe (≤ 9,8 s pour le plan 6, dont la chute
+#    doit finir avant la fermeture du rideau) (sinon refus :
+#    corriger voix.txt et relancer, rien n'est facturé) ; 26 à 31 mots et 165 à 195 caractères conseillés (simple note :
 #    un paragraphe trop court laisse un trou dans le plan, le rallonger d'une précision utile).
 # 2. Envoie les 6 paragraphes en UN appel (séparés par une ligne vide). Écrit dans <travail>/voix/ :
 #      requete.json   le texte envoyé, écrit AVANT l'envoi
@@ -24,7 +26,11 @@
 #   - si brut.json existe, voix.py ne rappelle jamais ElevenLabs : il redécoupe seulement (gratuit) ;
 #   - si requete.json existe sans brut.json (appel parti, réponse perdue), il refuse : la voix est peut-être déjà facturée ;
 #   - aucun nouvel essai une fois la requête partie, sauf un refus 429 ou 503 (rien n'a été rendu) ;
-#   - une voix > 9,6 s est signalée ATTENTION, jamais regénérée (ne jamais accélérer la voix non plus).
+#   - une voix > 10,5 s est signalée NOTE (le plan fait 10 s : l'utilisateur cale au montage, il accepte jusqu'à 11 s) ;
+#   - une voix > 11 s (plafond de l'utilisateur) est la SEULE exception : raccourcis ce paragraphe dans voix.txt, puis
+#     `voix.py <travail> --refaire N` refait CE SEUL plan en un appel (plus court que l'original, estimé ≤ 10,2 s ;
+#     une seule fois par plan ; fichiers voix/refait_pN_*). Une voix refaite qui dépasse encore 11 s se garde et se signale.
+#   - ne jamais accélérer la voix.
 #   --forcer : nouvel appel facturé malgré une voix existante. Seulement si l'utilisateur le demande, jamais en routine.
 #
 # Identifiants : secret réseau de l'environnement sur api.elevenlabs.io (en-tête xi-api-key, ajouté par le proxy) :
@@ -33,11 +39,14 @@ import base64, difflib, json, os, re, shutil, socket, subprocess, sys, time, url
 
 VOIX = 'gP52hjM48hyNoVCbizxO'          # « Alexandre – Calm, Warm & Authentic » (choix de l'utilisateur)
 MODELE = 'eleven_v4'                   # choix de l'utilisateur
-MAX = 9.6                              # secondes : au-delà, la voix déborde du plan de 10 s
-CARS = 180                             # caractères par paragraphe, balises comprises (160 à 180 conseillés)
-CARS_MIN = 160
-CARS_SUSP = 165                        # caractères au plus pour un paragraphe qui contient un « … » (le « … » coûte ≈ 0,5 s)
-EST_MAX = 9.8                          # durée estimée au-delà de laquelle le texte est refusé avant l'envoi
+MAX = 10.5                             # secondes : au-delà, simple note (plan de 10 s, recalé au montage)
+PLAFOND = 11.0                         # secondes : limite de l'utilisateur ; au-delà, ce plan seul se refait (--refaire N)
+CARS = 195                             # caractères par paragraphe, balises comprises (165 à 195 conseillés)
+CARS_MIN = 165
+CARS_SUSP = 180                        # caractères au plus pour un paragraphe qui contient un « … » (le « … » coûte ≈ 0,5 s)
+EST_MAX = 10.6                         # durée estimée au-delà de laquelle le texte est refusé avant l'envoi
+EST_MAX_P6 = 9.8                       # plan 6 : la chute finit avant la fermeture du rideau (≈ 9,0 → 9,85 s)
+EST_REFAIT = 10.2                      # durée estimée au plus d'un paragraphe refait
 URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voix}/with-timestamps?output_format=mp3_44100_128'
 MOT = re.compile(r"[\wÀ-ÿ'’-]")
 
@@ -100,14 +109,16 @@ def controler(ps):
             refus.append(f'p{n} : plus d’un « … »')
         if susp == 1 and len(p) > CARS_SUSP:
             refus.append(f'p{n} : {len(p)} caractères avec un « … » (> {CARS_SUSP})')
-        est = estimer(p)
-        if est > EST_MAX:
-            refus.append(f'p{n} : durée estimée {est:.1f} s (> {EST_MAX} s)')
-        elif est > 9.4 or est < 8.5:
-            print(f'NOTE p{n} : durée estimée {est:.1f} s (viser 8,8 à 9,4 s)')
+        est, lim = estimer(p), (EST_MAX_P6 if n == 6 else EST_MAX)
+        if est > lim:
+            refus.append(f'p{n} : durée estimée {est:.1f} s (> {lim} s)')
+        elif n == 6 and (est > 9.4 or est < 8.5):
+            print(f'NOTE p6 : durée estimée {est:.1f} s (viser 8,8 à 9,4 s : la chute finit avant la fermeture du rideau)')
+        elif n < 6 and (est > 10.4 or est < 9.0):
+            print(f'NOTE p{n} : durée estimée {est:.1f} s (viser 9,3 à 10,4 s ; jamais plus de 11 s en vrai)')
         nb = len(re.findall(r"[\wÀ-ÿ'’-]+", re.sub(r'\[[^\]]*\]', ' ', p)))
-        if not 25 <= nb <= 28:
-            print(f'NOTE p{n} : {nb} mots écrits (25 à 28 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
+        if not 26 <= nb <= 31:
+            print(f'NOTE p{n} : {nb} mots écrits (26 à 31 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
         if len(p) < CARS_MIN:
             print(f'NOTE p{n} : {len(p)} caractères (< {CARS_MIN}) : la voix laissera un trou, rallonge d’une précision utile')
     refus += tics(ps)
@@ -116,8 +127,8 @@ def controler(ps):
                  '\nRaccourcis ces paragraphes dans voix.txt puis relance voix.py.')
 
 
-def appeler(texte, voix, modele, d):
-    req_f = os.path.join(d, 'requete.json')
+def appeler(texte, voix, modele, d, req_nom='requete.json'):
+    req_f = os.path.join(d, req_nom)
     json.dump({'texte': texte, 'voix': voix, 'modele': modele, 'caracteres': len(texte),
                'envoi': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())},
               open(req_f, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
@@ -210,13 +221,95 @@ def decouper(d, ps, r, voix, modele):
         json.dump({'texte': pl['texte'], 'voix': voix, 'modele': modele, 'duree': duree, 'mots': mots},
                   open(os.path.join(d, f'p{n}.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         pl['duree'], pl['long'] = duree, pl['b'] - a
-        ok = duree <= MAX
-        print(f'{"OK  " if ok else "ATTENTION"} p{n} : {duree:.2f} s, {len(mots)} mots, {len(pl["texte"])} caractères' +
-              ('' if ok else f' : déborde (> {MAX} s). Pas de nouvelle voix : signale-le dans le résumé (recalage au montage).'))
+        print(f'{"OK  " if duree <= MAX else "NOTE"} p{n} : {duree:.2f} s, {len(mots)} mots, {len(pl["texte"])} caractères' +
+              ('' if duree <= MAX else f' : plus de {MAX} s (accepté jusqu’à {PLAFOND} s ; à signaler pour le montage)'))
+    for n in range(1, 7):
+        if os.path.exists(os.path.join(d, f'refait_p{n}_brut.json')):
+            appliquer_refait(d, n, voix, modele)
+    ecrire_mots(d)
+
+
+def bilan(d):
+    # plans dont la voix dépasse le plafond de l'utilisateur
+    trop = []
+    for n in range(1, 7):
+        j = json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))
+        if j['duree'] > PLAFOND:
+            deja = os.path.exists(os.path.join(d, f'refait_p{n}_requete.json'))
+            trop.append(n)
+            print(f'DÉPASSEMENT p{n} : {j["duree"]:.2f} s (> {PLAFOND} s, plafond de l’utilisateur). ' +
+                  ('Déjà refait une fois : garde-le et signale-le dans le résumé.' if deja else
+                   f'Raccourcis le paragraphe {n} dans voix.txt (estimé ≤ {EST_REFAIT} s), puis `voix.py <travail> --refaire {n}`.'))
+    return trop
+
+
+def appliquer_refait(d, n, voix, modele):
+    # remplace pN.mp3 / pN.json par la voix refaite de ce seul plan
+    r = json.load(open(os.path.join(d, f'refait_p{n}_brut.json'), encoding='utf-8'))
+    p = json.load(open(os.path.join(d, f'refait_p{n}_requete.json'), encoding='utf-8'))['texte']
+    al = r.get('alignment') or r.get('normalized_alignment')
+    if not al or not r.get('audio_base64'):
+        print(f'NOTE p{n} : voix refaite sans audio ni alignement (voix/refait_p{n}_brut.json) : la première voix est gardée.'); return
+    aligne, st, en = aplatir(al)
+    sm = difflib.SequenceMatcher(None, p, aligne, autojunk=False)
+    idx = [None] * len(p)
+    for a, b, k in sm.get_matching_blocks():
+        for j in range(k): idx[a + j] = b + j
+    masque = hors_balises(p)
+    mots, cur = [], []
+    for i, c in enumerate(p + ' '):
+        if i < len(p) and masque[i] and MOT.match(c):
+            cur.append(idx[i]); continue
+        ok = [k for k in cur if k is not None]
+        if ok: mots.append([p[i - len(cur):i], st[min(ok)], en[max(ok)]])
+        cur = []
+    if not mots:
+        print(f'NOTE p{n} : aucun mot retrouvé dans la voix refaite : la première voix est gardée.'); return
+    src = os.path.join(d, f'refait_p{n}.mp3')
+    if not os.path.exists(src): open(src, 'wb').write(base64.b64decode(r['audio_base64']))
+    a = max(0.0, mots[0][1] - 0.15); b = mots[-1][2] + 0.6
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-ss', f'{a:.3f}', '-to', f'{b:.3f}', '-b:a', '192k',
+                    os.path.join(d, f'p{n}.mp3')], check=True)
+    duree = round(mots[-1][2] - a, 2)
+    json.dump({'texte': p, 'voix': voix, 'modele': modele, 'duree': duree, 'refait': True,
+               'mots': [[w, round(t0 - a, 2), round(t1 - a, 2)] for w, t0, t1 in mots]},
+              open(os.path.join(d, f'p{n}.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'{"OK  " if duree <= PLAFOND else "DÉPASSEMENT"} p{n} (refait) : {duree:.2f} s')
+
+
+def refaire(travail, n, voix, modele):
+    d = os.path.join(travail, 'voix')
+    if not os.path.exists(os.path.join(d, 'brut.json')):
+        sys.exit('--refaire : aucune voix rendue pour la vidéo (voix/brut.json) ; lance d’abord voix.py sans option.')
+    if os.path.exists(os.path.join(d, f'refait_p{n}_requete.json')):
+        sys.exit(f'p{n} a déjà été refait une fois : aucun autre appel. Garde-le et signale le dépassement dans le résumé.')
+    j = json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))
+    if j['duree'] <= PLAFOND:
+        sys.exit(f'p{n} dure {j["duree"]:.2f} s (≤ {PLAFOND} s) : rien à refaire, aucun appel.')
+    tous = paragraphes(os.path.join(travail, 'voix.txt'))
+    p = tous[n - 1]
+    if len(p) >= len(j['texte']) or estimer(p) > EST_REFAIT:
+        sys.exit(f'p{n} : raccourcis d’abord ce paragraphe dans voix.txt (plus court que l’original, estimé ≤ {EST_REFAIT} s ;'
+                 f' actuellement {len(p)} caractères, {estimer(p):.1f} s). Rien n’est facturé.')
+    refus = tics(tous)
+    if refus: sys.exit('Texte refusé AVANT tout appel :\n  ' + '\n  '.join(refus))
+    print(f'Appel ElevenLabs pour le SEUL plan {n} (exception : voix > {PLAFOND} s) : {len(p)} caractères')
+    brut = appeler(p, voix, modele, d, f'refait_p{n}_requete.json')
+    open(os.path.join(d, f'refait_p{n}_brut.json'), 'wb').write(brut)
+    try:
+        json.loads(brut)
+    except ValueError:
+        sys.exit(f'Réponse illisible (voix/refait_p{n}_brut.json) : la première voix est gardée ; signale-le dans le résumé.')
+    appliquer_refait(d, n, voix, modele)
+    ecrire_mots(d)
+    bilan(d)
+
+
+def ecrire_mots(d):
     lignes = ['# Voix off : instants réels des mots (secondes du plan)', '']
-    for pl in plans:
-        j = json.load(open(os.path.join(d, f'p{pl["n"]}.json'), encoding='utf-8'))
-        lignes += [f'## Plan {pl["n"]} : {j["duree"]:.2f} s', ' '.join(f'{w}({a:.2f}–{b:.2f})' for w, a, b in j['mots']), '']
+    for n in range(1, 7):
+        j = json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))
+        lignes += [f'## Plan {n} : {j["duree"]:.2f} s' + (' (refait)' if j.get('refait') else ''), ' '.join(f'{w}({a:.2f}–{b:.2f})' for w, a, b in j['mots']), '']
     open(os.path.join(d, 'MOTS.md'), 'w', encoding='utf-8').write('\n'.join(lignes))
     print('→ ' + os.path.join(d, 'MOTS.md'))
 
@@ -232,6 +325,10 @@ def main():
     reste = [x for x in a[1:] if x != '--forcer']
     opt = dict(zip(reste[0::2], reste[1::2]))
     voix, modele = opt.get('--voix', VOIX), opt.get('--modele', MODELE)
+    if '--refaire' in opt:
+        n = int(opt['--refaire'])
+        if not 1 <= n <= 6: sys.exit('--refaire N : N de 1 à 6.')
+        refaire(travail, n, voix, modele); return
     ps = paragraphes(os.path.join(travail, 'voix.txt'))
     texte = '\n\n'.join(ps)
     d = os.path.join(travail, 'voix'); os.makedirs(d, exist_ok=True)
@@ -251,7 +348,7 @@ def main():
                   'aucune nouvelle voix n’est demandée.')
             ps = envoye.split('\n\n')
         print('Voix déjà rendue (voix/brut.json) : découpe seule, aucun appel ElevenLabs.')
-        decouper(d, ps, r, voix, modele); return
+        decouper(d, ps, r, voix, modele); bilan(d); return
     if os.path.exists(req_f):
         sys.exit('Un appel ElevenLabs est déjà parti (voix/requete.json) sans réponse enregistrée : la voix est peut-être facturée.'
                  '\n⛔ Ne relance pas : livre la vidéo sans voix et dis-le dans le résumé.')
@@ -264,6 +361,7 @@ def main():
     except ValueError:
         sys.exit('Réponse ElevenLabs illisible : voir voix/brut.json.\n⛔ Ne relance pas voix.py : livre la vidéo sans voix et dis-le.')
     decouper(d, ps, r, voix, modele)
+    bilan(d)
 
 
 if __name__ == '__main__':

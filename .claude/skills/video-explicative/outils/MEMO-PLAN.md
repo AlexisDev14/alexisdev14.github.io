@@ -33,6 +33,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 ## 5. Mise en scène (règles qui reviennent le plus)
 - Geste clé sur le mot clé (± 0,2 s) ; gag avec la chute, jamais avant ; une action principale à la fois ; anticipation → action → rebond ; durées mini : geste 0,3 s, expression 0,6 s, gag 1,5–2 s ; changement de posture par étapes sur 0,8–1,2 s.
 - Toute action finie à 9 s (9,6 s au plus) ; puis image stable (respiration, flammes) ou rideau si la conduite le prévoit. Jamais figé.
+- Voix plus longue que le plan (jusqu'à 11 s, acceptée par l'utilisateur, calée au montage) : un mot-clé dit après 9,6 s a son geste à 9,6 s au plus ; l'image reste ensuite stable et vivante jusqu'à 10 s.
 - Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
 - ⛔ **Aucune mort ni violence montrée** (pas de tête coupée, de sang, de coup qui touche, de corps à terre, même en carton) : on la suggère comme au théâtre (rideau qui tombe, ombre sur la toile, chapeau qui roule, fumée, objet qui tombe à la place).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
