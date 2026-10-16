@@ -3,7 +3,7 @@
 // Mode d'emploi : persos.md (les plans ne lisent pas ce fichier). Aucun texte, lettre ni chiffre. Déterministe (aucun Math.random).
 // MARIONNETTES : TAN.cheval(pose,x,y,s,{qui:'A'|'B'}) ; TAN.cabriolet(pose,x,y,s,o) ; TAN.cocher(pose,x,y,s,o) (x,y = hanche sur le siège) ;
 //                TAN.attelage(pose,x,y,s,o) (cabriolet + B dans les brancards + A devant + cocher + rênes) ; TAN.tandem(pose,x,y,s,o) (vélo + 2 cyclistes) ;
-//                TAN.etudiant(pose,x,y,s,o) (toque, toge, livre).   DÉCOR : TAN.K.route (toile plein cadre), repères TAN.ROUTE.
+//                TAN.etudiant(pose,x,y,s,o) (toque, toge, livre) ; TAN.badaud(pose,x,y,s,{qui:'a'|'b'|'c'}) (trois spectateurs).   DÉCOR : TAN.K.route (toile plein cadre), repères TAN.ROUTE.
 (function () {
   const X = M.X, P = M.P, CH = M.chars, { fillPts, strokePts, dot, hatch, shade, piece } = M;
   const TAN = (M.tan = {});
@@ -790,6 +790,182 @@
     const q = TAN.etudiantPose(pose, x, y, s, dir);
     const r = M.puppet(CH.tanEtudiant, q, x, y, s, Object.assign({ slot: M.ST.slotF }, o, { dir }));
     r.main = r.w('armF_lo', 4, 96); r.mainB = r.w('armB_lo', 4, 96); r.livre = q.livre === 'arriere' ? r.w('livreB', 17, -19) : r.w('livre', 17, -19);
+    return r;
+  };
+
+  // =====================================================================
+  // BADAUDS — trois spectateurs du XIXe (o.qui 'a' | 'b' | 'c'), debout, visage complet ; gestes par M.ik
+  //   a : homme, bonnet de laine vert, gilet rayé ocre sur chemise blanche, pantalon brun
+  //   b : femme, coiffe blanche haute à ailes, fichu ocre, corsage brun, jupe rouge brique, tablier écru
+  //   c : vieil homme, chapeau mou de feutre brun-noir à bord tombant, barbe blanche, foulard rouge, blouse bleue de travail, sabots
+  // =====================================================================
+  const BA = {
+    a: { peau: '#e0b994', peauD: '#c49a76', chev: '#2c2220', haut: '#ece4d2', hautD: '#cfc6b2', jambe: '#5b4d3c', jambeD: '#463b2e', soulier: '#2a1c14', seed: 9100 },
+    b: { peau: '#ecc8a8', peauD: '#cfa888', chev: '#7a4e2e', haut: '#4a3328', hautD: '#3a271f', jupe: '#8f3b2c', jupeD: '#71291e', soulier: '#1c1612', seed: 9200 },
+    c: { peau: '#d9b08c', peauD: '#bb9270', chev: '#e8e4dc', haut: '#3d6a9a', hautD: '#2f5379', jambe: '#6b6a66', jambeD: '#555450', soulier: '#7a5634', seed: 9300 },
+  };
+  const BA_TORSO = {
+    a: [[-14, -178], [8, -182], [18, -170], [30, -152], [38, -116], [40, -60], [38, -10], [34, 20], [-8, 26], [-40, 22, 1], [-42, -20], [-42, -70], [-42, -116], [-36, -152], [-26, -170]],
+    b: [[-12, -178], [8, -182], [16, -168], [28, -150], [36, -126], [32, -96], [24, -66], [26, -36], [40, 40], [54, 140], [62, 226, 1], [-50, 228, 1], [-46, 140], [-38, 40], [-30, -36], [-30, -80], [-32, -120], [-30, -150], [-22, -170]],
+    c: [[-14, -178], [8, -182], [18, -170], [32, -150], [42, -112], [48, -50], [54, 20], [60, 90], [62, 120, 1], [-56, 124, 1], [-52, 60], [-48, 0], [-46, -70], [-44, -118], [-38, -152], [-26, -170]],
+  };
+  function visage(f, V) {                                     // visage complet : sourcils, yeux (dont 'plisse'), bouche (dont 'rire')
+    const ey = f.eyes || 'open', mo = f.mouth || 'n';
+    if (ey === 'plisse') {
+      strokePts([[10, -50], [16, -55.5], [23, -51.5]], 'rgba(28,16,14,0.95)', 2.2);
+      strokePts([[8, -47], [4, -44]], 'rgba(90,50,40,0.6)', 1.1); strokePts([[8, -51], [3, -51]], 'rgba(90,50,40,0.6)', 1.1);
+      strokePts([[12, -45], [20, -46]], 'rgba(90,50,40,0.45)', 1);
+    } else X.eye(f, 17, -52);
+    X.brow(f, 17, -61, V.chev === '#e8e4dc' ? '#b8b2a6' : '#3a2618', 2.8);
+    if (mo === 'rire') {
+      fillPts([[32, -32], [20, -32], [13, -27], [16, -16], [24, -12], [32, -16]], '#3a1714', 0, 0);
+      fillPts([[31, -31], [20, -31], [17, -28], [31, -27.5]], '#f2ece0', 0, 0);
+      fillPts([[28, -15], [20, -15], [22, -19], [28, -19]], '#b2524a', 0, 0);
+      strokePts([[12, -31], [8, -34]], 'rgba(110,40,38,0.7)', 1.4);
+    } else X.mouth(f, 27, -27);
+  }
+  function mkBadaud(k) {
+    const V = BA[k], parts = {};
+    const skin = V.peau, has = (v) => v && v !== 'rien';
+    parts.torso = { parent: null, at: [0, 0], pts: BA_TORSO[k], base: V.haut, seed: V.seed, paint: () => {
+      if (k === 'a') {
+        fillPts([[-42, -160], [-4, -170], [22, -150], [34, -112], [36, -40], [34, 16], [-40, 20], [-42, -100]], '#b98c3e');                      // gilet
+        for (let x = -40; x < 40; x += 8) strokePts([[x, -170], [x + 2, 22]], '#7a5524', 2.6);                                                   // rayures
+        fillPts([[8, -176], [22, -168], [24, -146], [14, -144]], V.haut);                                                                        // col de chemise
+        for (const y of [-120, -90, -60, -30]) dot(30, y, 2.4, '#4a3420');
+        fillPts([[-42, 6], [38, 4], [38, 16], [-42, 18]], '#3a2a1c'); dot(30, 10, 3, LAITON);                                                     // ceinture
+      } else if (k === 'b') {
+        fillPts([[-34, -40], [24, -40], [44, 60], [56, 160], [62, 226], [-50, 228], [-44, 120], [-38, 20]], V.jupe);                             // jupe
+        for (const x of [-30, -6, 20, 40]) strokePts([[x * 0.7, -30], [x, 120], [x * 1.1, 224]], 'rgba(40,10,8,0.35)', 1.4);
+        fillPts([[18, -36], [30, -36], [48, 60], [60, 160], [64, 212], [6, 214], [10, 120], [12, 20]], '#e9e0c9');                             // tablier
+        strokePts([[12, -38], [30, -38]], '#e9e0c9', 4);
+        fillPts([[-34, -160], [-6, -172], [16, -164], [32, -140], [34, -118], [10, -96], [-20, -100], [-34, -120]], '#c99a5a');                // fichu
+        strokePts([[30, -140], [16, -104], [-20, -100]], '#8e6630', 1.4); for (let i = 0; i < 6; i++) strokePts([[-28 + i * 9, -150], [-24 + i * 8, -104]], 'rgba(255,240,210,0.4)', 1);
+        fillPts([[-12, -186], [10, -188], [18, -172], [-12, -170]], '#e9e0c9');                                                                   // col
+      } else {
+        fillPts([[-40, -160], [-4, -172], [22, -164], [36, -142], [40, -120], [-42, -118]], V.hautD);                                            // empiècement
+        for (let x = -34; x < 36; x += 7) dot(x, -122, 1.6, '#e8eef4');                                                                          // broderie
+        for (let x = -40; x < 56; x += 10) strokePts([[x * 0.9, -116], [x * 1.05, 118]], 'rgba(20,30,50,0.35)', 1.3);                           // fronces
+        fillPts([[-12, -186], [12, -188], [24, -170], [26, -150], [14, -146], [-14, -160]], '#9a2e26');                                         // foulard rouge
+        fillPts([[18, -152], [30, -150], [28, -128], [20, -132]], '#9a2e26');
+      }
+      hatch([[-60, -175], [-14, -175], [-14, 230], [-60, 230]], 0.75, 4.2, 0.3);
+      shade(40, 0, -50, 0, 0.28, [-70, -200, 70, 240]);
+    } };
+    const shoe = (c) => () => { fillPts([[-40, 214], [60, 214], [60, 260], [-40, 260]], c); strokePts([[-14, 222], [40, 224]], 'rgba(255,255,255,0.18)', 1.2); };
+    if (k === 'b') {
+      parts.souliers = { parent: 'torso', at: [0, 0], pts: [[-26, 226], [30, 224], [50, 232], [52, 238, 1], [-26, 238, 1]], base: V.soulier, seed: V.seed + 1, noRivet: true };
+    } else {
+      parts.legB = { parent: 'torso', at: [-6, -2], pts: X.legPts(0.95), base: V.jambeD, seed: V.seed + 2, noRivet: true, paint: shoe(V.soulier) };
+      parts.legF = { parent: 'torso', at: [6, -2], pts: X.legPts(0.95), base: V.jambe, seed: V.seed + 3, paint: () => { shoe(V.soulier)(); hatch([[-26, -20], [-6, -20], [-6, 214], [-26, 214]], 0.8, 4, 0.25); } };
+    }
+    const slv = k === 'a' ? V.haut : V.haut, slvD = k === 'a' ? V.hautD : V.hautD;
+    parts.armB_up = armUp([-10, -146], slvD, V.seed + 4, null, k === 'c' ? 18 : 16);
+    parts.armB_lo = armLo('armB_up', slvD, V.peauD, V.seed + 5, true, k === 'a' ? V.peauD : (k === 'b' ? '#e9e0c9' : slvD));
+    if (k === 'a') parts.armB_lo.paint = (p) => { fillPts([[-24, 30], [24, 30], [26, 140], [-24, 140]], V.peauD); X.handPaint(null, p.handB || 'fist'); fillPts([[-13, 22], [13, 22], [14, 34], [-13, 34]], V.hautD); };
+    parts.head = { parent: 'torso', at: [6, -170], pts: X.NAP_HEAD, base: skin, seed: V.seed + 6, noRivet: true, paint: (p) => {
+      const f = p.face || {};
+      if (k === 'a') { fillPts([[-34, -76], [-8, -82], [-6, -60], [-22, -36], [-36, -46]], V.chev); for (const [x, y] of [[-30, -70], [-24, -58], [-30, -48]]) dot(x, y, 4, '#3e3230'); fillPts([[-6, -24], [10, -6], [22, -8], [30, -18], [30, -10], [16, 4], [-6, 2]], 'rgba(60,50,46,0.25)'); }
+      else if (k === 'b') { fillPts([[-34, -80], [-2, -88], [8, -76], [-6, -62], [-20, -40], [-36, -48]], V.chev); }
+      else { fillPts([[-34, -72], [-10, -76], [-8, -50], [-26, -34], [-36, -46]], V.chev); }
+      X.earPaint(-8, -44);
+      const ri = f.mouth === 'rire' || f.eyes === 'plisse';
+      dot(15, -30, ri ? 11 : 8, `rgba(210,115,95,${ri ? 0.42 : 0.28})`);
+      if (k === 'a') dot(34, -38, 4.5, 'rgba(200,90,70,0.5)');                                                                                   // nez rouge
+      visage(f, V);
+      if (k === 'c') {                                                                                                                       // barbe blanche courte
+        const ouv = f.mouth === 'rire' ? 5 : 0;
+        fillPts([[-8, -40], [6, -32], [14, -22], [26, -14 + ouv], [30, -2 + ouv], [22, 12 + ouv], [4, 14], [-10, 2], [-14, -20]], '#ece8e0');
+        fillPts([[14, -34], [24, -36], [32, -32], [26, -29], [16, -30]], '#ece8e0');
+        hatch([[-14, -40], [32, -40], [32, 16], [-14, 16]], 1.2, 3, 0.18);
+      }
+    } };
+    if (k === 'a') parts.coiffe = { parent: 'head', at: [-4, -82], pts: [[-36, 22], [-38, 0], [-30, -18], [-8, -26], [16, -22], [32, -6], [34, 14], [20, 18], [-4, 16], [-24, 18]], base: '#4e6b3c', seed: V.seed + 7, noRivet: true, extra: () => {
+      pc([[-30, -16], [-50, -10], [-70, 6], [-76, 22], [-66, 20], [-48, 6], [-26, -4]], '#4e6b3c', () => hatch(null, 0.3, 3, 0.25), V.seed + 8);   // pointe qui retombe
+      pc(ell(-74, 26, 9, 9, 12), '#d9cfb4', null, V.seed + 9);                                                                                 // pompon
+    }, paint: () => { fillPts([[-38, 6], [34, 2], [34, 18], [-36, 24]], '#3c5530'); for (let x = -34; x < 34; x += 5) strokePts([[x, 6], [x, 20]], 'rgba(20,30,15,0.4)', 1); hatch(null, 0.3, 3, 0.25); } };
+    if (k === 'b') parts.coiffe = { parent: 'head', at: [-4, -80], pts: [[-38, 26], [-40, 4], [-36, -20], [-32, -52], [-20, -64], [6, -62], [18, -50], [22, -22], [30, -6], [38, 8], [32, 16], [10, 12], [-16, 18], [-30, 30]], base: '#f3eee4', seed: V.seed + 7, noRivet: true, paint: () => {
+      for (let y = -56; y < 0; y += 8) strokePts([[-30, y], [16, y + 2]], 'rgba(150,140,120,0.35)', 1);                                   // coiffe haute empesée
+      for (let i = 0; i < 7; i++) dot(-24 + i * 7, -36 + (i % 2) * 6, 1.6, 'rgba(150,140,120,0.5)');                                         // dentelle
+      for (let i = 0; i < 8; i++) { const a = -0.5 + i * 0.14; strokePts([[30 + Math.cos(a) * 4, 6 + Math.sin(a) * 4], [40 + Math.cos(a) * 8, 10 + Math.sin(a) * 8]], 'rgba(150,140,120,0.55)', 1); }   // ruché du front
+      hatch(null, 0.5, 4, 0.1);
+    }, extra: () => {
+      pc([[-34, 4], [-60, -22], [-82, -18], [-76, 2], [-52, 22], [-36, 22]], '#f3eee4', () => { for (let i = 0; i < 5; i++) dot(-70 + i * 8, -8 + i * 4, 1.5, 'rgba(150,140,120,0.55)'); }, V.seed + 8);   // ailes de la coiffe
+      if (!M._sil()) strokePts([[-2, 40], [8, 60], [22, 74]], '#e9e0c9', 3);                                                                  // bride sous le menton
+    } };
+    if (k === 'c') parts.coiffe = { parent: 'head', at: [-4, -80], pts: [[-74, 34], [-58, 16], [-36, 8], [-36, -10], [-28, -24], [-12, -30], [-2, -22], [10, -30], [26, -22], [34, -8], [36, 8], [58, 14], [76, 30], [70, 34, 1], [40, 22], [-36, 22], [-68, 38, 1]], base: '#3a332e', seed: V.seed + 7, noRivet: true, paint: () => {
+      fillPts([[-34, -2], [34, 0], [34, 8], [-34, 8]], '#241f1c');                                                                          // ruban
+      strokePts([[-26, -22], [-12, -28]], 'rgba(220,210,190,0.3)', 1.6); strokePts([[-2, -22], [0, -8]], 'rgba(0,0,0,0.5)', 1.6);   // creux du feutre
+      strokePts([[-70, 34], [-40, 20], [40, 20], [72, 32]], 'rgba(0,0,0,0.4)', 1.2);
+      hatch(null, 0.5, 3.6, 0.25, 1, '200,200,200');
+    } };
+    parts.armF_up = armUp([-2, -146], slv, V.seed + 10, null, k === 'c' ? 18 : 16);
+    parts.armF_lo = armLo('armF_up', slv, skin, V.seed + 11, false, k === 'b' ? '#e9e0c9' : slvD);
+    if (k === 'a') parts.armF_lo.paint = (p) => { fillPts([[-24, 30], [24, 30], [26, 140], [-24, 140]], skin); X.handPaint(null, p.handF || 'fist'); fillPts([[-13, 22], [13, 22], [14, 34], [-13, 34]], V.hautD); hatch([[-14, 34], [0, 34], [0, 76], [-14, 76]], 0.8, 3.6, 0.15); };
+    const order = ['armB_up', 'armB_lo'].concat(k === 'b' ? ['souliers'] : ['legB', 'legF'], ['head', 'torso', 'coiffe', 'armF_up', 'armF_lo']);
+    return { hipY: -238, handLen: 104, parts, rod: { part: 'torso', at: [-26, 18] }, nom: 'badaud ' + k, order };
+  }
+  CH.tanBadaudA = mkBadaud('a'); CH.tanBadaudB = mkBadaud('b'); CH.tanBadaudC = mkBadaud('c');
+  const BAD_DEF = { a: CH.tanBadaudA, b: CH.tanBadaudB, c: CH.tanBadaudC };
+  const BAD_CIBLE = { ventre: [34, -60], ventreB: [28, -52], hanche: [26, -12], dos: [-50, -30], mains: [76, -102] };
+  TAN.BAD_CIBLE = BAD_CIBLE;
+  // bras vers une cible écran ; bend 'auto' (défaut) = le coude le plus bas des deux solutions (1 devant l'épaule, −1 derrière)
+  function armAuto(def, q, x, y, s, dir, arm, T, k, bend) {
+    if (!(k > 0)) return;
+    let b = bend;
+    if (b !== 1 && b !== -1) {
+      const s1 = M.ik(def, q, x, y, s, dir, arm, T, 1), s2 = M.ik(def, q, x, y, s, dir, arm, T, -1), tl = q.tilt || 0;
+      b = Math.cos(normUp(s1.up) + tl) >= Math.cos(normUp(s2.up) + tl) ? 1 : -1;
+    }
+    (q._bend = q._bend || {})[arm] = b;
+    armToScreen(def, q, x, y, s, dir, arm, T, k, b);
+  }
+  const torsoPt = (def, q, x, y, s, dir, lt) => M.wpt(M.partMatrices(def, q, x, y, s, dir).mats.torso, lt[0], lt[1]);
+  TAN.badaudPose = function (pose, x, y, s, dir, o) {
+    o = o || {}; const def = BAD_DEF[o.qui] || CH.tanBadaudA;
+    const q = prep(pose), A = q.ang, t = q.t || 0;
+    const fi = clamp(q.fige || 0), ri = clamp(q.rire || 0) * (1 - fi), ap = clamp(q.applaudit || 0) * (1 - fi), fr = clamp(q.fier || 0), mo = clamp(q.montre || 0);
+    const vie = 1 - fi;
+    q.dy = (q.dy || 0) + 1.2 * Math.sin(t * 1.9) * vie;
+    const fd = {};                                                     // visage par défaut selon le geste (pose.face l'emporte)
+    if (fr > 0.4) Object.assign(fd, { mouth: 'smile', eyes: 'half', brow: 'up' });
+    if (ap > 0.4) Object.assign(fd, { mouth: 'smile', eyes: 'open', brow: 'up' });
+    if (ri > 0.3) Object.assign(fd, { mouth: 'rire', eyes: 'plisse', brow: 'up' });
+    if (fi > 0.4) Object.assign(fd, { mouth: 'tight', eyes: 'half', brow: 'n' });
+    q.face = Object.assign(fd, pose.face || {});
+    if (ri > 0) {                                                       // rire : secousses d'épaules, tête renversée, main sur le ventre
+      const sh = Math.abs(Math.sin(t * 13));
+      q.dy -= 4 * ri * sh; q.tilt = (q.tilt || 0) - 0.07 * ri; A.head = (A.head || 0) - 0.3 * ri - 0.06 * ri * sh;
+      armAuto(def, q, x, y, s, dir, 'armF', torsoPt(def, q, x, y, s, dir, [BAD_CIBLE.ventre[0], BAD_CIBLE.ventre[1] + 4 * sh]), ri);
+      armAuto(def, q, x, y, s, dir, 'armB', torsoPt(def, q, x, y, s, dir, BAD_CIBLE.ventreB), ri * 0.8);
+    }
+    if (fr > 0) {                                                       // fier : menton levé, poing sur la hanche, main dans le dos
+      A.head = (A.head || 0) - 0.18 * fr; q.tilt = (q.tilt || 0) - 0.04 * fr;
+      armAuto(def, q, x, y, s, dir, 'armF', torsoPt(def, q, x, y, s, dir, BAD_CIBLE.hanche), fr);
+      armAuto(def, q, x, y, s, dir, 'armB', torsoPt(def, q, x, y, s, dir, BAD_CIBLE.dos), fr);
+    }
+    if (ap > 0) {                                                       // applaudit : les deux mains se frappent devant le buste
+      const c = Math.abs(Math.sin(t * PI * 3));
+      armAuto(def, q, x, y, s, dir, 'armF', torsoPt(def, q, x, y, s, dir, [BAD_CIBLE.mains[0] + 12 * c, BAD_CIBLE.mains[1]]), ap);
+      armAuto(def, q, x, y, s, dir, 'armB', torsoPt(def, q, x, y, s, dir, [BAD_CIBLE.mains[0] - 12 * c, BAD_CIBLE.mains[1] + 4]), ap);
+      if (ap > 0.5) { q.handF = q.handF || 'open'; q.handB = q.handB || 'open'; }
+    }
+    const cible = o.cible || q.cible;
+    if (mo > 0 && cible) { armAuto(def, q, x, y, s, dir, 'armF', cible, mo); if (mo > 0.5) q.handF = q.handF || 'open'; }
+    if (q.mainF) { armAuto(def, q, x, y, s, dir, 'armF', q.mainF, q.mainK == null ? 1 : q.mainK, q.bendF); q.handF = q.handF || 'fist'; }
+    if (q.mainB) { armAuto(def, q, x, y, s, dir, 'armB', q.mainB, q.mainK == null ? 1 : q.mainK, q.bendB); q.handB = q.handB || 'fist'; }
+    return q;
+  };
+  // o.pass : 'tout' (défaut) | 'fond' (bras arrière seul) | 'devant' (tout sauf le bras arrière) — pour glisser un objet porté entre les deux
+  TAN.badaud = function (pose, x, y, s, o) {
+    o = o || {}; s = s == null ? 0.88 : s; const dir = o.dir || 1, def = BAD_DEF[o.qui] || CH.tanBadaudA;
+    const q = TAN.badaudPose(pose, x, y, s, dir, o), pass = o.pass || 'tout';
+    if (pass === 'fond') q.hide = Object.assign(hideBut(def, ['armB_up', 'armB_lo']), q.hide);
+    if (pass === 'devant') q.hide = Object.assign({ armB_up: 1, armB_lo: 1 }, q.hide);
+    const oo = Object.assign({ slot: M.ST.slotF }, o, { dir });
+    if (pass === 'fond') { oo.rod = false; oo.floorShadow = false; }
+    const r = M.puppet(def, q, x, y, s, oo);
+    r.mainF = r.w('armF_lo', 4, 96); r.mainB = r.w('armB_lo', 4, 96); r.bend = Object.assign({}, q._bend); r.tete = r.w('head', 10, -50);
     return r;
   };
 

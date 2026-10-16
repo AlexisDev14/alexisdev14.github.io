@@ -16,17 +16,19 @@ Toujours par l'enveloppe `TAN.nom(pose, x, y, s, o)` : elle prépare la pose (ge
 | `TAN.attelage(pose,x,y,s,o)` | 0,72 : **787 px** (roue arrière → museau de A) | sol sous l'essieu ; B à `x + dir·318·s`, A à `x + dir·712·s` | `t`, `allure`, `ph`, `cadence`, `roule`/`vitesse` (roues) ; options par pièce : `A:{…}`, `B:{…}` (celles de `cheval`), `cab:{…}`, `cocher:{…}` ; B a toujours le museau contre la queue de A |
 | `TAN.tandem(pose,x,y,s,o)` | 0,75 : **533 px** de long, 406 px au sommet du chapeau | sol au milieu des roues ; une tige (cadre) → `ST.slotF` par défaut ; cyclistes sans tige | `roule` (px locaux, prioritaire) ou `vitesse` × `t` : roues, pédalier, chaîne, jambes ; `freine` (levier, patin, buste en avant) ; `sonnette` (ondes, exige `t`) ; `penche` / `pencheB` (−1..1, **+ = vers la droite de l'écran**, quel que soit `dir`) ; `regard` / `regardB` (−1..1, négatif = lève la tête) ; `etireB` (l'arrière se hisse, menton levé) ; `brasTendu` / `brasTenduB` (bras avant tendu, main ouverte) ; `chapeauB` (0→0,45 main au bord, 0,4→1 chapeau soulevé de 62 et incliné) ; `face` / `faceB` ; `avant:{…}` / `arriere:{…}` (pose brute de chaque cycliste, ex. `ang.head`) |
 | `TAN.etudiant(pose,x,y,s,o)` | 0,9 : **463 px** (pieds → toque) | pieds ; tige → `ST.slotF` | `livre` `'avant'` (défaut, tenu par le dos, droit à l'écran) / `'arriere'` / `'rien'` ; `lever` (livre brandi au-dessus de la tête) ; `salut` (buste incliné, tête baissée, main au cœur) ; `montrer` (bras tendu ; main ouverte si la main avant est libre) ; `souffle` (yeux fermés, joues, bouche en o, souffle d'air) ; `fier` (buste bombé, menton levé) ; `malice` (défaut 1 : sourcil levé, œil mi-clos, sourire en coin ; 0 = neutre ; `face.mouth` la remplace) ; `droit:false` (le livre suit l'avant-bras) |
+| `TAN.badaud(pose,x,y,s,{qui})` | 0,88 : **453 px** (a), **485 px** (b, coiffe), **455 px** (c) | pieds ; tige → `ST.slotF` | `o.qui` `'a'` (bonnet de laine vert, gilet rayé ocre, chemise blanche) / `'b'` (coiffe blanche haute à ailes, fichu ocre, jupe rouge brique, tablier écru) / `'c'` (vieil homme : chapeau mou de feutre, barbe blanche, foulard rouge, blouse bleue, sabots) ; `rire` (secousses d'épaules sur `t`, tête renversée, main sur le ventre, visage rire) ; `montre` + **`o.cible:[x,y]`** écran (bras tendu vers la cible, main ouverte) ; `fige` (immobile, bouche serrée, yeux mi-clos ; coupe rire et applaudit) ; `fier` (menton levé, poing sur la hanche, main dans le dos) ; `applaudit` (mains qui se frappent devant le buste, 3 claps/s) ; **`mainF` / `mainB`** : cibles écran `[x,y]` des poings (porter), `mainK` (mélange, 1), `bendF` / `bendB` (forcer ±1 ; défaut auto) ; `face` : `brow` `'n' 'up' 'frown' 'worry'`, `mouth` `'n' 'o' 'smile' 'tight' 'rire'` (bouche ouverte, dents), `eyes` `'open' 'closed' 'wide' 'half' 'plisse'` ; `o.pass` `'tout'` / `'fond'` (bras arrière seul) / `'devant'` (le reste) |
 
 Points renvoyés :
 - `cheval` : `r.mors` (anneau du mors), `r.museau`, `r.queue` (bas de la queue), `r.terret` (anneau sur la sellette), `r.anneau` (anneau du collier, départ des traits).
 - `cabriolet` : `r.siege` (hanche du cocher), `r.brancard` (bout du brancard). `cocher` : `r.mainF`, `r.mainB` (poings).
 - `attelage` : `{ A, B, cab, cocher, avant (museau de A), arriere }`. `tandem` : `{ avant, arriere, velo, guidon, sonnette, roueAV, roueAR, nez, queue }` (`nez`/`queue` = bouts avant/arrière du vélo, au sol).
 - `etudiant` : `r.main` (poing avant : y poser le sablier avec `livre:'arriere'`), `r.mainB`, `r.livre` (centre du livre).
+- `badaud` : `r.mainF`, `r.mainB` (poings), `r.tete`, `r.bend` (`bendSign` réellement choisi par bras).
 
-Pièces (pour `ang` / `hide`) — cheval : `corps cou crin collier tete queue legFN_up legFN_lo legFF_* legRN_* legRF_*` (N = devant l'écran, F = fond ; FN/FF = antérieurs, RN/RF = postérieurs). Cocher : `torso head casquette pan armF/B_up/_lo legF/B_up/_lo piedF/B`. Étudiant : `torso head toque gland legF legB armF/B_up/_lo mancheF/B livre livreB doigts doigtsB`. Cyclistes (`C.tanCycAv`, `C.tanCycAr`) : `torso head armF/B_* legF/B_* piedF/B` + `casquette` (avant) ou `chapeau jupe` (arrière).
+Pièces (pour `ang` / `hide`) — cheval : `corps cou crin collier tete queue legFN_up legFN_lo legFF_* legRN_* legRF_*` (N = devant l'écran, F = fond ; FN/FF = antérieurs, RN/RF = postérieurs). Cocher : `torso head casquette pan armF/B_up/_lo legF/B_up/_lo piedF/B`. Étudiant : `torso head toque gland legF legB armF/B_up/_lo mancheF/B livre livreB doigts doigtsB`. Badauds (`C.tanBadaudA/B/C`) : `torso head coiffe armF/B_up/_lo legF legB` (b : `souliers` à la place des jambes). Cyclistes (`C.tanCycAv`, `C.tanCycAr`) : `torso head armF/B_* legF/B_* piedF/B` + `casquette` (avant) ou `chapeau jupe` (arrière).
 
 ### `bendSign` de `M.ik` (vérifié sur la planche : aucune ligne « ATTENTION coude à l'envers »)
-Les enveloppes appellent déjà `M.ik` avec ces valeurs ; à reprendre tel quel si un plan pilote un bras lui-même.
+Les enveloppes appellent déjà `M.ik` avec ces valeurs ; à reprendre tel quel si un plan pilote un bras lui-même. Badauds : `bend` auto = le coude le plus bas des deux solutions (porter : celui qui tient l'objet **devant** lui a 1, celui qui le tient **derrière** son dos a −1, dans les deux `dir`).
 
 | Personnage | bras avant, `dir` 1 | bras avant, `dir` −1 | bras arrière, `dir` 1 | bras arrière, `dir` −1 | gestes testés |
 |---|---|---|---|---|---|
@@ -34,8 +36,9 @@ Les enveloppes appellent déjà `M.ik` avec ces valeurs ; à reprendre tel quel 
 | cocher | 1 | 1 | 1 | 1 | rênes base, tire, lève |
 | cycliste avant | 1 | 1 | 1 | 1 | guidon, bras tendu |
 | cycliste arrière | 1 | 1 | 1 | 1 | guidon, chapeau soulevé (`brasTenduB` non testé) |
+| badauds a, b, c | 1 (cible devant l'épaule) / −1 (cible derrière) | idem | 1 / −1 | idem | rire, montre (haut et bas), fier, applaudit, porter devant (1) et derrière soi (−1) |
 
-Flexions épaule et coude de 0 à 2,4 rad dans les deux sens (planche, pages 7 et 9) : articulations rondes, rivet au centre, aucune cassure.
+Flexions épaule et coude de 0 à 2,4 rad dans les deux sens (planche, pages 7, 9 et 6,5 pour les badauds) : articulations rondes, rivet au centre, aucune cassure.
 
 Pièges :
 - Les chevaux sont petits devant les personnages (330 px exigés par la fiche) : ne pas mettre l'étudiant **à côté** d'eux à la même profondeur ; chevaux sur `ST.slotB`, étudiant sur `ST.slotF`.
@@ -46,6 +49,9 @@ Pièges :
 - La jupe de la cycliste arrière couvre la cuisse et le genou : seules les bottines pédalent sous l'ourlet (voulu).
 - `renifle`, `queue`, `sonnette`, `souffle` n'animent rien sans `t`.
 - Étudiant qui monte de la fente : `clipAbove(ST.slotF, …)` et `pose.dy` (unités du personnage), comme pour toute marionnette.
+- Badauds qui portent un objet plat (dictionnaire) : objet **entre** les passes : les deux `pass:'fond'`, puis l'objet, puis les deux `pass:'devant'` ; poings sur les coins (`mainF` sous l'objet, `mainB` sur le dos) ; l'objet reste à portée (≈ 170 px de l'épaule à 0,88). Le porteur de devant tient l'objet dans son dos : garder ses mains plus bas que l'épaule.
+- `montre` sans `o.cible` ne fait rien. `fige` coupe toute animation (respiration comprise) : passer `fige` de 0 à 1 en ≥ 0,3 s.
+- Tenues : a = vert/ocre rayé, b = blanc/rouge brique, c = bleu/noir ; comparées sur la planche à bourgeois/dame/ouvrier du kit, propriétaire, sir, Daimler, Paul, étudiant, cocher, cyclistes : pas de ressemblance (la coiffe de b n'est pas un bonnet rond comme celui de la dame du kit ; c a un chapeau mou, pas une casquette comme l'ouvrier du kit).
 
 ## Accessoires
 Aucun accessoire séparé : le livre est tenu par l'étudiant (`livre`), le fouet est posé sur le cabriolet. Sablier, mur à fente, étiquette-ruban : à dessiner dans les plans.
@@ -69,4 +75,11 @@ TAN.tandem({ t, roule: (x - 140) / 0.75, pencheB: p, etireB: e, chapeauB: c, fac
 // étudiant fier, livre fermé ; puis livre levé ; salut
 TAN.etudiant({ t, fier: 1 }, 860, FEET, 0.9, { dir: -1, cast });
 TAN.etudiant({ t, lever: k }, 860, FEET, 0.9, { dir: -1, cast });
+// plan 6 : deux badauds portent un gros dictionnaire (rectangle L..R, y0..y1), a derrière, c devant, dir 1
+const pa = { t, mainF: [L + 60, y1 - 6], mainB: [L + 4, y0 + 60] }, pc = { t, mainF: [R - 60, y1 - 6], mainB: [R - 4, y0 + 60] };
+TAN.badaud(pa, L - 110, FEET, 0.88, { qui: 'a', dir: 1, pass: 'fond' }); TAN.badaud(pc, R + 65, FEET, 0.88, { qui: 'c', dir: 1, pass: 'fond' });
+dessinerDictionnaire();
+TAN.badaud(pa, L - 110, FEET, 0.88, { qui: 'a', dir: 1, pass: 'devant', cast }); TAN.badaud(pc, R + 65, FEET, 0.88, { qui: 'c', dir: 1, pass: 'devant', cast });
+// plan 4 : rire, puis figés
+TAN.badaud({ t, rire: kr, fige: kf }, 300, FEETB, 0.8, { qui: 'b', dir: 1, slot: ST.slotB, cast });
 ```
