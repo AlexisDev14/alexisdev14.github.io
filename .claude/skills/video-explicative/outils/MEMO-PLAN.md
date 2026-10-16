@@ -58,3 +58,4 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
    - `sauts.py` « fond nu visible » : du noir pur sur scène (décor absent ou trop court) : ajoute ou élargis le décor. Seule exception : une scène de nuit voulue.
    - `raccord.sh` « raccord pN-1 → pN » : ouvre `out/pN/raccord.png` (fin du plan précédent | ton image 0 | différence ×5) et aligne ton image 0 sur `M.RACC`.
 6. Sauts voulus : un geste discret prévu (objet posé, chapeau soulevé, couvercle qui claque) fait un « saut » d'une image à l'autre : déclare son instant dans `TL.SAUTS = [ … ];` (timeline.js) pour que `sauts.py` ne le signale pas ; tout autre saut se corrige.
+- Objet pointé (baguette, canne tendue, épée de bois) : main AVANT (`tenu`), dans l'axe de l'avant-bras, jamais devant le visage ni en travers du torse ; se retourner pour désigner derrière soi (CHARTE §8).
