@@ -5,7 +5,7 @@
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
-# 1. Contrôle d'abord les longueurs, sans rien envoyer : ≤ 180 caractères (≤ 165 avec un « … »), au plus un « … » et une durée estimée ≤ 9,8 s par paragraphe (sinon refus :
+# 1. Contrôle d'abord les longueurs et les tics (« Évidemment. » seul en phrase, phrases d'un ou deux mots : une au plus), sans rien envoyer : ≤ 180 caractères (≤ 165 avec un « … »), au plus un « … » et une durée estimée ≤ 9,8 s par paragraphe (sinon refus :
 #    corriger voix.txt et relancer, rien n'est facturé) ; 25 à 28 mots et 160 à 180 caractères conseillés (simple note :
 #    un paragraphe trop court laisse un trou dans le plan, le rallonger d'une précision utile).
 # 2. Envoie les 6 paragraphes en UN appel (séparés par une ligne vide). Écrit dans <travail>/voix/ :
@@ -68,6 +68,28 @@ def estimer(p):
     return len(dit) / 17.5 + 0.5 * (p.count('…') + p.count('...'))
 
 
+# Tics de fin de phrase (« Évidemment. », « Modestement. ») : jugés agaçants par l'utilisateur.
+TICS = {'évidemment', 'modestement', 'logique', 'naturellement', 'forcément', 'bien sûr', 'toujours', 'discrètement',
+        'sobrement', 'humblement', 'pratique', 'normal', 'classique', 'rassurant', 'charmant', 'simple', 'tout simplement'}
+
+
+def tics(ps):
+    """Refuse les tics : une phrase d'un ou deux mots (hors balises) au plus pour toute la vidéo, et jamais un mot de TICS
+    seul en phrase. La chute d'un plan est une vraie phrase qui dit quelque chose."""
+    courtes, refus = [], []
+    for n, p in enumerate(ps, 1):
+        dit = re.sub(r'\[[^\]]*\]', ' ', p)
+        for ph in re.split(r'(?<=[.!?…])\s+', dit.strip()):
+            mots = re.findall(r"[\wÀ-ÿ'’-]+", ph)
+            if not mots or len(mots) > 2: continue
+            nu = ' '.join(mots).lower()
+            if nu in TICS: refus.append(f'p{n} : tic de fin de phrase « {ph.strip()} » (interdit : écris une vraie chute)')
+            else: courtes.append(f'p{n} « {ph.strip()} »')
+    if len(courtes) > 1:
+        refus.append('phrases d’un ou deux mots : ' + ', '.join(courtes) + ' (une seule par vidéo au plus)')
+    return refus
+
+
 def controler(ps):
     refus = []
     for n, p in enumerate(ps, 1):
@@ -88,6 +110,7 @@ def controler(ps):
             print(f'NOTE p{n} : {nb} mots écrits (25 à 28 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
         if len(p) < CARS_MIN:
             print(f'NOTE p{n} : {len(p)} caractères (< {CARS_MIN}) : la voix laissera un trou, rallonge d’une précision utile')
+    refus += tics(ps)
     if refus:
         sys.exit('Texte refusé AVANT tout appel (rien n’est facturé) :\n  ' + '\n  '.join(refus) +
                  '\nRaccourcis ces paragraphes dans voix.txt puis relance voix.py.')
