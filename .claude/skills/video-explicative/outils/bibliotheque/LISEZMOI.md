@@ -67,3 +67,8 @@ Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (
 Livré le 15/10/2026 (routine, aucun retour d'Alexis à ce jour). Mode d'emploi : `bigben.md`. Dans `S.init` : `BEN.init();` (pré-rend `BEN.K` = ciel, ville, tour, cour, fonderie, beffroi).
 Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BEN.ondes`), marteau lourd/léger, ouvrier-fondeur, sir (haut-de-forme), touriste (+ mini), chariot, appareil photo, décors Westminster. Le beffroi partagé (`M.dec.beffroi`, `cloche_beffroi`, `ciel_beffroi`, écrit pour la vidéo en `decors/p3.js`) est gardé en `bigben-beffroi.txt` (non chargé : à copier dans `decors/pN.js` si besoin).
 À vérifier : fêlure en zigzag très régulier ; le sir partage le bleu nuit du préfet Poubelle ; `deuxMains` du marteau fait un petit saut de main.
+
+## `tandem.js` — « Le tandem, un mot d'esprit attelé » (voiture à cheval → vélo pour deux), espace `M.tan` — mode d'emploi : `tandem.md`
+Livré le 16/10/2026 (routine, aucun retour à ce jour). Dans `S.init` : `TAN.init();` (pré-rend `TAN.K.route`).
+Contenu : chevaux A (bai) et B (gris) `TAN.cheval`, `TAN.cabriolet`, `TAN.cocher`, `TAN.attelage` (voiture + 2 chevaux + cocher, 787 px à 0,72), `TAN.tandem` (vélo pour deux + cycliste moustachu à casquette et cycliste en chapeau à ruban ; penche/etire/chapeauB/sonnette), `TAN.etudiant` (toque carrée, toge, livre ; lever/salut/montrer/souffle/fier), décor `TAN.K.route`.
+Fragilités : attelage + tandem côte à côte se recouvrent (533 + 655 px) ; l'étudiant ne pose pas un objet au sol (bras courts) ; `pencheB` ne se penche que vers l'avant/arrière de l'écran.
