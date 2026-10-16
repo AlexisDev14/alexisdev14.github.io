@@ -72,3 +72,8 @@ Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BE
 Livré le 16/10/2026 (routine, aucun retour à ce jour). Mode d'emploi : `autruche.md` (à lire à la place du `.js`). Dans `S.init` : `AUT.init();`.
 Contenu : autruche (cou à bosse d'avalement `avale`, ventre translucide `ventre`/`ventreObj`, expressions, marche, ailes), gardien de zoo (bonnet rouge à pompon, toise, journal, trousseau), chercheur Dekeyser (pince, `plonge`, `brandir`), clé, objets métalliques, cuve, plateau, pince, toise, journal ; décors `AUT.enclos` (porte à serrure) et `AUT.labo` + table.
 Fragilités : `leve` du gardien passe la toise devant son visage (utiliser `atteint`/`cible`) ; cou `rentre` un peu anguleux ; clé dans le ventre petite (~120–150 px) ; `affiche.py` demande `/usr/bin/python3` (PIL).
+
+## `nike.js` — « Le Swoosh de Nike, payé 35 dollars » (Portland 1971 → 1983), espace `M.nik` (NIK) — mode d'emploi : `nike.md`
+Livré le 16/10/2026 (routine, aucun retour à ce jour). Dans `S.init` : `NIK.init();` (pré-rend `NIK.K.bureau` et `NIK.K.studio`).
+Contenu : Phil (chemise bleu ciel, cravate brique, geste `penche`), Carolyn (cheveux noirs, robe moutarde, carton à dessin), Swoosh (carton noir, panneau à ampoules, croquis), chaussure 1971, basket moderne, calques (5 variantes), facture, billets, certificat d'actions, écrin avec bague, crayon ; décors bureau et studio.
+Fragilités : `NIK.calque({chaussure:true})` dessine un Swoosh (pas d'option « sans marque ») ; `penche` de Carolyn en `dir` −1 se lit surtout comme un menton levé ; l'écrin tenu est petit (≈ 145 px), à agrandir et flotter ; un objet plat passe devant un personnage dessiné avant sa marionnette.
