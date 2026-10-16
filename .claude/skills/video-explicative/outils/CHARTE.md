@@ -4,7 +4,7 @@
 
 ## 1. Format
 - 1080 × 1920, 30 im/s, 10,0 s par plan (300 images), H.264 yuv420p + AAC stéréo 192 kb/s.
-- Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
+- Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Exceptions : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR ») ; et, depuis le 16/10/2026, **des textes ou chiffres très réduits pour illustrer un propos** (une date, un chiffre clé : « XVe » dans un registre, « 1619 » gravé sur une plaque, « 1965 » sur une étiquette), au plus un par idée, montré au moment de son mot, écrit dans la fiche. Orthographe exacte, police serif grasse d'époque, ≥ 40 px de haut.
 
 ## 2. Le théâtre (fourni par le kit, ne pas redessiner)
 - Petit théâtre de papier vu de face, caméra fixe : cadre de scène en bois sombre et moulures dorées, lambrequin de velours à franges, rampe de lampes à huile (flammes qui vacillent), coquille du souffleur, plancher en lattes avec **deux fentes** (arrière `ST.slotB`, avant `ST.slotF`) d'où sortent les tiges.
@@ -93,6 +93,7 @@
 - Plan corrigé sans vérifier ses voisins → après une correction du plan N, revoir N−1 et N+1 (histoire et raccords).
 - Coude plié à l'envers dans 4 plans sur 6 (Barbe Noire), vu par l'utilisateur seulement → test de chaque geste de bras au casting, `bendSign` noté dans `persos.md` par bras et direction, contrôle automatique « ATTENTION coude à l'envers » au rendu, gros plans des bras avant d'envoyer.
 - Élément clé posé à x ≈ 200 sous un pan de rideau qui se ferme (la chute devient illisible) → rien de clé à x < 250 ni x > 780 pendant un mouvement du rideau.
+- Dates illustrées par des symboles vagues (bannières médiévales, parchemin à cachet de cire : « illustrent mal ce que dit la voix », Manneken-Pis plan 2) → incarner chaque époque par un personnage de son temps qui agit sur l'objet (clerc qui note dans un registre, sculpteur qui grave), plus une inscription très courte de la date.
 - Violence montrée (tête coupée en carton) → jamais de mort ni de violence à l'image : rideau, ombre, chapeau qui roule, fumée.
 - Carte tenue à bout de bras qui masquait l'avant-bras et la main d'Emma (affiche Mercedes) → un objet plat tenu à la main se dessine DERRIÈRE la marionnette, la main posée sur son bord ou son coin ; l'avant-bras reste entier.
 
