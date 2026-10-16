@@ -56,6 +56,7 @@
 - 3 à 8 bruitages par plan. Sons organiques = échantillons CC0 de `sons/` (licences dans `sons/LICENCES.md`) ; synthèse pour velours, anneaux, poulies, clacs.
 
 ## 8. Erreurs déjà commises (à vérifier à chaque plan)
+- Bras avant dont l'avant-bras repart vers le dos (pose « mains dans le dos » vue de profil : coude cassé à l'envers, sans alerte du rendu) → le coude plie toujours vers l'avant, l'avant-bras orienté à l'opposé du dos ; bras le long du corps ou main vers l'avant (`M.ik`).
 - Marionnette à l'horizontale **au bout de sa tige** (on dirait que la tige « rentre dans les fesses ») → une chute finit **à plat sur le plancher**, la tige est lâchée et redescend par la fente avant l'impact.
 - Monument étiré / mal proportionné (l'arc dessiné en bande verticale) → proportions vraies, c'est la feuille qui grandit.
 - L'objet du gag absent au moment clé (place d'honneur vide sans le bicorne) → le spectateur doit comprendre **qui** manque : montrer son objet emblématique.
