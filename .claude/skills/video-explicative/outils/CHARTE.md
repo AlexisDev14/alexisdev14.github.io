@@ -95,6 +95,9 @@
 - Élément clé posé à x ≈ 200 sous un pan de rideau qui se ferme (la chute devient illisible) → rien de clé à x < 250 ni x > 780 pendant un mouvement du rideau.
 - Violence montrée (tête coupée en carton) → jamais de mort ni de violence à l'image : rideau, ombre, chapeau qui roule, fumée.
 - Carte tenue à bout de bras qui masquait l'avant-bras et la main d'Emma (affiche Mercedes) → un objet plat tenu à la main se dessine DERRIÈRE la marionnette, la main posée sur son bord ou son coin ; l'avant-bras reste entier.
+- Objet d'une révélation montré trop tard (valise qui monte dans les 0,2 dernières secondes du plan, donc invisible, puis soudain là au plan suivant) → un objet clé reste visible au moins 0,6 s ; s'il est attendu (« il veut une valise »), le montrer dès le début et marquer le désir (étoiles, regard) au mot.
+- Accessoire qui en évoque un autre déjà présent dans la vidéo (loupe dorée à manche lue comme une raquette dans une vidéo de tennis) → silhouette nettement différente (monture noire, verre teinté, manche court), ou ne pas l'utiliser.
+- Récit qui saute une étape (du surnom « Crocodile » directement aux polos de 1933 : d'où vient le logo ?) → chaque plan doit découler du précédent ; vérifier à la fiche que le spectateur peut répondre à « pourquoi ça arrive maintenant ? ».
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
