@@ -1,4 +1,3 @@
-// barbenoire.js — « Barbe Noire, le pirate qui fumait » (1718) : Barbe Noire, marins a/b/c, otages (tonneau), coffre d'or, tête, fumée. Espace M.bn (alias BN). Mode d'emploi : barbenoire.md
 // persos.js — « Barbe Noire, le pirate qui fumait » : marionnettes et accessoires PROPRES À CETTE VIDÉO. Espace M.bn (alias BN). Appeler BN.init() dans S.init.
 // Mode d'emploi : persos.md (ne pas lire ce fichier en entier). Aucun texte ni lettre. Déterministe (hash, jamais Math.random).
 // MARIONNETTES (avec tige ; (x,y) = pieds ; slot: ST.slotF / ST.slotB) : BN.barbeNoire, BN.marin (modele 'a'|'b'|'c'), BN.otage (modele 'conseiller'|'planteur'|'marchand').
@@ -48,7 +47,7 @@
     for (const sg of [1, -1]) {
       const a = tv + sg * a1, E = [S[0] - LA * Math.sin(a), S[1] + LA * Math.cos(a)];
       const cAbs = Math.atan2(-(T[0] - E[0]), T[1] - E[1]) - PHI;
-      const sc = pick === 'avant' ? E[0] : pick === 'arriere' ? -E[0] : E[1];
+      const sc = pick === 'plie' ? -normA(cAbs - a) : pick === 'avant' ? E[0] : pick === 'arriere' ? -E[0] : E[1];
       if (!best || sc > best.sc) best = { a: normA(a), b: normA(cAbs - a), sc };
     }
     return best;
@@ -183,6 +182,31 @@
     A.armF_lo = (A.armF_lo || 0) + Math.sin(t * 43) * 0.07 * k; A.armB_lo = (A.armB_lo || 0) + Math.sin(t * 41 + 1) * 0.07 * k;
     A.legF = (A.legF || 0) + Math.sin(t * 39) * 0.03 * k;
     if (!q.face.brow) q.face.brow = 'worry';
+  }
+  // garde-fou des coudes (marins, otages) : le coude reste sous la ligne épaule–main, vers l'arrière (avant-bras plié vers l'avant : armX_lo ≤ 0).
+  // Un angle de coude positif (coude « à l'envers », p. ex. M.ik avec bendSign −1) est remplacé par l'autre solution qui met la main AU MÊME ENDROIT.
+  function coudeBas(q, arm) {
+    const A = q.ang, a = A[arm + '_up'] || 0, b = A[arm + '_lo'] || 0;
+    if (b <= 0) return;
+    const S = arm === 'armF' ? SH_F : SH_B;
+    const H = mp(new DOMMatrix().translate(S[0], S[1]).rotate(a * D).translate(0, LA).rotate(b * D), [4, 96]);
+    const sol = ik2(S, H, 'plie');
+    if (sol.b < b) { A[arm + '_up'] = sol.a; A[arm + '_lo'] = Math.min(0, sol.b); }
+  }
+  // gestes communs aux marins et aux otages
+  function gestes(q) {
+    const t = q.t || 0, lv = ease(k01(q.leve)), dr = k01(q.drapeau), hh = ease(k01(q.hanches)), ta = ease(k01(q.tate));
+    if (dr > 0 && q.tenu == null) q.tenu = 'drapeau';
+    if (lv > 0) {
+      blend(q, 'armF_up', -2.75, lv); blend(q, 'armF_lo', -0.25, lv); blend(q, 'armB_up', -2.5, lv); blend(q, 'armB_lo', -0.4, lv);
+      if (!has(q.tenu)) q.handF = 'open'; if (!has(q.tenuB)) q.handB = 'open'; q.ang.head = (q.ang.head || 0) + 0.06 * lv;
+    }
+    if (hh > 0) { armTo(q, 'armF', [-14, -28], 'arriere', hh); armTo(q, 'armB', [-24, -28], 'arriere', hh); if (!has(q.tenu)) q.handF = 'fist'; if (!has(q.tenuB)) q.handB = 'fist'; }
+    if (ta > 0) { blend(q, 'armF_up', 0.15, ta); blend(q, 'armF_lo', -2.7 + 0.12 * Math.sin(t * 11), ta); if (!has(q.tenu)) q.handF = 'open'; q.ang.head = (q.ang.head || 0) + 0.12 * ta; }   // coude en bas, main qui frotte le haut du bras opposé
+    if (k01(q.mains) > 0) liees(q, ease(k01(q.mains)));
+    tremble(q, k01(q.tremble));
+    coudeBas(q, 'armF'); coudeBas(q, 'armB');
+    return finish(q);
   }
   function finish(q) {
     const A = q.ang, tl = q.tilt || 0;
@@ -513,17 +537,7 @@
       order: ['armB_up', 'armB_lo', 'objetB', 'doigtsB', 'legB', 'legF', 'head', 'coiffe', 'torso', 'armF_up', 'armF_lo', 'objet', 'doigts', 'liens'] };
   }
   CH.bnMarinA = mkMarin('a'); CH.bnMarinB = mkMarin('b'); CH.bnMarinC = mkMarin('c');
-  BN.marinPose = function (p) {
-    const q = prep(p), lv = ease(k01(q.leve)), dr = k01(q.drapeau);
-    if (dr > 0 && q.tenu == null) q.tenu = 'drapeau';
-    if (lv > 0) {
-      blend(q, 'armF_up', -2.75, lv); blend(q, 'armF_lo', -0.25, lv); blend(q, 'armB_up', -2.5, lv); blend(q, 'armB_lo', -0.4, lv);
-      if (!has(q.tenu)) q.handF = 'open'; if (!has(q.tenuB)) q.handB = 'open'; q.ang.head = (q.ang.head || 0) + 0.06 * lv;
-    }
-    if (k01(q.mains) > 0) liees(q, ease(k01(q.mains)));
-    tremble(q, k01(q.tremble));
-    return finish(q);
-  };
+  BN.marinPose = (p) => gestes(prep(p));
   BN.marin = function (pose, x, y, s, o) {
     const mod = (pose && pose.modele) || 'a', def = mod === 'c' ? CH.bnMarinC : mod === 'b' ? CH.bnMarinB : CH.bnMarinA;
     return run(def, BN.marinPose(pose), x, y, s == null ? 0.88 : s, o);
@@ -613,12 +627,7 @@
       order: ['armB_up', 'armB_lo', 'objetB', 'doigtsB', 'legB', 'legF', 'head', 'coiffe', 'torso', 'jabot', 'tonneau', 'bretelle', 'armF_up', 'armF_lo', 'objet', 'doigts', 'liens'] };
   }
   CH.bnConseiller = mkOtage('conseiller'); CH.bnPlanteur = mkOtage('planteur'); CH.bnMarchand = mkOtage('marchand');
-  BN.otagePose = function (p) {
-    const q = prep(p);
-    if (k01(q.mains) > 0) liees(q, ease(k01(q.mains)));
-    tremble(q, k01(q.tremble));
-    return finish(q);
-  };
+  BN.otagePose = (p) => gestes(prep(p));
   BN.otage = function (pose, x, y, s, o) {
     const mod = (pose && pose.modele) || 'conseiller', def = mod === 'planteur' ? CH.bnPlanteur : mod === 'marchand' ? CH.bnMarchand : CH.bnConseiller;
     return run(def, BN.otagePose(pose), x, y, s == null ? 0.88 : s, o);
