@@ -67,3 +67,8 @@ Fragilités : Daimler avec chapeau ressemble au propriétaire de `poubelle.js` (
 Livré le 15/10/2026 (routine, aucun retour d'Alexis à ce jour). Mode d'emploi : `bigben.md`. Dans `S.init` : `BEN.init();` (pré-rend `BEN.K` = ciel, ville, tour, cour, fonderie, beffroi).
 Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BEN.ondes`), marteau lourd/léger, ouvrier-fondeur, sir (haut-de-forme), touriste (+ mini), chariot, appareil photo, décors Westminster. Le beffroi partagé (`M.dec.beffroi`, `cloche_beffroi`, `ciel_beffroi`, écrit pour la vidéo en `decors/p3.js`) est gardé en `bigben-beffroi.txt` (non chargé : à copier dans `decors/pN.js` si besoin).
 À vérifier : fêlure en zigzag très régulier ; le sir partage le bleu nuit du préfet Poubelle ; `deuxMains` du marteau fait un petit saut de main.
+
+## `autruche.js` — « L'autruche qui avalait la clé de son enclos » (zoo → laboratoire), espace `M.aut` (AUT)
+Livré le 16/10/2026 (routine, aucun retour à ce jour). Mode d'emploi : `autruche.md` (à lire à la place du `.js`). Dans `S.init` : `AUT.init();`.
+Contenu : autruche (cou à bosse d'avalement `avale`, ventre translucide `ventre`/`ventreObj`, expressions, marche, ailes), gardien de zoo (bonnet rouge à pompon, toise, journal, trousseau), chercheur Dekeyser (pince, `plonge`, `brandir`), clé, objets métalliques, cuve, plateau, pince, toise, journal ; décors `AUT.enclos` (porte à serrure) et `AUT.labo` + table.
+Fragilités : `leve` du gardien passe la toise devant son visage (utiliser `atteint`/`cible`) ; cou `rentre` un peu anguleux ; clé dans le ventre petite (~120–150 px) ; `affiche.py` demande `/usr/bin/python3` (PIL).
