@@ -1,0 +1,299 @@
+// Décor partagé « pont de navire en mer » (plans 1 à 6 de la vidéo La boussole). Écrit par le plan 1.
+// Appel (dans S.draw, AVANT M.drawFloor()) :      M.dec.pont(t, up);          // up = décalage vertical (0 par défaut)
+// ou par couches (même ordre) :                   M.dec.pont_ciel(t); M.dec.pont_mer(t, up); M.dec.pont_gree(t, up);
+// Pré-rendus : M.dec.init_p1 (lancé par M.dec.init() dans S.init). Fonctions pures de t. Aucune lettre.
+// Rien de rouge brique ni de bleu ardoise vif (couleurs réservées aux pôles) ; le centre bas (y 900-1400) reste vide :
+// bastingage bas (sommet y ≈ 1255), mât et haubans à droite (x ≈ 900), étai au-dessus de y 900.
+M.dec.init_p1 = function () {
+  const ST = M.ST, W = M.W, P = M.P, TAU = Math.PI * 2;
+  const D = M.dec.P1 = {};
+  // --- ciel d'aube pâle : le ciel du kit éclairci, halo du soleil bas sur l'horizon
+  const sky = M.makeSky('aube');
+  D.sky = M.pre(W, ST.back + 5, (c) => {
+    c.drawImage(sky, 0, 0);
+    const g = c.createLinearGradient(0, 0, 0, 1010);
+    g.addColorStop(0, 'rgba(232,230,222,0.30)'); g.addColorStop(1, 'rgba(244,232,206,0.46)');
+    c.fillStyle = g; c.fillRect(0, 0, W, 1010);
+    const h = c.createRadialGradient(250, 1010, 20, 250, 1010, 640);
+    h.addColorStop(0, 'rgba(252,236,200,0.65)'); h.addColorStop(1, 'rgba(252,236,200,0)');
+    c.fillStyle = h; c.fillRect(0, 380, W, 640);
+    c.save(); c.beginPath(); c.rect(0, 0, W, 1012); c.clip();
+    c.fillStyle = 'rgba(250,238,208,0.95)'; c.beginPath(); c.arc(250, 1016, 82, 0, TAU); c.fill();
+    c.restore();
+    // mer lointaine : bande claire sous l'horizon (derrière la première bande de vagues)
+    const m = c.createLinearGradient(0, 1000, 0, 1140);
+    m.addColorStop(0, '#b3b9b4'); m.addColorStop(1, '#8c9ba3');
+    c.fillStyle = m; c.fillRect(0, 1000, W, 160);
+  });
+  D.nuages = [M.makeCloud(3, 1.0), M.makeCloud(8, 0.8)];
+  // --- mer : 4 bandes du kit
+  D.vagues = [0, 1, 2, 3].map(M.makeWave);
+  // --- gréement : bastingage, mât, vergue avec voile roulée, haubans, étai (origine = bord du pont, centre)
+  const HW = 1180, HH = 1300;
+  const cv = M.cutFlat(HW, HH, HW / 2, HH - 4, (c) => {
+    const MX = 360;                                    // pied du mât (x local) -> x écran 900
+    const bois = '#7a644a', boisC = '#9a8260', boisD = '#55442f', fer = '#3c3a3b', corde = '#5b4a35', toile = '#cfc3a4';
+    const grain = (x0, y0, x1, y1, a) => M.hatch([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], 0.04, 6, a, 1, P.encre, [x0, y0, x1, y1]);
+    // mât (derrière le bastingage)
+    const mast = [[MX - 28, 0], [MX - 24, -600], [MX - 18, -1240], [MX + 18, -1240], [MX + 24, -600], [MX + 28, 0]];
+    M.piece(mast, bois, () => { grain(MX - 30, -1250, MX + 30, 0, 0.32); M.shade(MX - 28, 0, MX + 28, 0, 0.35, [MX - 30, -1250, MX + 30, 0]); }, { seed: 5 });
+    for (const yy of [-90, -330, -640, -960, -1190]) M.piece([[MX - 30, yy], [MX + 30, yy], [MX + 30, yy - 12], [MX - 30, yy - 12]], fer, null, { seed: 11 + (yy | 0) % 7 });
+    // vergue et voile roulée
+    const VY = -980;
+    M.piece([[MX - 600, VY - 8], [MX + 600, VY - 8], [MX + 604, VY + 5], [MX - 604, VY + 5]], boisD, () => grain(MX - 610, VY - 10, MX + 610, VY + 8, 0.3), { seed: 21 });
+    M.piece([[MX - 520, VY + 4], [MX - 380, VY + 22], [MX - 150, VY + 30], [MX + 150, VY + 30], [MX + 380, VY + 22], [MX + 520, VY + 4], [MX + 500, VY - 18], [MX + 150, VY - 26], [MX - 150, VY - 26], [MX - 500, VY - 18]], toile, () => {
+      M.hatch(null, 0.15, 5, 0.22, 1, P.encre, [MX - 530, VY - 30, MX + 530, VY + 34]); M.shade(0, VY - 26, 0, VY + 30, 0.3, [MX - 530, VY - 30, MX + 530, VY + 34]);
+    }, { seed: 22 });
+    for (let k = -4; k <= 4; k++) M.strokePts([[MX + k * 118, VY - 24], [MX + k * 118 + 3, VY + 28]], corde, 3.2, false, 30 + k);
+    // étai : du haut du mât vers la gauche, bien au-dessus de la tête du capitaine
+    const sag = (x0, y0, x1, y1, s, n) => { const p = []; for (let i = 0; i <= n; i++) { const u = i / n; p.push([x0 + (x1 - x0) * u, y0 + (y1 - y0) * u + Math.sin(u * Math.PI) * s]); } return p; };
+    M.strokePts(sag(MX, -1225, -600, -560, 22, 14), corde, 2.4, false, 41);
+    M.strokePts(sag(MX, -1170, -600, -760, 16, 14), corde, 1.8, false, 42);
+    // haubans (mât -> bastingage) avec enfléchures
+    for (const [dx, k] of [[170, 1], [250, 2]]) M.strokePts([[MX, -980], [MX - dx, -125]], corde, 2.4, false, 50 + k);
+    for (const [dx, k] of [[170, 3], [250, 4]]) M.strokePts([[MX, -980], [MX + dx, -125]], corde, 2.4, false, 50 + k);
+    for (let i = 1; i <= 8; i++) { const u = i / 9, y = -980 + 855 * u; const xa = MX - 170 * u, xb = MX - 250 * u; M.strokePts([[xa, y], [xb, y]], corde, 1.6, false, 60 + i); const xc = MX + 170 * u, xd = MX + 250 * u; M.strokePts([[xc, y], [xd, y]], corde, 1.6, false, 70 + i); }
+    // drisses pendantes de la vergue
+    M.strokePts(sag(MX - 520, VY + 6, MX - 470, -300, 8, 8), corde, 1.8, false, 81);
+    M.strokePts(sag(MX + 540, VY + 6, MX + 500, -420, 8, 8), corde, 1.8, false, 82);
+    // bastingage : montants tournés, lisse haute, filière, plat-bord
+    const posts = []; for (let x = -540; x <= 560; x += 140) posts.push(x);
+    for (const x of posts) {
+      M.piece([[x - 13, 0], [x - 11, -60], [x - 15, -70], [x - 15, -112], [x - 11, -118], [x - 12, -140], [x + 12, -140], [x + 11, -118], [x + 15, -112], [x + 15, -70], [x + 11, -60], [x + 13, 0]], bois, () => { grain(x - 16, -142, x + 16, 0, 0.3); M.shade(x - 13, 0, x + 13, 0, 0.3, [x - 16, -142, x + 16, 0]); }, { seed: 100 + x });
+    }
+    M.piece([[-HW / 2, -78], [HW / 2, -78], [HW / 2, -66], [-HW / 2, -66]], boisD, () => grain(-HW / 2, -80, HW / 2, -64, 0.25), { seed: 91 });
+    M.piece([[-HW / 2, -146], [HW / 2, -146], [HW / 2, -124], [-HW / 2, -124]], boisC, () => { grain(-HW / 2, -148, HW / 2, -122, 0.3); M.shade(0, -146, 0, -124, 0.3, [-HW / 2, -148, HW / 2, -122]); }, { seed: 92 });
+    M.piece([[-HW / 2, 0], [HW / 2, 0], [HW / 2, -20], [-HW / 2, -20]], boisD, () => grain(-HW / 2, -22, HW / 2, 2, 0.3), { seed: 93 });
+    // cordage lové sur la lisse (gauche) et poulie au pied du mât
+    for (let k = 0; k < 4; k++) { c.strokeStyle = corde; c.lineWidth = 3.4; c.beginPath(); c.ellipse(-330, -120, 30 - k * 4, 14 - k * 1.5, 0, 0, TAU); c.stroke(); }
+    M.strokePts([[-318, -112], [-310, -66], [-312, -30]], corde, 2.4, false, 95);
+  });
+  cv.padB = 4;
+  D.gree = cv;
+};
+
+// ciel (+ soleil bas, 2 nuages de carton suspendus)
+M.dec.pont_ciel = function (t, up) {
+  const D = M.dec.P1;
+  M.ctx().drawImage(D.sky, 0, 0);
+  M.hung(D.nuages[0], 230 + 18 * Math.sin(t * 0.21), 360, t, { f: 0.7, ph: 0.4, amp: 0.012 });
+  M.hung(D.nuages[1], 640 - 22 * Math.sin(t * 0.17 + 1), 560, t, { f: 0.6, ph: 2.1, amp: 0.012 });
+};
+// mer en 4 bandes qui bougent (horizon ≈ y 1000, dernière bande cachée par le plancher)
+M.dec.pont_mer = function (t, up) {
+  const D = M.dec.P1, u = up || 0;
+  for (let i = 0; i < 4; i++) {
+    const dx = Math.sin(t * (1.1 + i * 0.15) + i * 1.7) * (26 - i * 3) * (i % 2 ? -1 : 1);
+    M.flat(D.vagues[i], 540 + dx, 1280 + i * 48 + Math.sin(t * 1.6 + i) * 5 + u);
+  }
+};
+// bastingage, mât, vergue, haubans, étai + fanion ; léger roulis
+M.dec.pont_gree = function (t, up) {
+  const D = M.dec.P1, u = up || 0, c = M.ctx(), rot = 0.005 * Math.sin(t * 0.8);
+  M.flat(D.gree, 540, M.ST.back + u, { rot });
+  // fanion ocre au sommet du mât (suit le roulis)
+  c.save(); c.translate(540, M.ST.back + u); c.rotate(rot); c.translate(360, -1240);
+  c.strokeStyle = '#3c3a3b'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -46); c.stroke();
+  c.beginPath(); c.moveTo(0, -44);
+  const n = 8, L = 120, w = (i) => Math.sin(t * 3.2 - i * 0.7) * 7 * (i / n);
+  for (let i = 1; i <= n; i++) c.lineTo(i / n * L, -44 + 10 * (i / n) + w(i));
+  for (let i = n - 1; i >= 1; i--) c.lineTo(i / n * L, -26 - 8 * (i / n) + w(i));
+  c.lineTo(0, -26);
+  c.closePath(); c.fillStyle = '#c29a4b'; c.fill(); c.strokeStyle = 'rgba(30,22,16,0.7)'; c.lineWidth = 1.4; c.stroke();
+  c.restore();
+};
+// tout le pont (ordre : ciel, mer, gréement) — à appeler avant M.drawFloor()
+M.dec.pont = function (t, up) {
+  M.dec.pont_ciel(t, up);
+  M.dec.pont_mer(t, up);
+  M.dec.pont_gree(t, up);
+};
+// Décor partagé « cageot de bois » (plans 5 et 6 de la vidéo La boussole). Écrit par le plan 5.
+// Appel (dans S.draw, après M.drawFloor() et le globe, AVANT les barres et le capitaine) :
+//     M.dec.cageot(x, y, s);        // (x, y) = milieu du bas du cageot, posé sur le plancher (y ≈ 1424) ; s = 1 -> 320 px de large, 130 de haut
+// Géométrie (pour poser des objets dessus) :
+//     const g = M.dec.cageotGeo(x, y, s);   // { w, h, yTop (arête avant du dessus), yBack (arête arrière), rows: [yRangéeArrière, yRangéeAvant] (centres de barres s 0,8), left, right }
+// Le dessus est visible (petite perspective) : deux rangées d'objets plats (une derrière, une devant).
+// Pré-rendu : M.dec.init_p5 (lancé par M.dec.init()). Fonction pure de t (ne dépend pas de t). Aucune lettre.
+M.dec.init_p5 = function () {
+  const P = M.P;
+  const W = 320, H = 130, D = 56, PAD = 30;
+  const bois = '#cdb07e', boisC = '#dcc597', boisD = '#8a6a3f', boisDD = '#5a4328', fer = '#4a4744';
+  const sh = (pts) => pts.map((p) => [p[0], p[1], 1]);   // coins vifs (bois scié)
+  const cv = M.cutFlat(W + 2 * PAD, H + D + 2 * PAD, W / 2 + PAD, H + PAD, (c) => {
+    const grain = (x0, y0, x1, y1, a, ang) => M.hatch([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], ang == null ? 0.03 : ang, 6, a, 1, P.encre, [x0, y0, x1, y1]);
+    const hw = W / 2;
+    // face avant : trois planches horizontales
+    const planks = [[-H, -H + 28], [-H + 28, -H + 56], [-H + 56, -H + 84], [-H + 84, -H + 112], [-H + 112, 0]];
+    planks.forEach(([ya, yb], i) => {
+      const y0 = ya + 1.2, y1 = yb - 1.2;
+      M.piece(sh([[-hw, y0], [hw, y0 + (i % 2 ? 0.6 : -0.4)], [hw, y1], [-hw, y1 - 0.8]]), i % 2 ? boisC : bois, () => {
+        grain(-hw - 4, y0 - 4, hw + 4, y1 + 4, 0.34); M.shade(0, y0, 0, y1, 0.22, [-hw - 4, y0 - 4, hw + 4, y1 + 4]);
+        for (let k = 0; k < 3; k++) M.strokePts([[-hw + 30 + k * 90 + i * 17, y0 + 8], [-hw + 62 + k * 90 + i * 17, y0 + 11], [-hw + 100 + k * 90 + i * 17, y0 + 8]], 'rgba(60,40,24,0.35)', 1.2, false, 40 + k + i * 3);
+      }, { seed: 3 + i });
+    });
+    // montants verticaux aux deux bouts et au milieu, tasseau en diagonale
+    const post = (x) => M.piece(sh([[x - 11, -H], [x + 11, -H], [x + 11, 0], [x - 11, 0]]), boisD, () => { grain(x - 13, -H - 3, x + 13, 3, 0.4, 1.5); M.shade(x - 11, 0, x + 11, 0, 0.3, [x - 13, -H - 3, x + 13, 3]); }, { seed: 20 + (x | 0) % 13 });
+    post(-hw + 11); post(hw - 11); post(0);
+    M.piece(sh([[-hw + 28, -6], [-hw + 48, -6], [-22, -H + 6], [-42, -H + 6]]), boisD, () => grain(-hw, -H, 0, 0, 0.35, 0.9), { seed: 31 });
+    M.piece(sh([[hw - 28, -6], [hw - 48, -6], [22, -H + 6], [42, -H + 6]]), boisD, () => grain(0, -H, hw, 0, 0.35, -0.9), { seed: 32 });
+    // clous
+    for (const [x, y] of [[-hw + 11, -H + 10], [-hw + 11, -70], [-hw + 11, -10], [hw - 11, -H + 10], [hw - 11, -70], [hw - 11, -10], [0, -H + 10], [0, -70], [0, -10]]) M.dot(x, y, 2.6, fer);
+    // dessus : trapèze plus étroit au fond, lattes dans le sens de la longueur
+    const top = [[-hw, -H], [hw, -H], [hw - 12, -H - D], [-hw + 12, -H - D]];
+    M.piece(sh(top), boisC, () => {
+      for (let k = 1; k < 4; k++) { const y = -H - k * D / 4; M.strokePts([[-hw, y], [hw, y]], 'rgba(40,26,14,0.55)', 1.4, false, 50 + k); }
+      grain(-hw - 4, -H - D - 4, hw + 4, -H + 4, 0.28, 0.01);
+      M.shade(0, -H - D, 0, -H, 0.28, [-hw - 4, -H - D - 4, hw + 4, -H + 4]);
+    }, { seed: 7 });
+    // liseré avant clair (arête du dessus)
+    M.strokePts([[-hw + 1, -H + 0.5], [hw - 1, -H + 0.5]], 'rgba(255,240,210,0.5)', 1.6);
+  });
+  cv.padB = PAD;
+  M.withShadow(cv, 8);
+  M.dec.P5 = { cv, W, H, D };
+};
+M.dec.cageot = function (x, y, s, o) {
+  const D = M.dec.P5; s = s == null ? 1 : s;
+  M.flat(D.cv, x, y, Object.assign({ scale: s, cast: { a: 0.3, dx: 14, dy: 5 } }, o || {}));
+};
+M.dec.cageotGeo = function (x, y, s) {
+  const D = M.dec.P5; s = s == null ? 1 : s;
+  const yTop = y - D.H * s, yBack = yTop - D.D * s;
+  return { w: D.W * s, h: D.H * s, yTop, yBack, rows: [yTop - 44 * s, yTop - 18 * s], left: x - D.W * s / 2, right: x + D.W * s / 2 };
+};
+// Décor « sablier géant de carton » (plan 6 de la vidéo La boussole). Écrit par le plan 6. Aucune lettre.
+// Appel (dans S.draw, avant M.drawFloor()) :
+//     M.dec.sablier(x, yc, t, { rot, a, cables });
+//   (x, yc) = centre du sablier (pivot), s = 1 -> verres de 384 px de haut, chape jusqu'à 240 px au-dessus du centre, 180 px de large.
+//   rot   : rotation du sablier dans sa chape (rad ; 0 = bulbe « A » en bas, π = retourné)
+//   a     : part du sable (0..1) dans le bulbe A (celui du bas quand rot = 0) ; le reste est dans le bulbe B
+//   cables: hauteur y jusqu'où montent les deux câbles (défaut 0 : jusqu'au haut de l'écran)
+// Pré-rendu : M.dec.init_p6 (lancé par M.dec.init()). Fonction pure de t.
+M.dec.init_p6 = function () {
+  const P = M.P;
+  const GW = 58, NECK = 7, GY0 = 5, GY1 = 166, PY0 = 166, PY1 = 194, PW = 74, ARM = 91;
+  const bulbW = (u) => NECK + (GW - NECK) * Math.pow(Math.sin(Math.min(1, u / 0.78) * Math.PI / 2), 0.85);
+  // contour d'un bulbe (A = vers le bas ; B = son symétrique), points locaux, sens horaire
+  const poly = (sg) => {
+    const L = [], R = [];
+    for (let i = 0; i <= 26; i++) { const u = i / 26, y = sg * (GY0 + u * (GY1 - GY0)), w = bulbW(u); L.push([-w, y]); R.push([w, y]); }
+    return L.concat(R.reverse());
+  };
+  const D = M.dec.P6 = { GW, NECK, GY0, GY1, PY0, PY1, PW, ARM, polyA: poly(1), polyB: poly(-1) };
+  const W = 2 * (ARM + 40), H = 2 * 270;
+  const mk = (fn) => { const cv = M.cutFlat(W, H, W / 2, H / 2, fn); cv.padB = H / 2; return cv; };
+  const bois = '#cdb07e', boisC = '#dcc597', boisD = '#8a6a3f', cuivre = '#b08a46';
+  const hat = (x0, y0, x1, y1, a, ang) => M.hatch([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], ang, 6, a, 1, P.encre, [x0, y0, x1, y1]);
+  const sh = (pts) => pts.map((p) => [p[0], p[1], 1]);
+  // chape : deux bras verticaux, traverse en haut, deux tourillons au centre (ne tourne pas)
+  D.yoke = mk(() => {
+    for (const sg of [-1, 1]) {
+      const x = sg * ARM;
+      M.piece(sh([[x - 8, -246], [x + 8, -246], [x + 8, 0], [x - 8, 0]]), boisD, () => { hat(x - 10, -250, x + 10, 4, 0.38, 1.5); M.shade(x - 8, 0, x + 8, 0, 0.3, [x - 10, -250, x + 10, 4]); }, { seed: 61 + sg });
+      M.piece(sh([[x - 18, -4], [x + 18, -4], [x + 18, 34], [x - 18, 34]]).map((p) => [p[0], p[1] - 14, 1]), boisC, () => hat(x - 20, -20, x + 20, 24, 0.3, 0.2), { seed: 64 + sg });
+      M.rivet(x, 0, 6);
+    }
+    M.piece(sh([[-ARM - 18, -260], [ARM + 18, -260], [ARM + 18, -232], [-ARM - 18, -232]]), boisD, () => { hat(-ARM - 20, -262, ARM + 20, -230, 0.4, 0.04); M.shade(0, -260, 0, -232, 0.28, [-ARM - 20, -262, ARM + 20, -230]); }, { seed: 66 });
+    M.rivet(-ARM, -246, 5); M.rivet(ARM, -246, 5);
+    // traits qui lient le tourillon au verre
+    M.strokePts([[-ARM, 0], [-GW - 2, 0]], 'rgba(40,26,14,0.7)', 5, false, 70);
+    M.strokePts([[ARM, 0], [GW + 2, 0]], 'rgba(40,26,14,0.7)', 5, false, 71);
+  });
+  // verre : fond translucide (derrière le sable)
+  const outline = (pts) => pts.map((p) => [p[0], p[1], 0]);
+  D.glassBack = mk((c) => {
+    c.save(); c.fillStyle = 'rgba(170,205,212,0.6)';
+    for (const pl of [D.polyA, D.polyB]) { c.beginPath(); pl.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.fill(); }
+    c.restore();
+  });
+  // verre : contour, reflets, bague du goulot (devant le sable)
+  D.glassFront = mk((c) => {
+    c.save(); c.lineJoin = 'round';
+    for (const pl of [D.polyA, D.polyB]) {
+      c.beginPath(); pl.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath();
+      c.strokeStyle = 'rgba(20,16,24,0.75)'; c.lineWidth = 4; c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = 1.6; c.stroke();
+    }
+    // reflets longs et fins à gauche des bulbes
+    c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineCap = 'round'; c.lineWidth = 6;
+    for (const sg of [1, -1]) { c.beginPath(); c.moveTo(-GW + 14, sg * 52); c.quadraticCurveTo(-GW + 10, sg * 100, -GW + 24, sg * 140); c.stroke(); }
+    c.restore();
+    M.piece(sh([[-NECK - 6, -9], [NECK + 6, -9], [NECK + 6, 9], [-NECK - 6, 9]]), cuivre, () => {}, { seed: 72 });
+  });
+  // plateaux haut et bas, avec pions de laiton
+  D.plates = mk(() => {
+    for (const sg of [-1, 1]) {
+      const y0 = sg > 0 ? PY0 : -PY1, y1 = sg > 0 ? PY1 : -PY0;
+      M.piece(sh([[-PW, y0], [PW, y0], [PW, y1], [-PW, y1]]), bois, () => {
+        hat(-PW - 4, y0 - 4, PW + 4, y1 + 4, 0.38, 0.03); M.shade(0, y0, 0, y1, 0.25, [-PW - 4, y0 - 4, PW + 4, y1 + 4]);
+        M.strokePts([[-PW + 6, (y0 + y1) / 2], [PW - 6, (y0 + y1) / 2]], 'rgba(60,40,24,0.4)', 1.4, false, 75);
+      }, { seed: 73 + sg });
+      for (const x of [-PW + 10, PW - 10]) M.dot(x, (y0 + y1) / 2, 3, '#4a4744');
+    }
+  });
+};
+
+// aire d'un polygone ; découpe d'un polygone par le demi-plan y >= L
+M.dec._aire = (p) => { let a = 0; for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; a += p[i][0] * q[1] - q[0] * p[i][1]; } return Math.abs(a) / 2; };
+M.dec._coupe = (p, L) => {
+  const o = [];
+  for (let i = 0; i < p.length; i++) {
+    const a = p[i], b = p[(i + 1) % p.length], ia = a[1] >= L, ib = b[1] >= L;
+    if (ia) o.push(a);
+    if (ia !== ib) { const k = (L - a[1]) / (b[1] - a[1]); o.push([a[0] + k * (b[0] - a[0]), L]); }
+  }
+  return o;
+};
+// sable d'un bulbe : surface horizontale (dans le repère de l'écran) telle que l'aire sablée = part × aire du bulbe
+M.dec._sable = (pw, part) => {
+  if (part <= 0.002) return null;
+  const tot = M.dec._aire(pw);
+  let lo = Math.min(...pw.map((p) => p[1])), hi = Math.max(...pw.map((p) => p[1]));
+  if (part >= 0.999) return { poly: pw, L: lo };
+  for (let i = 0; i < 22; i++) { const mid = (lo + hi) / 2; if (M.dec._aire(M.dec._coupe(pw, mid)) > part * tot) lo = mid; else hi = mid; }
+  return { poly: M.dec._coupe(pw, (lo + hi) / 2), L: (lo + hi) / 2 };
+};
+
+M.dec.sablier = function (x, yc, t, o) {
+  o = o || {};
+  const D = M.dec.P6, c = M.ctx(), rot = o.rot || 0, a = o.a == null ? 1 : o.a, co = Math.cos(rot), si = Math.sin(rot);
+  // câbles : deux fils depuis les bouts de la traverse jusqu'en haut de l'écran
+  c.save(); c.strokeStyle = '#3b2e22'; c.lineWidth = 3.5; c.lineCap = 'round';
+  for (const sg of [-1, 1]) { c.beginPath(); c.moveTo(x + sg * D.ARM, yc - 246); c.lineTo(x + sg * D.ARM, o.cables == null ? -20 : o.cables); c.stroke(); }
+  c.strokeStyle = 'rgba(214,190,140,0.7)'; c.lineWidth = 1.4;
+  for (const sg of [-1, 1]) { c.beginPath(); c.moveTo(x + sg * D.ARM - 1, yc - 246); c.lineTo(x + sg * D.ARM - 1, o.cables == null ? -20 : o.cables); c.stroke(); }
+  c.restore();
+  M.flat(D.yoke, x, yc, { cast: null });
+  M.flat(D.glassBack, x, yc, { rot });
+  // sable : bulbe A (part a) et bulbe B (part 1 - a)
+  const toW = (pl) => pl.map((p) => [x + p[0] * co - p[1] * si, yc + p[0] * si + p[1] * co]);
+  const sa = M.dec._sable(toW(D.polyA), a), sb = M.dec._sable(toW(D.polyB), 1 - a);
+  c.save();
+  for (const s of [sa, sb]) {
+    if (!s) continue;
+    c.beginPath(); s.poly.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath();
+    c.fillStyle = '#e2b53e'; c.fill();
+    c.save(); c.clip(); c.fillStyle = 'rgba(150,100,20,0.28)';
+    c.fillRect(x - 90, s.L, 180, 7);                       // liseré ombré de la surface
+    c.strokeStyle = 'rgba(120,80,16,0.4)'; c.lineWidth = 1.2;
+    for (let k = 0; k < 14; k++) { const yy = s.L + 10 + k * 12; c.beginPath(); c.moveTo(x - 70, yy); c.lineTo(x + 70, yy + 3); c.stroke(); }
+    c.restore();
+  }
+  // filet de sable : du goulot jusqu'à la surface du bulbe du bas (quand le sablier est debout, pas pendant le tour)
+  const up = Math.abs(co) > 0.96 ? 1 : 0;
+  if (up && a > 0.003 && a < 0.997) {
+    const low = co > 0 ? sa : sb;                          // bulbe du bas
+    const fall = co > 0 ? 1 - a : a;                       // (pour savoir si le haut a encore du sable)
+    const topHas = co > 0 ? sb : sa;
+    if (low && topHas) {
+      c.strokeStyle = '#e2b53e'; c.lineWidth = 3.4; c.lineCap = 'butt';
+      c.beginPath(); c.moveTo(x, yc - 6); c.lineTo(x, low.L + 1); c.stroke();
+      c.strokeStyle = 'rgba(255,240,180,0.9)'; c.lineWidth = 1.2; c.setLineDash([5, 7]); c.lineDashOffset = -t * 60;
+      c.beginPath(); c.moveTo(x, yc - 6); c.lineTo(x, low.L); c.stroke();
+    }
+  }
+  c.restore();
+  M.flat(D.glassFront, x, yc, { rot });
+  M.flat(D.plates, x, yc, { rot });
+};

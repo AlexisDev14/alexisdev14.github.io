@@ -72,3 +72,8 @@ Contenu : cloche (`BEN.cloche` : fele, tourne, balance, salut, grande, ondes `BE
 Livré le 16/10/2026 (routine, aucun retour à ce jour). Mode d'emploi : `autruche.md` (à lire à la place du `.js`). Dans `S.init` : `AUT.init();`.
 Contenu : autruche (cou à bosse d'avalement `avale`, ventre translucide `ventre`/`ventreObj`, expressions, marche, ailes), gardien de zoo (bonnet rouge à pompon, toise, journal, trousseau), chercheur Dekeyser (pince, `plonge`, `brandir`), clé, objets métalliques, cuve, plateau, pince, toise, journal ; décors `AUT.enclos` (porte à serrure) et `AUT.labo` + table.
 Fragilités : `leve` du gardien passe la toise devant son visage (utiliser `atteint`/`cible`) ; cou `rentre` un peu anguleux ; clé dans le ventre petite (~120–150 px) ; `affiche.py` demande `/usr/bin/python3` (PIL).
+
+## `boussole.js` — « La boussole, un aimant qui pointe vers un pôle sud » (pont de navire), espace `M.bou` (BOU)
+Livré le 16/10/2026 (routine, aucun retour à ce jour). Mode d'emploi : `boussole.md` (à lire à la place du `.js`). Dans `S.init` : `BOU.init();`.
+Contenu : capitaine (casquette blanche, moustache rousse, caban bleu ; gestes boussole/salut/tendre/hanche/hoche/marche/demi-tour `BOU.tourne`), boussole (aiguille rouge/bleu, arcs de champ), globe-aimant (volet, calotte de glace, barreau inversable), aimant-barre. Décors du pont, du cageot et du sablier : `boussole-decors.txt` (non chargé ; à copier dans `decors/pN.js`).
+Fragilités : boussole tenue à s ≥ 0,5 passe à `C.bouCapitaine2` (petit saut) ; `salut` et `boussole` ne se cumulent pas (voir `cap()` des plans) ; globe à x ≤ 700 (berceau).
