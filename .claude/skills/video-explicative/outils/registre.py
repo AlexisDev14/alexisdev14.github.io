@@ -3,7 +3,9 @@
 #
 #   python3 -I registre.py etat
 #       Met le dépôt à jour (git pull), puis affiche les dernières vidéos (thème, type de récit, statut), le nombre de
-#       vidéos par thème Clark et les THÈMES CONSEILLÉS pour la prochaine (absents des 3 dernières, les moins servis d'abord).
+#       vidéos par thème Clark et les THÈMES CONSEILLÉS pour la prochaine (absents des 5 dernières, soit environ 24 h de
+#       routine, les moins servis d'abord). Signale les lignes « en cours » réservées il y a plus de 6 h : la session qui
+#       les tenait s'est sans doute arrêtée avant `livrer` (vérifier au BO et sur le Drive, puis `livrer` si c'est fait).
 #
 #   python3 -I registre.py reserver "<Sujet>" <id_question|-> <THEME> "<type de récit>" "<mots-clés à écarter>"
 #       Réserve le sujet AVANT tout travail : relit le registre à jour, refuse si l'id ou le sujet y est déjà, ajoute la
@@ -13,11 +15,17 @@
 #   python3 -I registre.py livrer "<Sujet>" "<lien du dossier Drive>" [<id du contenu au BO>]
 #       Passe la ligne du sujet à « livrée » avec le lien Drive (et l'id du contenu dans le planificateur du BO, ex.
 #       v_20261015_0400), committe et pousse.
+#
+#   python3 -I registre.py compte-rendu <ID> <fichier.md>
+#       Range le résumé final de l'exécution dans comptes-rendus/<ID>.md (à côté du registre), committe et pousse ce
+#       seul fichier. À faire à la fin de CHAQUE exécution, livrée ou non.
 import datetime, os, re, subprocess, sys, time
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 REG = os.path.normpath(os.path.join(ICI, '..', 'videos-realisees.md'))
 DEPOT = subprocess.run(['git', '-C', ICI, 'rev-parse', '--show-toplevel'], capture_output=True, text=True).stdout.strip()
+CR = os.path.normpath(os.path.join(ICI, '..', 'comptes-rendus'))
+RECENTS = 5   # thèmes exclus : ceux des 5 dernières vidéos (≈ 24 h à 5 exécutions par jour)
 THEMES = ['HIST', 'GEO', 'SCI', 'ART', 'MUS', 'POP', 'SPORT', 'VIE', 'ECO', 'LANG']   # ACTU exclu : vidéos intemporelles
 FIN = '\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
 
@@ -61,18 +69,25 @@ def etat():
         print(f"  {r['date']:8} {code(r['theme']):5} {r['type'][:32]:32} {r['statut'][:28]:28} {r['sujet']}")
     compte = {t: sum(code(r['theme']) == t for r in rows) for t in THEMES}
     print('Vidéos par thème : ' + ', '.join(f'{t} {n}' for t, n in compte.items()))
-    recents = [code(r['theme']) for r in rows[-3:]]
+    recents = [code(r['theme']) for r in rows[-RECENTS:]]
     types = [r['type'] for r in rows[-2:]]
     conseil = sorted([t for t in THEMES if t not in recents], key=lambda t: (compte[t], THEMES.index(t)))
-    print('Thèmes CONSEILLÉS (absents des 3 dernières, les moins servis d\'abord) : ' + ', '.join(conseil))
+    print(f'Thèmes CONSEILLÉS (absents des {RECENTS} dernières, les moins servis d\'abord) : ' + ', '.join(conseil))
     print('Types de récit à éviter (2 dernières) : ' + ' ; '.join(types))
     en_cours = [r['sujet'] for r in rows if 'en cours' in r['statut']]
     if en_cours:
         print('En cours dans une autre session (ne pas reprendre) : ' + ' ; '.join(en_cours))
+    for sujet in en_cours:
+        t = git('log', '-1', '--format=%ct', '-F', f'--grep=« {sujet} » en cours', ok=True).stdout.strip()
+        if t and time.time() - int(t) > 6 * 3600:
+            h = (time.time() - int(t)) / 3600
+            print(f'ANCIENNE RÉSERVATION ({h:.0f} h) : « {sujet} ». Cherche son dossier Drive dans « Vidéos » et son contenu '
+                  f'dans video_slots (lecture seule, même subject) ; si les deux existent : `registre.py livrer` avec le lien '
+                  f'et l\'id ; sinon laisse la ligne et signale-la dans ton compte rendu.')
 
 
-def pousser(msg):
-    git('add', REG)
+def pousser(msg, chemin=REG):
+    git('add', chemin)
     git('commit', '-q', '-m', msg + FIN)
     b = branche()
     for essai in range(5):
@@ -121,6 +136,16 @@ def livrer(sujet, lien, bo=''):
     sys.exit(1)
 
 
+def compte_rendu(ident, fichier):
+    if not re.fullmatch(r'v_\d{8}_\d{4}(_[a-z])?', ident):
+        print(f'ID invalide : {ident} (attendu v_AAAAMMJJ_HHMM)'); sys.exit(1)
+    tirer()
+    os.makedirs(CR, exist_ok=True)
+    dest = os.path.join(CR, ident + '.md')
+    open(dest, 'w', encoding='utf-8').write(open(fichier, encoding='utf-8').read().rstrip() + '\n')
+    print('COMPTE RENDU RANGÉ' if pousser(f'video-explicative : compte rendu {ident}', dest) else 'ATTENTION : non poussé')
+
+
 if __name__ == '__main__':
     a = sys.argv[1:]
     if a[:1] == ['etat']:
@@ -129,5 +154,7 @@ if __name__ == '__main__':
         reserver(*a[1:])
     elif a[:1] == ['livrer'] and len(a) in (3, 4):
         livrer(*a[1:])
+    elif a[:1] == ['compte-rendu'] and len(a) == 3:
+        compte_rendu(*a[1:])
     else:
         print(__doc__ if __doc__ else open(__file__, encoding='utf-8').read().split('import')[0])

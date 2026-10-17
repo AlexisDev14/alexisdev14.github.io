@@ -6,9 +6,9 @@
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
-# 1. Contrôle d'abord les longueurs et les tics (« Évidemment. » seul en phrase, phrases d'un ou deux mots : une au plus), sans rien envoyer : ≤ 195 caractères (≤ 180 avec un « … »), au plus un « … » et une durée estimée ≤ 10,6 s par paragraphe (≤ 9,8 s pour le plan 6, dont la chute
+# 1. Contrôle d'abord les longueurs et les tics (« Évidemment. » seul en phrase, phrases d'un ou deux mots : une au plus, pas de « Morale : » annoncé), sans rien envoyer : ≤ 195 caractères (≤ 180 avec un « … »), au plus un « … » et une durée estimée ≤ 10,6 s par paragraphe (≤ 9,8 s pour le plan 6, dont la chute
 #    doit finir avant la fermeture du rideau) (sinon refus :
-#    corriger voix.txt et relancer, rien n'est facturé) ; 26 à 31 mots et 165 à 195 caractères conseillés (simple note :
+#    corriger voix.txt et relancer, rien n'est facturé) ; 24 à 31 mots et 165 à 195 caractères conseillés (simple note :
 #    un paragraphe trop court laisse un trou dans le plan, le rallonger d'une précision utile).
 # 2. Envoie les 6 paragraphes en UN appel (séparés par une ligne vide). Écrit dans <travail>/voix/ :
 #      requete.json   le texte envoyé, écrit AVANT l'envoi
@@ -96,6 +96,9 @@ def tics(ps):
             else: courtes.append(f'p{n} « {ph.strip()} »')
     if len(courtes) > 1:
         refus.append('phrases d’un ou deux mots : ' + ', '.join(courtes) + ' (une seule par vidéo au plus)')
+    for n, p in enumerate(ps, 1):
+        if re.search(r'(^|[.!?…»]\s*|\]\s*)(la\s+)?morale\s*(:|,|de l)', p, re.I):
+            refus.append(f'p{n} : « Morale : » annoncé (devenu un tic : la morale se dit sans être annoncée)')
     return refus
 
 
@@ -117,8 +120,8 @@ def controler(ps):
         elif n < 6 and (est > 10.4 or est < 9.0):
             print(f'NOTE p{n} : durée estimée {est:.1f} s (viser 9,3 à 10,4 s ; jamais plus de 11 s en vrai)')
         nb = len(re.findall(r"[\wÀ-ÿ'’-]+", re.sub(r'\[[^\]]*\]', ' ', p)))
-        if not 26 <= nb <= 31:
-            print(f'NOTE p{n} : {nb} mots écrits (26 à 31 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
+        if not 24 <= nb <= 31:
+            print(f'NOTE p{n} : {nb} mots écrits (24 à 31 conseillés ; un nombre en chiffres se dit en plusieurs mots)')
         if len(p) < CARS_MIN:
             print(f'NOTE p{n} : {len(p)} caractères (< {CARS_MIN}) : la voix laissera un trou, rallonge d’une précision utile')
     refus += tics(ps)
