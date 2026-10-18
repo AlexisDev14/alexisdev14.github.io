@@ -97,6 +97,7 @@
 - Violence montrée (tête coupée en carton) → jamais de mort ni de violence à l'image : rideau, ombre, chapeau qui roule, fumée.
 - Personnage qui disparaît une ou deux images pendant un demi-tour (pivot par écrasement horizontal jusqu'à 0 : House invisible au plan 1) → l'échelle x ne descend jamais sous 0,25 en valeur absolue, `dir` bascule à ce seuil.
 - Carte tenue à bout de bras qui masquait l'avant-bras et la main d'Emma (affiche Mercedes) → un objet plat tenu à la main se dessine DERRIÈRE la marionnette, la main posée sur son bord ou son coin ; l'avant-bras reste entier.
+- Geste du gag qui vise un objet mais tombe à côté (Madame qui « enlace » le tuyau bleu en tendant la main vers un visiteur posé juste à côté : on croit qu'elle lui parle ; Pompidou) → la main est POSÉE sur l'objet du gag, le visage tourné vers lui, et aucun personnage ne se tient juste à côté de cet objet pendant le gag.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
