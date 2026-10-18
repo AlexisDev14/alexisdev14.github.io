@@ -3,6 +3,7 @@
 export PATH="/usr/bin:$PATH"
 # Contrôle technique d'un plan livré : format, durée, son, crête audio.  Usage : verifier.sh <video.mp4> [durée attendue en s]
 # Son : avec <video>/voix/pN.mp3, la voix off est incluse (crête ≤ −1 dBFS, sonie −16 à −12 LUFS) ; sans elle, bruitages seuls (crête ≤ −22).
+# Vidéo complète (assembler.sh) : AVEC_VOIX=1 force le contrôle « voix off incluse ».
 # Durée attendue : l'argument, sinon <video>/pN/duree.json pour <video>/out/pN/…mp4 (durée de la voix du plan), sinon 10 s.
 V="$1"
 python3 - "$V" "${2:-}" <<'PY'
@@ -13,7 +14,7 @@ if not sys.argv[2]:
     dj = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(v)))), os.path.basename(os.path.dirname(os.path.abspath(v))), 'duree.json')
     if os.path.exists(dj): attendu = json.load(open(dj))['duree']
 vv = os.path.abspath(v); nom = os.path.basename(os.path.dirname(vv))
-avec_voix = os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(vv))), 'voix', nom + '.mp3'))
+avec_voix = os.environ.get('AVEC_VOIX') == '1' or os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(vv))), 'voix', nom + '.mp3'))
 j = json.loads(subprocess.run(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', v], capture_output=True, text=True).stdout)
 vs = [s for s in j['streams'] if s['codec_type'] == 'video'][0]; au = [s for s in j['streams'] if s['codec_type'] == 'audio']
 ok = []

@@ -23,7 +23,7 @@
 #    et <travail>/durees.json : la DURÉE DE CHAQUE PLAN = celle de son pN.mp3 (voix + ≤ 0,6 s de souffle), arrondie à l'image ;
 #    plan 6 : voix + 1,3 s (fermeture du rideau après la chute). Le plan dure donc exactement sa voix, plus ou moins de 10 s :
 #    construire.sh en tire la durée du rendu, la conduite du rideau et les bruitages ; posé à 0 s, pN.mp3 tombe pile sur pN.
-#    Pas de voix complète : l'utilisateur pose lui-même p1…p6 au montage (seuls p1…p6.mp3 vont sur le Drive).
+#    Pas de voix complète : chaque pN.mp3 est mixé dans son plan, et assembler.sh met les plans bout à bout (seuls p1…p6.mp3 vont sur le Drive).
 #
 # UN SEUL APPEL PAR VIDÉO, JAMAIS D'ITÉRATION :
 #   - si brut.json existe, voix.py ne rappelle jamais ElevenLabs : il redécoupe seulement (gratuit) ;

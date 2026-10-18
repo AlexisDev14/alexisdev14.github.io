@@ -2,14 +2,14 @@
 # Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <p6_final.mp4>   (« - » : pas de fichier texte)
 #   "<Sujet>" peut être « id:<id du dossier> » pour déposer dans un dossier existant précis (lien du registre).
 #   Le type MIME suit toujours l'extension (.png → image/png, .txt → text/plain…), y compris pour le 2e argument.
-# Rangement dans le dossier du sujet : sous-dossier « Plans » (vidéos .mp4), sous-dossier « Audio » (.mp3, .wav) ; le reste
-# (fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
+# Rangement dans le dossier du sujet : sous-dossier « Plans » (plans pN_final.mp4), sous-dossier « Audio » (.mp3, .wav) ; le reste
+# (vidéo complète d'assembler.sh, fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
 # Renvoi sans doublon : un fichier de même nom déjà présent dans le dossier est REMPLACÉ (nouvelle version du même
 # fichier, même lien), jamais dupliqué ni mis à la corbeille. Relancer le script après une correction est donc sans risque.
 # Identifiants : secret réseau « GOOGLE_DRIVE » (type Body parameter, site oauth2.googleapis.com, chemin /token,
 # paramètres client_id, client_secret, refresh_token) injecté par le proxy dans la demande de jeton :
 # ce script n'a jamais connaissance de ces valeurs, seulement du jeton d'accès (valable 1 h) renvoyé par Google.
-import json, os, sys, urllib.parse, urllib.request
+import json, os, re, sys, urllib.parse, urllib.request
 
 VIDEOS = '1GoKRhXejq2FgNvA0trdSRBmC9uBrZmE_'   # dossier « Vidéos » à la racine du Drive Clark
 API = 'https://www.googleapis.com/drive/v3/files'
@@ -75,6 +75,7 @@ if __name__ == '__main__':
     for f in fichiers:
         ext = os.path.splitext(f)[1].lower()
         nom = RANGEMENT.get(ext)
+        if ext == '.mp4' and not re.fullmatch(r'p\d+(_final)?\.mp4', os.path.basename(f)): nom = None   # vidéo complète : à la racine
         if nom and nom not in sous: sous[nom] = dossier(tok, nom, d)
         envoyer(tok, f, sous[nom] if nom else d, MIME.get(ext, 'video/mp4'))
     print(f'dossier : https://drive.google.com/drive/folders/{d}')
