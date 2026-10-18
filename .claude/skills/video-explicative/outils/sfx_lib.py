@@ -16,8 +16,13 @@ except ImportError:  # python3 sans numpy (routines) : relance la même commande
     _o.execv('/usr/bin/python3', ['/usr/bin/python3'] + list(getattr(_s, 'orig_argv', [_s.executable] + _s.argv))[1:])
 import wave, subprocess, re
 
-SR, DUR = 48000, 10
-N = SR * DUR
+SR, DUR, DEBUT = 48000, 10.0, None
+# Durée du plan = durée de sa voix (duree.json, écrit par construire.sh dans le dossier du plan, d'après <video>/durees.json) ;
+# DEBUT = instant global du début du plan (somme des durées des plans précédents), pour la conduite du rideau.
+if os.path.exists('duree.json'):
+    import json as _j
+    _d = _j.load(open('duree.json')); DUR, DEBUT = float(_d['duree']), float(_d['debut'])
+N = int(round(SR * DUR))
 SONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sons')
 PLAFOND = -24.0
 
@@ -179,7 +184,7 @@ class Mix:
         import json
         if not os.path.exists(chemin): return
         if plan is None: plan = int((re.findall(r'\d+', os.path.basename(os.getcwd())) or ['1'])[0])
-        T0 = (plan - 1) * DUR
+        T0 = DEBUT if DEBUT is not None else (plan - 1) * DUR
         cues = sorted(json.load(open(chemin))['cues'], key=lambda q: q['a'])
         for i, q in enumerate(cues):
             fin = max(q.get(k, q['a']) for k in 'abcd')
@@ -247,10 +252,12 @@ class Mix:
 
     AMBIANCES_SYNTH = ('interieur', 'machine', 'horloge', 'feu', 'eau')
 
-    def ambiance(self, nom, t0=0.0, t1=10.0, db=-42, pan=0.0, af=None):
+    def ambiance(self, nom, t0=0.0, t1=None, db=-42, pan=0.0, af=None):
         """Ambiance du lieu, très basse (au moins une par plan) : un clip de sons/ ('vent', 'ressac', 'vent_herbe',
         'sabots_neige'…) ou une ambiance synthétisée : 'interieur' (salle calme), 'machine' (ronron mécanique), 'horloge'
-        (tic-tac), 'feu' (crépitement), 'eau' (ruissellement). Jamais de voix humaine."""
+        (tic-tac), 'feu' (crépitement), 'eau' (ruissellement). Jamais de voix humaine.
+        t1 omis (ou ≥ 10) = jusqu'à la fin du plan, quelle que soit sa durée."""
+        t1 = DUR if t1 is None or t1 >= 10 else min(t1, DUR)
         if nom not in self.AMBIANCES_SYNTH:
             self.place(nom, t0, db, pan, end=t1 - t0, af=af, fin=0.5, fout=0.8, label=f'ambiance {nom}')
             return
@@ -331,7 +338,7 @@ def aide():
     import inspect
     L = ["Structure d'un mixage.py (voir gabarits/mixage.py) : import sys; sys.path.insert(0, sys.argv[1]); from sfx_lib import Mix, events",
          "  E = events('timeline.js') (repères du plan) ; m = Mix(mots=MOTS) ; m.rideau_conduite() ; préréglages ci-dessous ; m.write(sys.argv[2])",
-         "Temps en secondes du plan (0-10), pan -1 (gauche) à 1 (droite), db = crête en dBFS (plafond -24). 3 à 8 bruitages + au moins une ambiance du lieu ; AUCUN son de voix humaine (murmure, foule qui parle, voix ralentie)."]
+         "Temps en secondes du plan (0 à sa durée, voir duree.json), pan -1 (gauche) à 1 (droite), db = crête en dBFS (plafond -24). 3 à 8 bruitages + au moins une ambiance du lieu ; AUCUN son de voix humaine (murmure, foule qui parle, voix ralentie)."]
     for nom, d in DESCRIPTIONS.items():
         sig = str(inspect.signature(getattr(Mix, nom))).replace('(self, ', '(').replace('(self)', '()')
         L.append(f"m.{nom}{sig} : {d}")

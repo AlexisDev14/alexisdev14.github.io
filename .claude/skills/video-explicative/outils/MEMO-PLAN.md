@@ -24,7 +24,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Personnages de la vidéo et de la bibliothèque : **les appeler, ne jamais les redessiner**. Le mode d'emploi des personnages de la vidéo est `<video>/persos.md` (fonctions, options, valeurs permises, points de prise, tailles en px) : **ne lis pas `persos.js`** ; si une option manque à `persos.md`, `grep -n 'nomDeLOption' persos.js` puis l'extrait. Bibliothèque commune : l'en-tête de `bibliotheque/*.js` (`sed -n '1,40p'`).
 
 ## 4. Rideau, décors, faune, raccords
-- Rideau : **`M.rideau(t)` seulement** (conduite `rideau.json`, temps globaux, déjà chargée). Changement de décor : `if (M.rideauApres(t, 'id')) decorB(); else decorA();`. Plan qui commence fermé : dessiner directement le nouveau décor.
+- Rideau : **`M.rideau(t)` seulement** (conduite `rideau.json`, déjà chargée). Changement de décor : `if (M.rideauApres(t, 'id')) decorB(); else decorA();`. Plan qui commence fermé : dessiner directement le nouveau décor.
 - Décor qui descend des cintres : `y = ST.back - (1-p)*1250 + M.wob(t, t1, -12, 2.2, 5.5)` + câbles jusqu'à y 0. Qui monte de la trappe : `y = ST.back + (1-p)*H + M.wob(…)`, `clipY: ST.back+1`. Ressort : `M.spring(t-t0)`, rebond : `M.wob(t, t0, amp)`.
 - Extérieur : 1 à 3 touches de faune lointaine muette (`M.oiseaux`, `M.passage`, `M.animal`…, API §4c), petites, pâlies, **posées sur un relief**, jamais pendant le geste clé au même endroit.
 - **Décors partagés** : un décor qui sert à plus d'un plan (rivière, cuisine, labo…) s'écrit dans **ton propre fichier `<video>/decors/pN.js`** (jamais dans celui d'un autre plan, ni dans `pN/decors.js`, copie écrasée à chaque `construire.sh`/`essai.sh`) : une fonction par élément, toutes avec le décalage vertical `up` (ex. `M.dec.riviere = function (t, up) {…};`), espace `M.dec` (déjà créé, aucun `const` global), pré-rendus dans **`M.dec.init_pN = function () {…};`** (jamais `M.dec.init = …`). `construire.sh` réunit tous les `decors/*.js` ; `M.dec.init()` (dans `S.init`) lance tous les `init_pN`. Les plans suivants **appellent** ces fonctions sans les recopier ni les modifier (une variante = une nouvelle fonction dans leur propre fichier). Toute écriture dans `decors.js` se dit dans le rapport. Un décor d'un seul plan reste dans son `scene.js`.
@@ -32,8 +32,8 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 
 ## 5. Mise en scène (règles qui reviennent le plus)
 - Geste clé sur le mot clé (± 0,2 s) ; gag avec la chute, jamais avant ; une action principale à la fois ; anticipation → action → rebond ; durées mini : geste 0,3 s, expression 0,6 s, gag 1,5–2 s ; changement de posture par étapes sur 0,8–1,2 s.
-- Toute action finie à 9 s (9,6 s au plus) ; puis image stable (respiration, flammes) ou rideau si la conduite le prévoit. Jamais figé.
-- Voix plus longue que le plan (jusqu'à 11 s, acceptée par l'utilisateur, calée au montage) : un mot-clé dit après 9,6 s a son geste à 9,6 s au plus ; l'image reste ensuite stable et vivante jusqu'à 10 s.
+- **Le plan dure exactement sa voix** : `DUREE` (secondes) et `IMAGES` dans `duree.js`, affichés par `construire.sh` (« pN prêt : 10,83 s, 325 images ») ; ce n'est plus 10 s. Chaque geste tombe sur son mot, même après 10 s.
+- Toute action finie avec le dernier mot (D − 0,3 s au plus) ; puis image stable (respiration, flammes) jusqu'à D, ou rideau si la conduite le prévoit. Jamais figé.
 - Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
 - ⛔ **Aucune mort ni violence montrée** (pas de tête coupée, de sang, de coup qui touche, de corps à terre, même en carton) : on la suggère comme au théâtre (rideau qui tombe, ombre sur la toile, chapeau qui roule, fumée, objet qui tombe à la place).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
@@ -52,7 +52,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 ## 7. Contrôle avant `produire.sh` (cocher chaque ligne sur les images)
 1. `planche_cles.png` (sortie d'`essai.sh`) **à petite taille** : chaque mot-clé se lit en 1 s ; rien de clé caché ni hors zone.
 2. Coudes et épaules sans cassure ; mains autour des objets ; postures par étapes.
-3. Rideau conforme à la conduite à 0 s et à 10 s ; image 0 = état final du plan précédent (`M.RACC`).
+3. Rideau conforme à la conduite à 0 s et à la fin du plan (D s) ; image 0 = état final du plan précédent (`M.RACC`).
 4. Chaque ligne de `CHARTE.md` §8 (`sed -n '/^## 8/,/^## 9/p' OUTILS/CHARTE.md` : c'est la seule section de la charte à relire à chaque plan).
 5. Après `produire.sh` : `verifier.sh` tout « OK » ; chaque ligne « ATTENTION » traitée :
    - `sauts.py` « saut à t » : un objet surgit, disparaît ou change de place en une image (porte qui claque, accessoire posé ou repris sans geste). Regarde `planche.sh <pN_final.mp4> zoom.png --de t-0.3 --a t+0.3` dans la zone donnée ; corrige (fondu, geste qui pose ou reprend, mouvement sur plusieurs images) ou justifie dans le rapport (coupe voulue, éclair).

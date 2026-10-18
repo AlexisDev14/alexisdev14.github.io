@@ -11,6 +11,7 @@
 </head>
 <body>
 <canvas id="c" width="1080" height="1920"></canvas>
+<script src="duree.js"></script>
 <script src="timeline.js"></script>
 <script src="marionnettes.js"></script>
 <script src="bibliotheque.js"></script>
@@ -20,7 +21,7 @@
 <script src="decors.js"></script>
 <script src="scene.js"></script>
 <script>
-const FPS = 30, FRAMES = 300;
+const FPS = 30, FRAMES = __IMAGES__;
 const ctx = document.getElementById('c').getContext('2d');
 M.use(ctx); M.init(); if (SCENE.init) SCENE.init();
 function setFrame(f) {

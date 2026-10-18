@@ -20,13 +20,16 @@
 #                       balises exclues ; duree = fin du dernier mot)
 #      MOTS.md          par plan, la durée et chaque mot avec ses instants (à recopier dans la fiche : fenêtres de voix,
 #                       mots-clés, TL.MOTS)
+#    et <travail>/durees.json : la DURÉE DE CHAQUE PLAN = celle de son pN.mp3 (voix + ≤ 0,6 s de souffle), arrondie à l'image ;
+#    plan 6 : voix + 1,3 s (fermeture du rideau après la chute). Le plan dure donc exactement sa voix, plus ou moins de 10 s :
+#    construire.sh en tire la durée du rendu, la conduite du rideau et les bruitages ; posé à 0 s, pN.mp3 tombe pile sur pN.
 #    Pas de voix complète : l'utilisateur pose lui-même p1…p6 au montage (seuls p1…p6.mp3 vont sur le Drive).
 #
 # UN SEUL APPEL PAR VIDÉO, JAMAIS D'ITÉRATION :
 #   - si brut.json existe, voix.py ne rappelle jamais ElevenLabs : il redécoupe seulement (gratuit) ;
 #   - si requete.json existe sans brut.json (appel parti, réponse perdue), il refuse : la voix est peut-être déjà facturée ;
 #   - aucun nouvel essai une fois la requête partie, sauf un refus 429 ou 503 (rien n'a été rendu) ;
-#   - une voix > 10,5 s est signalée NOTE (le plan fait 10 s : l'utilisateur cale au montage, il accepte jusqu'à 11 s) ;
+#   - une voix > 10,5 s est signalée NOTE (le plan s'allonge d'autant ; l'utilisateur accepte jusqu'à 11 s de voix) ;
 #   - une voix > 11 s (plafond de l'utilisateur) est la SEULE exception : raccourcis ce paragraphe dans voix.txt, puis
 #     `voix.py <travail> --refaire N` refait CE SEUL plan en un appel (plus court que l'original, estimé ≤ 10,2 s ;
 #     une seule fois par plan ; fichiers voix/refait_pN_*). Une voix refaite qui dépasse encore 11 s se garde et se signale.
@@ -39,7 +42,8 @@ import base64, difflib, json, os, re, shutil, socket, subprocess, sys, time, url
 
 VOIX = 'gP52hjM48hyNoVCbizxO'          # « Alexandre – Calm, Warm & Authentic » (choix de l'utilisateur)
 MODELE = 'eleven_v4'                   # choix de l'utilisateur
-MAX = 10.5                             # secondes : au-delà, simple note (plan de 10 s, recalé au montage)
+MAX = 10.5                             # secondes : au-delà, simple note (le plan s'allonge à la durée de la voix)
+TRAINE_P6 = 1.3                        # secondes après le dernier mot du plan 6 : fermeture du rideau après la chute
 PLAFOND = 11.0                         # secondes : limite de l'utilisateur ; au-delà, ce plan seul se refait (--refaire N)
 CARS = 195                             # caractères par paragraphe, balises comprises (165 à 195 conseillés)
 CARS_MIN = 165
@@ -225,7 +229,7 @@ def decouper(d, ps, r, voix, modele):
                   open(os.path.join(d, f'p{n}.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         pl['duree'], pl['long'] = duree, pl['b'] - a
         print(f'{"OK  " if duree <= MAX else "NOTE"} p{n} : {duree:.2f} s, {len(mots)} mots, {len(pl["texte"])} caractères' +
-              ('' if duree <= MAX else f' : plus de {MAX} s (accepté jusqu’à {PLAFOND} s ; à signaler pour le montage)'))
+              ('' if duree <= MAX else f' : plus de {MAX} s (accepté jusqu’à {PLAFOND} s ; le plan s’allonge d’autant)'))
     for n in range(1, 7):
         if os.path.exists(os.path.join(d, f'refait_p{n}_brut.json')):
             appliquer_refait(d, n, voix, modele)
@@ -315,6 +319,27 @@ def ecrire_mots(d):
         lignes += [f'## Plan {n} : {j["duree"]:.2f} s' + (' (refait)' if j.get('refait') else ''), ' '.join(f'{w}({a:.2f}–{b:.2f})' for w, a, b in j['mots']), '']
     open(os.path.join(d, 'MOTS.md'), 'w', encoding='utf-8').write('\n'.join(lignes))
     print('→ ' + os.path.join(d, 'MOTS.md'))
+    ecrire_durees(d)
+
+
+def ecrire_durees(d):
+    # durée de chaque plan = durée de son pN.mp3 (plan 6 : voix + TRAINE_P6), arrondie à l'image supérieure
+    import math
+    durees = []
+    for n in range(1, 7):
+        mp3 = os.path.join(d, f'p{n}.mp3')
+        long = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp3],
+                                    capture_output=True, text=True, check=True).stdout)
+        if n == 6:
+            long = max(long, json.load(open(os.path.join(d, 'p6.json'), encoding='utf-8'))['duree'] + TRAINE_P6)
+        durees.append(math.ceil(long * 30 - 1e-6) / 30)
+    debuts = [round(sum(durees[:i]), 3) for i in range(6)]
+    json.dump({'durees': [round(x, 4) for x in durees], 'images': [round(x * 30) for x in durees], 'debuts': debuts,
+               'total': round(sum(durees), 3)},
+              open(os.path.join(os.path.dirname(d), 'durees.json'), 'w'), indent=1)
+    print('DURÉES DES PLANS (= voix ; à reporter dans la fiche) : ' +
+          ' · '.join(f'p{n} {x:.2f} s (début {debuts[n - 1]:.2f})' for n, x in enumerate(durees, 1)).replace('.', ',') +
+          f' — total {sum(durees):.1f} s'.replace('.', ','))
 
 
 def main():

@@ -8,7 +8,7 @@ export PATH="/usr/bin:$PATH"
 #   sauts.py    : sauts brusques (accessoire qui surgit ou disparaît) et fond nu visible dans la scène (ATTENTION, sans blocage) ;
 #   raccord.sh  : fin du plan précédent contre début de celui-ci, si N ≥ 2 et si out/p(N-1)/p(N-1)_final.mp4 existe
 #                 (ATTENTION sans blocage ; image de comparaison out/pN/raccord.png).
-# La sortie du rendu est allégée : les lignes de progression « image k/300 » de render.cjs sont filtrées (les erreurs restent).
+# La sortie du rendu est allégée : les lignes de progression « image k/N » de render.cjs sont filtrées (les erreurs restent).
 set -eo pipefail
 OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
 "$OUT/construire.sh" "$P" >/dev/null

@@ -3,7 +3,7 @@
 À lire **en entier** par tout agent qui dessine, anime ou sonorise un plan. Référence de qualité : `exemples/arc-de-triomphe/` (6 plans validés par l'utilisateur).
 
 ## 1. Format
-- 1080 × 1920, 30 im/s, 10,0 s par plan (300 images), H.264 yuv420p + AAC stéréo 192 kb/s.
+- 1080 × 1920, 30 im/s, **chaque plan dure exactement sa voix** (`durees.json`, ≈ 9 à 11 s ; `DUREE` dans `duree.js`), H.264 yuv420p + AAC stéréo 192 kb/s.
 - Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
 
 ## 2. Le théâtre (fourni par le kit, ne pas redessiner)
@@ -31,15 +31,15 @@
 ## 5. Mise en scène
 - **Le rideau a une conduite pour toute la vidéo** (`<video>/rideau.json`, API §4b), décidée dans la fiche, plan par plan :
   - **début** : le plan 1 s'ouvre sur le rideau (0,1 → ≈ 1,2 s) ;
-  - **changement de lieu ou d'époque** entre deux plans : `change` à cheval sur la coupe (fermeture ≈ 9,4 → 9,95 s du plan N, fermé pendant la coupe, réouverture ≈ 0,15 → 0,85 s du plan N+1) ; la voix continue rideau fermé. Ou bien machinerie (décor qui monte/descend) si le lieu reste le même théâtre ;
+  - **changement de lieu ou d'époque** entre deux plans : `change` à cheval sur la coupe (fermeture ≈ D−0,6 → D−0,05 s du plan N de durée D, fermé pendant la coupe, réouverture ≈ 0,15 → 0,85 s du plan N+1) ; la voix continue rideau fermé. Ou bien machinerie (décor qui monte/descend) si le lieu reste le même théâtre ;
   - **changement à l'intérieur d'un plan** : `change` (≈ 1,1–1,4 s en tout, fermé ≤ 0,3 s) ou machinerie ;
   - **ellipse de temps sans changer de lieu** (« plus tard », « des siècles plus tard ») : `demi` (les pans se resserrent à moitié et se rouvrent, ≈ 1,2 s) ;
   - **même lieu, action continue** : rien, le rideau reste ouvert à travers la coupe ;
-  - **fin de la vidéo** : le rideau **se ferme après la chute** du dernier plan (≈ 9,0 → 9,85 s), une fois le gag vu ; dernière image rideau fermé.
+  - **fin de la vidéo** : le rideau **se ferme après la chute** du dernier plan (≈ 0,2 → 1,05 s après le dernier mot ; le plan 6 dure la voix + 1,3 s), une fois le gag vu ; dernière image rideau fermé.
 - Le rideau n'est **jamais** en mouvement sur un mot-clé dont l'image compte, ni devant le geste clé ou le gag ; au plus 2 mouvements de rideau par plan ; pas deux `change` dans deux coupes consécutives (varier avec la machinerie ou `demi`).
 - Le geste clé tombe sur le mot clé de la voix (écart < 0,2 s) ; le gag arrive avec la chute, jamais avant.
 - Anticipation → action → rebond (ressorts amortis), durées minimales : geste 0,3 s, expression 0,6 s, gag 1,5–2 s. Une action principale à la fois.
-- Toute action finie à 9 s (au plus tard 9,6 s si un bruitage doit suivre le dernier mot) ; puis image stable, ou fermeture du rideau si la conduite la prévoit.
+- Toute action finie avec le dernier mot de la voix (au plus tard D − 0,3 s si un bruitage doit le suivre) ; puis image stable jusqu'à D, ou fermeture du rideau si la conduite la prévoit.
 - Caméra fixe (le théâtre ne bouge pas). Seul mouvement permis : un recul lent unique (zoom 1,1 → 1,0) pour révéler un décor.
 
 ## 6. Cadrage TikTok
@@ -79,7 +79,7 @@
 - Bruitage qui tombe sur un mot-clé ; bruitage trop fort ; son sans action visible.
 - Animal lointain qui flotte dans le ciel ou sur la toile (pas de relief sous ses pieds) ; faune qui attire l'œil pendant le geste clé.
 - Rideau qui bouge pendant un gag ou sur un mot-clé ; raccord de rideau faux à la coupe (plan qui ne commence pas dans l'état où le précédent finit) → toujours `M.rideau(t)` + `rideau.json`, jamais un rideau codé à la main.
-- Cue de `rideau.json` posée au mauvais instant (un `change` P4 → P5 écrit à 49,4 au lieu de 39,4) → `rideau.json` est en temps **global** : un instant local `t` du plan N s'écrit `(N−1)×10 + t` ; vérifier chaque cue par ce calcul et contre le tableau de la fiche.
+- Cue de `rideau.json` posée au mauvais instant (un `change` P4 → P5 écrit à 49,4 au lieu de 39,4) → écrire chaque cue avec `"plan": N` et ses temps locaux (les plans n'ont plus tous 10 s) ; vérifier chaque cue contre le tableau de la fiche.
 - Bruitage placé sur un mot-clé **dès la fiche** (« pleine » 6,0–6,6 avec un `objet_pose` à 6,05) → à l'écriture de la fiche, caler chaque bruitage hors des fenêtres de mots-clés, juste après le mot.
 - Accessoire qui surgit à la coupe (balance absente à la fin du plan 1, présente au début du plan 2) → tout objet dont le plan suivant a besoin est déjà en place dans la dernière image du plan précédent.
 - Geste clé coupé par un rideau à demi fermé (officier arrêté à x 120, salut caché par le pan) → avec une cue `demi`, garder le personnage et son geste dans la bande restée visible (x ≥ 240).
@@ -98,7 +98,7 @@
 - Carte tenue à bout de bras qui masquait l'avant-bras et la main d'Emma (affiche Mercedes) → un objet plat tenu à la main se dessine DERRIÈRE la marionnette, la main posée sur son bord ou son coin ; l'avant-bras reste entier.
 
 ## 9. Contrôle avant livraison d'un plan
-1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
+1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
 3. `verifier.sh` tout « OK » (format, durée, son, crête ≤ −22).
 4. Raccord de rideau : première image du plan = dernière image du plan précédent pour le rideau (ouvert, fermé ou en mouvement).

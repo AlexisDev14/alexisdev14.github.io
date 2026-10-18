@@ -9,7 +9,7 @@ E = events('timeline.js')
 MOTS = [tuple(map(float, p)) for p in re.findall(r'\[\s*([\d.]+)\s*,\s*([\d.]+)\s*\]', open('timeline.js').read().split('TL.MOTS =')[1].split(';')[0])]
 m = Mix(mots=MOTS)
 m.rideau_conduite()                  # rideau : d'après <video>/rideau.json (toute la vidéo), rien d'autre à écrire
-m.ambiance('interieur', 0.0, 10.0)   # ambiance du lieu (à adapter : 'machine', 'horloge', 'feu', 'eau', 'vent', 'ressac'…)
+m.ambiance('interieur')              # ambiance du lieu sur tout le plan (quelle que soit sa durée) (à adapter : 'machine', 'horloge', 'feu', 'eau', 'vent', 'ressac'…)
 # m.decor_monte(E['decor0'], E['decor1'], pan=0.0, poids='lourd')
 # m.apparition(E['entree'], pan=-0.4)
 m.write(sys.argv[2])

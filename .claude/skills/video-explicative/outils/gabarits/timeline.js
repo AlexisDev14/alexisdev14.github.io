@@ -5,7 +5,7 @@
   TL.EVENTS = {
     // le rideau ne se règle PAS ici : il suit la conduite de la vidéo (<video>/rideau.json, M.rideau(t))
     // geste0: 2.45, // « mot clé » : le geste clé tombe sur le mot (écart < 0,2 s)
-    fixe: 9.0,       // toute action finie ; dernière seconde immobile (flammes et respiration seulement)
+    fixe: 9.0,       // toute action finie (avec le dernier mot) ; ensuite immobile jusqu'à DUREE (duree.js : le plan dure sa voix)
   };
   // Mots-clés de la voix (aucun bruitage marqué dessus) : [début, fin] en secondes
   TL.MOTS = [];

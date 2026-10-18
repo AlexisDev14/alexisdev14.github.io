@@ -1,9 +1,10 @@
 
 // ---------------------------------------------------------------- conduite du rideau (toute la vidéo)
-// Le rideau est piloté sur les 60 s de la vidéo par UNE conduite (<travail>/rideau.json, copiée dans chaque plan
-// par construire.sh sous forme de rideau.js) : chaque plan lit sa tranche [(PLAN−1)·10, PLAN·10]. Un mouvement peut
+// Le rideau est piloté sur toute la vidéo par UNE conduite (<travail>/rideau.json, copiée dans chaque plan
+// par construire.sh sous forme de rideau.js) : chaque plan lit sa tranche [DEBUT, DEBUT + DUREE] (durée du plan = durée
+// de sa voix, <travail>/durees.json ; une cue peut aussi porter "plan": N, ses temps sont alors ceux du plan N). Un mouvement peut
 // donc chevaucher la coupe entre deux plans : mis bout à bout, le rideau (et son bruitage) ne fait qu'un geste.
-// Repères : temps GLOBAUX en secondes (plan 3 à 9,5 s = 29,5). Repères possibles :
+// Repères : temps GLOBAUX en secondes (plan N à t s = début du plan N + t), ou locaux avec "plan": N. Repères possibles :
 //   { type:'ouvre',  a, b }                 0 → 1
 //   { type:'ferme',  a, b }                 → 0 (fin de vidéo : se ferme après la chute)
 //   { type:'change', a, b, c, d, id }       ferme a→b, reste fermé b→c (on change le décor), rouvre c→d
@@ -37,13 +38,14 @@ M.conduite = function (cues, o = {}) {
 };
 M.PLAN = M.PLAN || 1;
 M.RIDEAU = M.RIDEAU || null;
+M.debut = function () { return M.DEBUT != null ? M.DEBUT : (M.PLAN - 1) * 10; };
 M.rideauAt = function (t) {
-  const T = (M.PLAN - 1) * 10 + t;
+  const T = M.debut() + t;
   return M.RIDEAU ? M.RIDEAU.etat(T) : { f: 1, swing: 0, T, ferme: false };
 };
 M.rideau = function (t, o = {}) { const r = M.rideauAt(t); M.curtain(t, r.f, Object.assign({ swing: r.swing }, o)); return r; };
 M.rideauApres = function (t, id) {
-  const T = (M.PLAN - 1) * 10 + t, m = M.RIDEAU && M.RIDEAU.marks[id];
+  const T = M.debut() + t, m = M.RIDEAU && M.RIDEAU.marks[id];
   if (m == null) throw new Error('repère de rideau inconnu : ' + id);
   return T >= m;
 };

@@ -15,7 +15,7 @@ Un plan = 4 fichiers dans `<video>/pN/` (+ `<video>/persos.js` et son mode d'emp
 | `CONSIGNE.md` | écrit par `construire.sh` : `FICHE.md` sans le script ni les consignes des autres plans. C'est la fiche que lit l'agent du plan. |
 | `mixage.py` | bruitages (§9). |
 
-Commandes : `bash construire.sh <video>/pN` (prépare, copie le kit, `bibliotheque/*.js`, la conduite `rideau.json`, `persos.js` et `decors.js`, écrit `CONSIGNE.md`, vérifie la syntaxe) ; `bash essai.sh <video>/pN 4.5,8.3` (`construire.sh` + images clés des secondes 0 à 9, 9,97 et des instants donnés + `planche_cles.png`, une ligne de sortie : la commande d'itération) ; `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <video>/pN --name pN --out <video>/out --stills 60,200` (images fixes PNG + **`planche_cles.png`** : toutes les images clés sur une seule image, dans l'ordre demandé — la regarder d'abord, n'ouvrir en grand que les PNG utiles) ; `bash produire.sh <video>/pN` (rendu complet ≈ 1 min + son + `planche.png` + `verifier.sh`).
+Commandes : `bash construire.sh <video>/pN` (prépare, lit la durée du plan = sa voix (`duree.js` : `DUREE`, `DEBUT`, `IMAGES`), copie le kit, `bibliotheque/*.js`, la conduite `rideau.json`, `persos.js` et `decors.js`, écrit `CONSIGNE.md`, vérifie la syntaxe) ; `bash essai.sh <video>/pN 4.5,8.3` (`construire.sh` + images clés des secondes 0 à 9, 9,97 et des instants donnés + `planche_cles.png`, une ligne de sortie : la commande d'itération) ; `NODE_PATH=/opt/node22/lib/node_modules node render.cjs <video>/pN --name pN --out <video>/out --stills 60,200` (images fixes PNG + **`planche_cles.png`** : toutes les images clés sur une seule image, dans l'ordre demandé — la regarder d'abord, n'ouvrir en grand que les PNG utiles) ; `bash produire.sh <video>/pN` (rendu complet ≈ 1 min + son + `planche.png` + `verifier.sh`).
 
 Les rendus passent **l'un après l'autre** grâce à un verrou dans `render.cjs` : si un autre rendu tourne, le suivant attend (« un autre rendu est en cours : attente… »). Ne jamais le contourner.
 
@@ -125,13 +125,13 @@ Même placement que `flat` + balancement `amp·sin(t·f + ph)` et deux fils qui 
 - `M.drawFrame(t)` : rampe (flammes), souffleur, cadre de scène doré, lambrequin. En tout dernier. `M.footlights(t)` en fait partie.
 
 ## 4b. Conduite du rideau (toute la vidéo) — `<video>/rideau.json`
-Le rideau ne se règle plus plan par plan : **une conduite de 60 s** pour toute la vidéo, écrite dans la fiche puis dans `<video>/rideau.json` (temps **globaux** : plan N à t s = (N−1)·10 + t). `construire.sh` la copie dans chaque plan avec le numéro du plan ; chaque plan en dessine sa tranche. Un mouvement peut **chevaucher la coupe** : fermeture à la fin du plan 3, réouverture au début du plan 4 → mis bout à bout, un seul geste continu (même ouverture, même balancement, même son de part et d'autre de la coupe).
+Le rideau ne se règle plus plan par plan : **une conduite** pour toute la vidéo, écrite dans la fiche puis dans `<video>/rideau.json` (chaque cue porte de préférence **`"plan": N`** : ses temps sont alors comptés depuis le début du plan N, et une valeur au-delà de la durée du plan déborde sur le suivant ; sans `plan`, temps globaux = début réel du plan N + t, débuts dans `durees.json`. Chaque plan dure sa voix : `DUREE`, `DEBUT` dans `duree.js`)·10 + t). `construire.sh` la copie dans chaque plan avec le numéro du plan ; chaque plan en dessine sa tranche. Un mouvement peut **chevaucher la coupe** : fermeture à la fin du plan 3, réouverture au début du plan 4 → mis bout à bout, un seul geste continu (même ouverture, même balancement, même son de part et d'autre de la coupe).
 ```json
 { "cues": [
-  { "type": "ouvre",  "a": 0.1,  "b": 1.2 },
-  { "type": "demi",   "a": 23.6, "b": 24.1, "c": 24.4, "d": 25.0, "k": 0.45, "id": "plustard" },
-  { "type": "change", "a": 29.4, "b": 29.95, "c": 30.15, "d": 30.85, "id": "chalet" },
-  { "type": "ferme",  "a": 59.0, "b": 59.85 }
+  { "plan": 1, "type": "ouvre",  "a": 0.1,  "b": 1.2 },
+  { "plan": 3, "type": "demi",   "a": 3.6,  "b": 4.1,  "c": 4.4,  "d": 5.0, "k": 0.45, "id": "plustard" },
+  { "plan": 3, "type": "change", "a": 10.0, "b": 10.55, "c": 10.75, "d": 11.45, "id": "chalet" },
+  { "plan": 6, "type": "ferme",  "a": 9.4,  "b": 10.25 }
 ] }
 ```
 - `ouvre` (0 → 1), `ferme` (→ 0), `change` (ferme a→b, **fermé** b→c : on change le décor, rouvre c→d), `demi` (les pans se resserrent jusqu'à `k` puis se rouvrent : ellipse de temps, « plus tard », sans changer de lieu).
