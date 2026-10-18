@@ -1,8 +1,8 @@
 // persos.js — « Robert Downey Jr, l'acteur que personne n'assurait » : marionnettes, accessoires et décors PROPRES À CETTE VIDÉO. Espace M.dow (alias DOW). Appeler DOW.init() dans S.init.
 // Mode d'emploi complet : persos.md (ne pas lire ce fichier en entier). Aucun texte, lettre, chiffre ni logo. Déterministe (hash, jamais Math.random).
 // MARIONNETTES : DOW.robert / DOW.assureur / DOW.feige / DOW.dirigeant (pose, x, y, s, o) — (x,y) = pieds ; jambes en 3 pièces legX_up/_lo + piedX.
-// OBJETS TENUS (tenu / tenuB) : 'parapluie' 'clap' 'sac' 'bobine' 'casque' 'billet' ou une fonction de dessin (o, ctx) ; DOW.pt(r, nom[, arriere]).
-// ACCESSOIRES : DOW.parapluie clap sac bobine casque (x,y,s,o) ; DOW.armure(x,y,s,{casque,lueur,up}) ; DOW.billet ; DOW.pluie(t,o) ; DOW.pile(t,o).
+// OBJETS TENUS (tenu / tenuB) : 'parapluie' 'clap' 'sac' 'bobine' 'casque' 'billet' 'enveloppe' ou une fonction de dessin (o, ctx) ; DOW.pt(r, nom[, arriere]). Doigts dessinés par-dessus l'objet (pads), objets plats/longs DERRIÈRE l'avant-bras.
+// ACCESSOIRES : DOW.parapluie clap sac bobine casque enveloppe (x,y,s,o) ; DOW.armure(x,y,s,{casque,lueur,up}) ; DOW.billet ; DOW.pluie(t,o) ; DOW.pile(t,o).
 // DÉCORS : DOW.hollywood(t, up, o) (+ HOU.palmiers) ; DOW.studio(t, up, o) (+ HOU.projecteurs).
 (function () {
   'use strict';
@@ -45,7 +45,9 @@
   // ------------------------------------------------------------ bras et jambes à articulations rondes (rivet au centre de chaque cercle)
   const R_COUDE = 11.5, LA = 96, LB = Math.hypot(4, 96), PHI = Math.atan2(-4, 96);
   function armR(len, wt) { wt = wt || 15; return ep(0, 0, wt, wt, 10, PI, TAU).concat([[wt - 1, 40], [R_COUDE + 0.5, len - 6]], ep(0, len, R_COUDE, R_COUDE, 10, 0, PI), [[-R_COUDE - 0.5, len - 6], [-wt + 1, 40]]); }
-  function foreR(kind) { const f = X.forePts(kind); return ep(0, 0, R_COUDE, R_COUDE, 10, PI, TAU).concat(f.slice(2)); }
+  function foreR(kind) {
+    if (kind === 'paume') return ep(0, 0, R_COUDE, R_COUDE, 10, PI, TAU).concat([[10, 40], [9, 80], [-9, 80], [-11, 40]]);   // main paume en l'air : pièce à part (paumeF / paumeB)
+    const f = X.forePts(kind); return ep(0, 0, R_COUDE, R_COUDE, 10, PI, TAU).concat(f.slice(2)); }
   const legC = (len, wt, rk) => ep(0, 0, wt, wt, 10, PI, TAU).concat([[wt - 1, len * 0.5], [rk + 0.5, len - 4]], ep(0, len, rk, rk, 10, 0, PI), [[-rk - 0.5, len - 4], [-wt + 1, len * 0.5]]);
   const FOOT = (ak, len) => ep(0, 0, ak, ak, 8, PI, TAU).concat([[ak + 2, 2], [len * 0.62, 4], [len * 0.92, 8], [len, 14, 1], [-15, 16, 1], [-15, 6]]);
   // IK deux segments dans le repère du torse ; pick 'bas' (coude le plus bas) | 'avant' (coude devant) ; le coude plie toujours vers l'avant (b ≤ 0)
@@ -110,7 +112,7 @@
     c.restore();
     pc(ell(-60, -88, 6, 6, 10), '#8f9296', () => dot(-60, -88, 2, '#3a3a3e'), 7404);
   }
-  const clapP2 = (o) => rotP([54, -96], -clamp(o.barre || 0, 0, 0.9), CLAP.hinge);
+  const clapP2 = (o) => barreObj(o.barre || 0, CLAP_PINCE);                 // bout libre de la barre (seconde prise)
   // ---------------- sac d'argent : toile écrue nouée d'une corde, pièce d'or au col ; origine = milieu du fond
   function drawSac(o) {
     const body = [[-8, -104], [-30, -96], [-50, -70], [-58, -36], [-52, -8], [-34, 2, 1], [34, 2, 1], [52, -8], [58, -36], [50, -70], [30, -96], [8, -104]];
@@ -221,45 +223,130 @@
   }
   function drawCasque(o) { if (o.vue === 'face') drawCasqueFace(o); else drawCasqueProfil(o); }
 
-  // registre : grip = point tenu ; p2 = seconde prise ; pts = points nommés ; base = origine de l'objet seul ; held = options par défaut en main
+  // ---------------- enveloppe beige à rabat triangulaire, SANS inscription ; origine = centre ; 90 × 60 ; o.ouverte 0..1 (rabat qui se relève, billet qui dépasse) ; o.couche (vue à plat, hauteur × 0,4)
+  const ENV_W = 45, ENV_H = 30;
+  function drawEnveloppe(o) {
+    const u = clamp(o.ouverte || 0), W = ENV_W, H = ENV_H, c = cx_();
+    c.save(); if (o.couche) c.scale(1, 0.4);
+    const ap = -H + 38 * Math.cos(PI * u);                                   // pointe du rabat : +8 fermé → −68 ouvert
+    const rabat = (dessus) => pc([[-W, -H], [W, -H], [0, ap, 1]], dessus ? '#d9c697' : '#c3ab7b', () => {
+      strokePts([[-W + 6, -H + 1], [0, ap + (dessus ? -5 : 5)], [W - 6, -H + 1]], 'rgba(255,248,225,0.35)', 1.2); hatch(null, 0.7, 3.4, 0.14);
+    }, 7903, { drop: dessus });
+    if (u >= 0.5) rabat(false);                                             // rabat relevé : derrière l'enveloppe
+    pc(box(-W, -H, W, H), '#c8b183', () => hatch(null, 0.6, 3.6, 0.14), 7901, { drop: !o.couche });   // dos (intérieur vu par l'ouverture)
+    const up = ease(smooth(0.45, 1, u));
+    if (up > 0) { c.save(); c.translate(-3, lerp(6, -42, up)); c.rotate(-0.1 * up); c.scale(0.84, 0.84); drawBillet(false); c.restore(); }
+    pc(box(-W, -H + 2, W, H), '#e3d3aa', () => {                           // poche : plis en V et rabats latéraux
+      strokePts([[-W + 1, H - 1], [0, 3], [W - 1, H - 1]], 'rgba(120,96,58,0.7)', 1.5);
+      strokePts([[-W + 1, -H + 3], [-9, 1]], 'rgba(120,96,58,0.45)', 1.2); strokePts([[W - 1, -H + 3], [9, 1]], 'rgba(120,96,58,0.45)', 1.2);
+      hatch(null, 0.6, 3.8, 0.12); shade(W, 0, -W, 0, 0.16, [-W - 2, -H - 2, W + 2, H + 2]);
+    }, 7902, { drop: false });
+    if (u < 0.5) { rabat(true); if (u < 0.2) { const a = 1 - u / 0.2; pc(ell(0, ap - 3, 6 * a + 0.5, 6 * a + 0.5, 12), ROUGE, () => dot(-1.5, ap - 4.5, 1.6 * a, ROUGEL), 7904, { drop: false }); } }
+    c.restore();
+  }
+
+  // ---------------- doigts : phalanges en capsule dessinées DANS LE REPÈRE DE L'OBJET, par-dessus l'objet et le poing (la main entoure le manche, le bord, le coin)
+  //  spec { at:[x,y] (repère du poing, non mis à l'échelle), d:[dx,dy] (sens des doigts), n (nombre), len, w (épaisseur), off (départ le long de d), gap (écart), taper }
+  function capsule(a, b, r) { const an = Math.atan2(b[1] - a[1], b[0] - a[0]); return ep(a[0], a[1], r, r, 6, an + PI / 2, an + PI * 1.5).concat(ep(b[0], b[1], r, r, 6, an - PI / 2, an + PI / 2)); }
+  function pads(specs, skin) {
+    if (!specs || SIL()) return;
+    for (const s of specs) {
+      const d = s.d || [1, 0], L = Math.hypot(d[0], d[1]) || 1, ux = d[0] / L, uy = d[1] / L, nx = -uy, ny = ux;
+      const n = s.n || 1, w = s.w || 6.4, gap = s.gap || w * 0.95, len = s.len || 12, off = s.off || 0, at = s.at || [0, 0];
+      for (let i = 0; i < n; i++) {
+        const m = i - (n - 1) / 2, o = m * gap, cx = at[0] + nx * o, cy = at[1] + ny * o;
+        const l2 = len * (1 - (s.taper || 0) * Math.abs(m) / Math.max(1, (n - 1) / 2));
+        const a = [cx + ux * off, cy + uy * off], b = [cx + ux * (off + l2), cy + uy * (off + l2)], pts = capsule(a, b, w / 2);
+        fillPts(pts, skin, 0, 0); strokePts(pts.concat([pts[0]]), 'rgba(62,34,24,0.85)', 1.15, false, 0);
+        const kx = b[0] - ux * w * 0.75, ky = b[1] - uy * w * 0.75;                   // ongle / pli de la dernière phalange
+        strokePts([[kx + nx * w * 0.28, ky + ny * w * 0.28], [kx - nx * w * 0.28, ky - ny * w * 0.28]], 'rgba(62,34,24,0.45)', 0.9, false, 0);
+      }
+    }
+  }
+  const BANDES = (n, len, off) => [{ d: [1, 0], n: n || 4, len: len || 21, off: off == null ? -9 : off, w: 6.2, gap: 5.9 }];   // poing fermé autour d'un manche vertical
+  const BORD = (d, n) => [{ d: d, n: n || 4, len: 14, off: 1, w: 6.4, gap: 6, taper: 0.25 }];                                  // doigts repliés par-dessus un bord
+  const POUCE = (d) => [{ d: d || [1, 0], n: 1, len: 17, off: -1, w: 8.4 }];                                                     // pouce posé sur la face (pince)
+
+  // registre : grip = centre du poing (repère de l'objet) ; dos = dessiné DERRIÈRE l'avant-bras (objet plat ou long : l'avant-bras reste entier) ;
+  // doigts = phalanges par-dessus ; p2 / p2doigts = seconde prise ; pts = points nommés ; base = origine de l'objet seul ; held = options par défaut en main ; posee = posé à plat sur la paume
   const OBJ = {
-    parapluie: { draw: drawParapluie, grip: [0, 0], p2: () => [0, -46], pts: { haut: [0, -PS], bout: [0, -PS - 20], crosse: [-27, 17], prise: [0, 0] }, base: [0, 0] },
-    clap: { draw: drawClap, grip: [48, -30], p2: clapP2, pts: { claque: [60, -88], centre: [0, -40], haut: [0, -100] }, base: [0, 0] },
-    sac: { draw: drawSac, grip: [0, -106], pts: { col: [0, -118], piece: [10, -128], base: [0, 0] }, base: [0, 0] },
-    bobine: { draw: drawBobine, grip: [0, 58], pts: { centre: [0, 0] }, base: [0, 0] },
-    casque: { draw: drawCasque, grip: [-24, 6], held: { vue: 'profil' }, pts: { centre: [0, -60] }, base: (o) => (o.vue === 'face' ? [0, 0] : [-4, 10]) },
-    billet: { draw: () => drawBillet(false), grip: [-26, 4], pts: { centre: [0, 0] }, base: [0, 0] },
+    parapluie: { draw: drawParapluie, dos: true, grip: [0, 0], doigts: () => BANDES(), p2: () => [0, -46], p2doigts: () => BANDES(), pts: { haut: [0, -PS], bout: [0, -PS - 20], crosse: [-27, 17], prise: [0, 0] }, base: [0, 0] },
+    clap: { draw: drawClap, dos: true, grip: [-68, -40], doigts: () => BORD([1, 0]), gripB: [68, -40], doigtsB: () => BORD([-1, 0]), p2: clapP2, p2doigts: (o) => clapPince(o.barre || 0, [0, 0]), pts: { claque: [60, -88], centre: [0, -40], haut: [0, -100] }, base: [0, 0] },
+    sac: { draw: drawSac, dos: true, grip: [0, -105], doigts: () => BANDES(3, 24, -11), pts: { col: [0, -118], piece: [10, -128], base: [0, 0] }, base: [0, 0] },
+    bobine: { draw: drawBobine, dos: true, grip: [-71, 6], doigts: () => BORD([1, 0]), pts: { centre: [0, 0] }, base: [0, 0] },
+    casque: { draw: drawCasque, dos: true, grip: [-26, 19], doigts: () => BORD([0, -1]), held: { vue: 'profil' }, pts: { centre: [0, -60] }, base: (o) => (o.vue === 'face' ? [0, 0] : [-4, 10]) },
+    billet: { draw: () => drawBillet(false), dos: true, grip: [-40, 5], doigts: () => POUCE([1, 0]), gripB: [40, 5], doigtsB: () => POUCE([-1, 0]), pts: { centre: [0, 0] }, base: [0, 0] },
+    enveloppe: { draw: drawEnveloppe, dos: true, grip: [-51, 14], doigts: () => POUCE([1, 0]), gripB: [51, 14], doigtsB: () => POUCE([-1, 0]), pts: { centre: [0, 0], billet: [-3, -44], bord: [-45, 0], haut: [0, -30] }, base: [0, 0],
+      posee: { at: [21, -8.5], sy: 0.4, pied: [0, 30] } },
   };
   DOW.OBJ = OBJ;
+  // clap : point de pince au bout libre de la barre (repère de l'objet) et doigts qui pincent (index dessus, pouce dessous), qui tournent avec la barre
+  const CLAP_PINCE = [112, -7];                                                  // repère de la barre : charnière à l'origine, barre le long de +x (0..124, −14..0)
+  const barreObj = (b, p) => { const r = rotP(p, -clamp(b, 0, 0.9)); return [CLAP.hinge[0] + r[0], CLAP.hinge[1] + r[1]]; };
+  const barreDir = (b, d) => rotP(d, -clamp(b, 0, 0.9));
+  function clapPince(b, at) { return [{ at, d: barreDir(b, [0, 1]), n: 2, len: 13, off: -13, w: 6.4, gap: 6.2, shift: -3 }, { at, d: barreDir(b, [0, -1]), n: 1, len: 12, off: -13, w: 7.6, shift: 1 }]; }
   const vOf = (v, o) => (typeof v === 'function' ? v(o) : v);
   function heldOpts(name, o, p) { const ob = typeof name === 'string' ? OBJ[name] : null; return Object.assign({ t: p.t || 0 }, (ob && ob.held) || {}, o || {}); }
-  function heldDraw(name, o, p) {
-    const c = cx_(), oo = heldOpts(name, o, p), k = oo.taille || 1;
-    if (typeof name === 'function') { c.save(); c.scale(k, k); name(oo, c); c.restore(); return; }
-    const ob = OBJ[name]; if (!ob) return;
-    const g = vOf(ob.grip, oo);
-    c.save(); c.scale(k, k); c.translate(-g[0], -g[1]); ob.draw(oo); c.restore();
+  // h = { name, oo, k, layer: 'front'|'dos'|'posee', m: DOMMatrix objet → repère de la pièce, pads, pads2, blob }
+  function heldInfo(name, o, p, posee, arriere) {
+    if (!has(name)) return null;
+    const oo = heldOpts(name, o, p), k = oo.taille || 1;
+    if (typeof name === 'function') return { name, oo, k, layer: oo.dos ? 'dos' : 'front', m: new DOMMatrix().scale(k, k), pads: oo.doigts || null, blob: !oo.doigts };
+    const ob = OBJ[name]; if (!ob) return null;
+    if (posee && ob.posee) { const P = ob.posee; return { name, oo, k, layer: 'posee', m: new DOMMatrix().translate(P.at[0], P.at[1]).scale(k, k * P.sy).translate(-P.pied[0], -P.pied[1]), pads: null, blob: false }; }
+    const B = arriere && ob.gripB && !oo.gripAvant, g = vOf(B ? ob.gripB : ob.grip, oo), dg = B ? ob.doigtsB : ob.doigts;
+    return { name, oo, k, layer: ob.dos ? 'dos' : 'front', m: new DOMMatrix().scale(k, k).translate(-g[0], -g[1]), pads: dg ? vOf(dg, oo) : null, blob: !dg };
   }
+  function drawHeld(h) {
+    if (!h) return; const c = cx_(), m = h.m;
+    c.save(); c.transform(m.a, m.b, m.c, m.d, m.e, m.f);
+    if (typeof h.name === 'function') h.name(h.oo, c); else OBJ[h.name].draw(h.oo);
+    c.restore();
+  }
+  // objet tenu par le torse (clap pendant `claque`) : q._T = { name, oo, x, y, a, k, padsB, padsF } ; repère = translate(x,y).rotate(a), objet à l'échelle k
+  function inT(T, f) { const c = cx_(); c.save(); c.translate(T.x, T.y); c.rotate(T.a); f(c); c.restore(); }
   const DOIGTS = [[-13, -9], [9, -11], [12, -4], [12, 6], [6, 11], [-6, 11], [-13, 4]];
   const doigtsPaint = () => { for (const y of [-3, 2, 7]) strokePts([[-10, y], [10, y - 1]], 'rgba(70,40,30,0.5)', 1); hatch(null, 0.9, 3.4, 0.15); };
-  function heldParts(skin, seed) {
+  // main ouverte paume vers le ciel (pièce séparée au poignet, gardée à l'horizontale) : repère « écran » (vers l'avant +x, vers le haut −y), poignet en (0,0)
+  const PAUME = ep(0, 0, 9.5, 9.5, 8, PI / 2, PI * 1.5).concat([[7, -10], [12, -14], [19, -14.5], [23, -11], [31, -9.5], [38, -10.5], [44, -14], [47.5, -12.5, 1], [46, -7], [40, -2.5], [30, 2.5], [18, 6], [7, 8.5]]);
+  const PAUME_M = PAUME.map((p) => [-p[0], p[1], p[2]]);
+  const paumePaint = (sens) => () => { const f = (x, y) => [x * sens, y];
+    strokePts([f(28, -3), f(43, -9)], 'rgba(62,34,24,0.45)', 1); strokePts([f(27, 1), f(41, -4)], 'rgba(62,34,24,0.4)', 1); strokePts([f(9, -9), f(20, -10)], 'rgba(62,34,24,0.4)', 1);
+    hatch([f(-10, 0), f(46, 0), f(46, 10), f(-10, 10)], 0.9, 3.4, 0.2); };
+  function heldParts(skin, seed, skinB) {
+    skinB = skinB || skin;
+    const hid = (p, n) => p.hide && p.hide[n];
     return {
-      objet: { parent: 'armF_lo', at: [4, 96], noRivet: true, base: '#000', seed: seed + 1, pts: OFFP, extra: (p) => { if (has(p.tenu)) heldDraw(p.tenu, p.tenuO, p); } },
-      doigts: { parent: 'armF_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 2, pts: (p) => (has(p.tenu) ? DOIGTS : OFFP), paint: doigtsPaint },
-      objetB: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: '#000', seed: seed + 3, pts: OFFP, extra: (p) => { if (has(p.tenuB)) heldDraw(p.tenuB, p.tenuBO, p); } },
-      doigtsB: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 4, pts: (p) => (has(p.tenuB) && !p._deux ? DOIGTS : OFFP), paint: doigtsPaint },
-      doigtsB2: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 6, pts: (p) => (p._deux ? DOIGTS : OFFP), paint: doigtsPaint },
+      objetDos: { parent: 'armF_lo', at: [4, 96], noRivet: true, base: '#000', seed: seed + 7, pts: OFFP, extra: (p) => { const h = p._F; if (h && h.layer === 'dos' && !hid(p, 'objet')) drawHeld(h); } },
+      posee: { parent: 'paumeF', at: [0, 0], noRivet: true, base: '#000', seed: seed + 8, pts: OFFP, extra: (p) => { const h = p._F; if (h && h.layer === 'posee' && !hid(p, 'objet')) drawHeld(h); } },
+      objet: { parent: 'armF_lo', at: [4, 96], noRivet: true, base: '#000', seed: seed + 1, pts: OFFP, extra: (p) => { const h = p._F; if (h && h.layer === 'front') drawHeld(h); } },
+      doigts: { parent: 'armF_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 2, pts: (p) => (p._F && p._F.blob ? DOIGTS : OFFP), paint: doigtsPaint },
+      doigtsO: { parent: 'objet', at: [0, 0], noRivet: true, base: '#000', seed: seed + 9, pts: OFFP, extra: (p) => { if (p._F && !hid(p, 'doigts')) pads(p._F.pads, skin); } },
+      objetB: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: '#000', seed: seed + 3, pts: OFFP, extra: (p) => { if (p._B) drawHeld(p._B); } },
+      doigtsB: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skinB, seed: seed + 4, pts: (p) => (p._B && p._B.blob && !p._deux ? DOIGTS : OFFP), paint: doigtsPaint },
+      doigtsBO: { parent: 'objetB', at: [0, 0], noRivet: true, base: '#000', seed: seed + 10, pts: OFFP, extra: (p) => { if (p._B && !hid(p, 'doigtsB')) pads(p._B.pads, skinB); } },
+      doigtsB2: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skinB, seed: seed + 6, pts: (p) => (p._deux && !(p._F && p._F.pads2) ? DOIGTS : OFFP), paint: doigtsPaint },
+      doigtsO2: { parent: 'objet', at: [0, 0], noRivet: true, base: '#000', seed: seed + 11, pts: OFFP, extra: (p) => { if (p._deux && p._F && !hid(p, 'doigtsB2')) pads(p._F.pads2, skinB); } },
+      objetT: { parent: 'torso', at: [0, 0], noRivet: true, base: '#000', seed: seed + 12, pts: OFFP, extra: (p) => { const T = p._T; if (!T || hid(p, 'objet')) return;
+        inT(T, (c) => { if (T.name) { c.save(); c.scale(T.k, T.k); OBJ[T.name].draw(T.oo); c.restore(); } pads(T.padsB, skinB); }); } },
+      doigtsT: { parent: 'torso', at: [0, 0], noRivet: true, base: '#000', seed: seed + 13, pts: OFFP, extra: (p) => { const T = p._T; if (T && !hid(p, 'doigts')) inT(T, () => pads(T.padsF, skin)); } },
+      paumeF: { parent: 'armF_lo', at: [0, 80], noRivet: true, base: skin, seed: seed + 14, pts: (p) => (p.handF === 'paume' && !hid(p, 'armF_lo') ? ((p._paumeF && p._paumeF.sens < 0) ? PAUME_M : PAUME) : OFFP), paint: (p) => paumePaint((p._paumeF && p._paumeF.sens) || 1)() },
+      paumeB: { parent: 'armB_lo', at: [0, 80], noRivet: true, base: skinB, seed: seed + 15, pts: (p) => (p.handB === 'paume' && !hid(p, 'armB_lo') ? ((p._paumeB && p._paumeB.sens < 0) ? PAUME_M : PAUME) : OFFP), paint: (p) => paumePaint((p._paumeB && p._paumeB.sens) || 1)() },
     };
   }
   // point nommé de l'objet tenu → [x, y] écran (fonction de dessin : o.pts = { nom: [x,y] } dans le repère du poing)
   DOW.pt = function (r, nom, arriere) {
-    const name = arriere ? r.tenuB : r.tenu, oo = (arriere ? r.tenuBO : r.tenuO) || {}, k = oo.taille || 1, part = arriere ? 'objetB' : 'objet';
-    if (typeof name === 'function') { const q = oo.pts && oo.pts[nom]; return q ? r.w(part, q[0] * k, q[1] * k) : null; }
-    const ob = OBJ[name]; if (!ob || !ob.pts[nom]) return null;
-    const g = vOf(ob.grip, oo), q = ob.pts[nom];
-    return r.w(part, (q[0] - g[0]) * k, (q[1] - g[1]) * k);
+    const q = r.pose || {}, name = arriere ? r.tenuB : r.tenu;
+    let P = null;
+    if (typeof name === 'function') { const oo = (arriere ? r.tenuBO : r.tenuO) || {}; P = oo.pts && oo.pts[nom]; }
+    else if (OBJ[name]) P = OBJ[name].pts[nom];
+    if (!P) return null;
+    const T = q._T;
+    if (!arriere && T && T.name === name) { const v = rotP([P[0] * T.k, P[1] * T.k], T.a); return r.w('torso', T.x + v[0], T.y + v[1]); }
+    const h = arriere ? q._B : q._F; if (!h) return null;
+    const v = mp(h.m, P);
+    return r.w(h.layer === 'posee' ? 'posee' : arriere ? 'objetB' : 'objet', v[0], v[1]);
   };
-
   // =====================================================================
   // POSES — préparation commune, IK interne (repère du torse), objets tenus, seconde main
   // =====================================================================
@@ -315,19 +402,32 @@
   }
   function finish(q, def) {
     const A = q.ang, tl = q.tilt || 0;
-    if (has(q.tenu) && !(q.handF && q.handF !== 'fist')) q.handF = 'fist';
+    const parTorse = q._T && q._T.name && q._T.name === q.tenu;                  // objet tenu par le torse (clap pendant `claque`)
+    const posee = !!q._posee && typeof q.tenu === 'string' && OBJ[q.tenu] && OBJ[q.tenu].posee;
+    if (posee) q.handF = 'paume';
+    if (has(q.tenu) && !parTorse && !posee && !(q.handF && q.handF !== 'fist')) q.handF = 'fist';
     if (has(q.tenuB) && !(q.handB && q.handB !== 'fist')) q.handB = 'fist';
     if (q.droit == null && has(q.tenu)) q.droit = true;
     if (q.droitB == null && has(q.tenuB)) q.droitB = true;
     if (q.droit) A.objet = (A.objet || 0) - ((A.armF_up || 0) + (A.armF_lo || 0) + tl);
     if (q.droitB) A.objetB = (A.objetB || 0) - ((A.armB_up || 0) + (A.armB_lo || 0) + tl);
+    A.objetDos = A.objet || 0;
+    q._F = parTorse ? null : heldInfo(q.tenu, q.tenuO, q, posee);
+    q._B = heldInfo(q.tenuB, q.tenuBO, q, false, true);
+    if (q._B && q._B.layer === 'posee') q._B.layer = 'front';
     q._deux = false;
-    if (q.deuxMains && typeof q.tenu === 'string' && OBJ[q.tenu] && OBJ[q.tenu].p2) {
-      const ob = OBJ[q.tenu], oo = heldOpts(q.tenu, q.tenuO, q), g = vOf(ob.grip, oo), SF = def.parts.armF_up.at, k = oo.taille || 1;
-      const Hf = new DOMMatrix().translate(SF[0], SF[1]).rotate((A.armF_up || 0) * D).translate(0, LA).rotate((A.armF_lo || 0) * D).translate(4, 96).rotate((A.objet || 0) * D).scale(k, k).translate(-g[0], -g[1]);
-      const sol = ik2(def.parts.armB_up.at, mp(Hf, ob.p2(oo)), 'bas');
+    if (q.deuxMains && q._F && typeof q.tenu === 'string' && OBJ[q.tenu].p2 && q._F.layer !== 'posee') {
+      const ob = OBJ[q.tenu], h = q._F, SF = def.parts.armF_up.at, P2 = ob.p2(h.oo), v2 = mp(h.m, P2);
+      const Hf = new DOMMatrix().translate(SF[0], SF[1]).rotate((A.armF_up || 0) * D).translate(0, LA).rotate((A.armF_lo || 0) * D).translate(4, 96).rotate((A.objet || 0) * D);
+      const sol = ik2(def.parts.armB_up.at, mp(Hf, v2), 'bas');
       A.armB_up = sol.a; A.armB_lo = sol.b; q.handB = 'fist'; q._deux = true;
+      if (ob.p2doigts) h.pads2 = vOf(ob.p2doigts, h.oo).map((s) => Object.assign({}, s, { at: [v2[0] + (s.at ? s.at[0] : 0), v2[1] + (s.at ? s.at[1] : 0)] }));
     }
+    // main paume en l'air : gardée à l'angle voulu (q._paumeF.a, 0 = à l'horizontale vers l'avant ; sens −1 = doigts vers l'arrière)
+    //   suit 0..1 : 1 = dans le prolongement de l'avant-bras (transition depuis la main ouverte)
+    const paumeA = (P, th) => { P = P || {}; const a = P.a || 0, al = th + (P.sens < 0 ? -1 : 1) * PI / 2; return a + normA(al - a) * (P.suit || 0) - th; };
+    if (q.handF === 'paume') A.paumeF = paumeA(q._paumeF, (A.armF_up || 0) + (A.armF_lo || 0) + tl);
+    if (q.handB === 'paume') A.paumeB = paumeA(q._paumeB, (A.armB_up || 0) + (A.armB_lo || 0) + tl);
     return q;
   }
   function run(def, q, x, y, s, o) {
@@ -335,7 +435,8 @@
     r.tenu = q.tenu; r.tenuB = q.tenuB; r.pose = q; r.s = s;
     if (has(q.tenu)) r.tenuO = heldOpts(q.tenu, q.tenuO, q);
     if (has(q.tenuB)) r.tenuBO = heldOpts(q.tenuB, q.tenuBO, q);
-    r.main = r.w('armF_lo', 2, 98); r.mainB = r.w('armB_lo', 2, 98);
+    r.main = q.handF === 'paume' ? r.w('paumeF', 22 * ((q._paumeF && q._paumeF.sens) || 1), -10) : r.w('armF_lo', 2, 98);   // paume : dessus de la paume (où poser un objet)
+    r.mainB = q.handB === 'paume' ? r.w('paumeB', 22 * ((q._paumeB && q._paumeB.sens) || 1), -10) : r.w('armB_lo', 2, 98);
     r.tete = r.w('head', 0, -100);
     return r;
   }
@@ -372,7 +473,9 @@
       paint: () => { if (L.shoePaint) L.shoePaint(back); else strokePts([[4, 4], [L.fl * 0.7, 7]], 'rgba(255,255,255,0.25)', 1.2); } });
     return { legB_up: thigh(true), legB_lo: shin(true), piedB: foot(true), legF_up: thigh(false), legF_lo: shin(false), piedF: foot(false) };
   }
-  const ORDER = (heads, mid) => ['armB_up', 'armB_lo', 'objetB', 'doigtsB', 'legB_up', 'legB_lo', 'piedB', 'legF_up', 'legF_lo', 'piedF', 'head'].concat(heads, ['torso'], mid || [], ['armF_up', 'armF_lo', 'objet', 'doigts', 'doigtsB2']);
+  // objets tenus : objetB (main arrière) ; objetT (tenu par le torse), objetDos et posee (objets plats ou longs, DERRIÈRE l'avant-bras avant) ; objet (fonctions de dessin) ; doigts par-dessus
+  const ORDER = (heads, mid) => ['armB_up', 'armB_lo', 'paumeB', 'objetB', 'doigtsB', 'doigtsBO', 'legB_up', 'legB_lo', 'piedB', 'legF_up', 'legF_lo', 'piedF', 'head'].concat(heads, ['torso'], mid || [],
+    ['objetT', 'objetDos', 'posee', 'armF_up', 'armF_lo', 'paumeF', 'objet', 'doigts', 'doigtsO', 'doigtsB2', 'doigtsO2', 'doigtsT']);
 
   // ---------------- visage : œil, sourcil, bouche
   function oeil(x, y, o) {
@@ -470,7 +573,7 @@
       armF_up: upDef([-2, -146], RD.costume, 11009),
       armF_lo: foreDef('armF_up', RD.costume, RD.peau, false, 11010, { cuff: RD.chemise }),
     };
-    Object.assign(parts, legParts(L, 11030), heldParts(RD.peau, 11040));
+    Object.assign(parts, legParts(L, 11030), heldParts(RD.peau, 11040, RD.peauD));
     return { hipY: -(L.th + L.sh + 14), parts, handLen: 100, rod: { part: 'torso', at: [-26, 18] }, order: ORDER(['cheveux'], ['casqueT']), nom: 'robert', _legs: L,
       _after: (r, q) => {
         if (q._charge) { const a = r.w('armF_lo', 0, 120), b = r.w('armB_lo', 0, 120); r.charge = [(a[0] + b[0]) / 2, Math.min(a[1], b[1]) + 4 * r.s]; }
@@ -493,18 +596,27 @@
   // trajet du casque (repère du torse) : 0 = tenu devant la poitrine, 0,45 = levé au-dessus de la tête, 0,75 = posé sur la tête, 1 = mains redescendues
   function casquePos(q, def, k) {
     const H = def.parts.head.at, ah = headRot(q, def);
-    const P0 = [70, -62], a0 = 0.1, P1 = [26, -300], a1 = -0.05, P2 = [H[0], H[1]];
+    // devant la poitrine → monte EN AVANT du visage (arc) → juste au-dessus des cheveux (0,45) → sur la tête (0,75)
+    const P0 = [98, -64], PC = [150, -300], a0 = 0.06, P1 = [30, -290], a1 = -0.05, P2 = [H[0], H[1]];
     const u1 = ease(smooth(0, 0.45, k)), u2 = ease(smooth(0.45, 0.75, k));
-    const P = lerpP(lerpP(P0, P1, u1), P2, u2), a = lerp(lerp(a0, a1, u1), ah, u2);
+    const v = 1 - u1, Pa = [v * v * P0[0] + 2 * v * u1 * PC[0] + u1 * u1 * P1[0], v * v * P0[1] + 2 * v * u1 * PC[1] + u1 * u1 * P1[1]];
+    const P = lerpP(Pa, P2, u2), a = lerp(lerp(a0, a1, u1), ah, u2);
     return { x: P[0], y: P[1], a };
   }
   DOW.robertPose = function (q, env) {
     const def = CH.dowRobert, A = q.ang, t = q.t || 0;
-    const rv = k01(q.reverence), te = k01(q.tendre), po = k01(q.porte), br = k01(q.bras), so = k01(q.soupese), ma = k01(q.marche);
+    const rv = k01(q.reverence), te = k01(q.tendre), po = k01(q.porte), br = k01(q.joie != null ? q.joie : q.bras), so = k01(q.soupese), ma = k01(q.marche);
     marche(q, ma, t);
     if (te > 0) { tendVers(q, env, def, 'armF', q.cible, [180, -105], te, 0.45); if (te > 0.4 && !has(q.tenu)) q.handF = 'open'; A.head = (A.head || 0) + 0.06 * te; }
-    if (so > 0) { const b = 0.2 * Math.max(0, Math.sin(t * TAU * 1.6)); blend(q, 'armF_up', -0.3 - b * 0.4, so); blend(q, 'armF_lo', -1.45 - b, so); if (!has(q.tenu)) q.handF = 'open'; A.head = (A.head || 0) + 0.12 * so; }
-    if (br > 0) { blend(q, 'armF_up', -1.75, br); blend(q, 'armF_lo', -0.25, br); blend(q, 'armB_up', 1.7, br); blend(q, 'armB_lo', -0.22, br); A.head = (A.head || 0) - 0.1 * br; if (br > 0.4) { q.handF = has(q.tenu) ? q.handF : 'open'; q.handB = has(q.tenuB) ? q.handB : 'open'; } }
+    // soupèse : avant-bras à l'horizontale, main ouverte PAUME EN L'AIR à hauteur de poitrine ; `tenu:'enveloppe'` → l'enveloppe repose à plat sur la paume (dès soupese ≥ 0,5)
+    if (so > 0) { const b = 0.2 * Math.max(0, Math.sin(t * TAU * 1.6)); blend(q, 'armF_up', -1.1 - b * 0.35, so); blend(q, 'armF_lo', -0.75 - b * 0.6, so); A.head = (A.head || 0) + 0.12 * so;
+      if (so >= 0.5 && (!has(q.tenu) || q.tenu === 'enveloppe')) { if (!q.handF || q.handF === 'open') q.handF = 'paume'; q._paumeF = { a: -0.04 - 0.25 * b, sens: 1 }; if (q.tenu === 'enveloppe') q._posee = true; }
+      else if (!has(q.tenu)) q.handF = 'open'; }
+    // joie (alias `bras`) : bras levés en V, avant devant (−2,0), arrière derrière la tête (−2,6), coudes un peu pliés, paumes vers le ciel, menton levé
+    if (br > 0) { blend(q, 'armF_up', -2.0, br); blend(q, 'armF_lo', -0.4, br); blend(q, 'armB_up', -2.6, br); blend(q, 'armB_lo', -0.38, br); A.head = (A.head || 0) - 0.2 * br;
+      if (q.expr == null && br > 0.3) q.expr = 'ravi';
+      if (br > 0.35) { if (!has(q.tenu)) { q.handF = 'paume'; q._paumeF = { a: -0.3, sens: 1, suit: 1 - smooth(0.35, 0.95, br) }; } if (!has(q.tenuB)) { q.handB = 'paume'; q._paumeB = { a: 0.3, sens: -1, suit: 1 - smooth(0.35, 0.95, br) }; } }
+      else { if (!has(q.tenu)) q.handF = 'open'; if (!has(q.tenuB)) q.handB = 'open'; } }
     if (po > 0) { armTo(q, def, 'armF', [42, -318], 'avant', po); armTo(q, def, 'armB', [12, -322], 'avant', po); A.head = (A.head || 0) - 0.16 * po; if (po > 0.4) { q.handF = 'open'; q.handB = 'open'; } q._charge = true; }
     if (rv > 0) { plier(q, def, 0.55 * rv); A.head = (A.head || 0) + 0.3 * rv; blend(q, 'armF_up', -0.3, rv); blend(q, 'armF_lo', -1.7, rv); blend(q, 'armB_up', 1.0, rv); blend(q, 'armB_lo', -0.2, rv); if (!has(q.tenuB)) q.handB = 'open'; if (!has(q.tenu)) q.handF = 'open'; }
     q._casque = null;
@@ -514,8 +626,12 @@
       const w = 1 - smooth(0.7, 0.95, k);
       if (w > 0) {
         const m = new DOMMatrix().translate(C.x, C.y).rotate(C.a * D);
-        armTo(q, def, 'armF', mp(m, [26, -104]), 'avant', w); armTo(q, def, 'armB', mp(m, [-22, -114]), 'avant', w);
-        if (w > 0.5) { q.handF = 'fist'; q.handB = 'fist'; }
+        // les deux mains tiennent le casque par le BAS de ses flancs (poing sous le bord, doigts repliés sur la coque) : à portée même casque levé
+        const GF = lerpP([-28, -8], [-22, -58], smooth(0.45, 0.75, k)), GB = [-55, -36];   // en posant, la main avant remonte sur le flanc (coude devant)                                  // main avant sur le flanc proche, main arrière qui dépasse du bord arrière
+        const wB = Math.min(w, 1 - smooth(0.42, 0.6, k));                            // la main arrière lâche dès que le casque passe au-dessus de la tête
+        armTo(q, def, 'armF', mp(m, GF), 'avant', w); armTo(q, def, 'armB', mp(m, GB), 'avant', wB);
+        if (w > 0.5) q.handF = 'fist'; if (wB > 0.5) q.handB = 'fist';
+        if (w > 0.9) q._T = { name: null, x: C.x, y: C.y, a: C.a, k: 1, padsF: [{ at: GF, d: [0.15, -1], n: 4, len: 15, off: 1, w: 6.4, gap: 6, taper: 0.25 }], padsB: wB < 0.9 ? null : [{ at: GB, d: [1, 0], n: 4, len: 14, off: 1, w: 6.4, gap: 6, taper: 0.25 }] };
       }
       if (k >= 0.74) q.hide.cheveux = 1;
     }
@@ -568,7 +684,7 @@
       armF_up: upDef([0, -150], AS.chemise, 12009, 13, sleeve(false)),
       armF_lo: foreDef('armF_up', AS.chemise, AS.peau, false, 12010, { manchette: AS.lustrine }),
     };
-    Object.assign(parts, legParts(L, 12030), heldParts(AS.peau, 12040));
+    Object.assign(parts, legParts(L, 12030), heldParts(AS.peau, 12040, AS.peauD));
     return { hipY: -(L.th + L.sh + 14), parts, handLen: 100, rod: { part: 'torso', at: [-22, 18] }, order: ORDER(['visiere']), nom: 'assureur', _legs: L,
       _after: (r, q) => {
         r.obstacle = null;
@@ -594,7 +710,7 @@
       o.ouvert = Math.max(ferme ? smooth(0.35, 1, ou) : ou, smooth(0, 0.4, bc));
       const flip = ferme && bc <= 0 ? PI * (1 - leve) : 0;
       if (ferme && libreF && ou <= 0 && bc <= 0 && as <= 0) armTo(q, def, 'armF', [58, -def.hipY - (q.dy || 0) - (PS + 20) - 4], 'bas', 1);   // pointe au sol, main sur la crosse
-      if (ou > 0 && libreF) { armTo(q, def, 'armF', [72, -248], 'avant', ferme ? ease(smooth(0, 0.4, ou)) : 1); A.head = (A.head || 0) - 0.06 * ou; }
+      if (ou > 0 && libreF) { armTo(q, def, 'armF', [86, -264], 'avant', ferme ? ease(smooth(0, 0.4, ou)) : 1); A.head = (A.head || 0) - 0.06 * ou; }
       if (bc > 0) {
         armTo(q, def, 'armF', [44, -66], 'bas', bc); q.deuxMains = q.deuxMains == null ? bc > 0.5 : q.deuxMains;
         plier(q, def, 0.08 * bc); q.dy = (q.dy || 0) + 6 * bc; A.head = (A.head || 0) - 0.12 * bc;
@@ -656,7 +772,7 @@
       armF_up: upDef([-2, -146], FG.cardigan, 13009, 14, sleeve(false)),
       armF_lo: foreDef('armF_up', FG.cardigan, FG.peau, false, 13010, { manchon: FG.cardiganD }),
     };
-    Object.assign(parts, legParts(L, 13030), heldParts(FG.peau, 13040));
+    Object.assign(parts, legParts(L, 13030), heldParts(FG.peau, 13040, FG.peauD));
     return { hipY: -(L.th + L.sh + 14), parts, handLen: 100, rod: { part: 'torso', at: [-24, 18] }, order: ORDER(['cheveux']), nom: 'feige', _legs: L };
   }
   CH.dowFeige = mkFeige();
@@ -668,10 +784,28 @@
     marche(q, ma, t, 0.32);
     const libreF = A.armF_up == null && A.armF_lo == null;
     if (q.tenu === 'clap' && libreF && cl <= 0 && te <= 0) { A.armF_up = -0.3; A.armF_lo = -0.55; }
-    if (cl > 0) {
-      const o = q.tenuO = Object.assign({}, q.tenuO);
-      if (o.barre == null) o.barre = 0.72 * smooth(0, 0.3, cl) * (1 - smooth(0.78, 0.92, q.claque));
-      armTo(q, def, 'armF', [122, -116], 'bas', cl); if (cl > 0.3) q.deuxMains = true;
+    // claque : 0 → 0,25 la main avant monte le clap devant la poitrine, la main arrière le prend par le BAS (poing sous le bord, doigts repliés sur l'ardoise) ;
+    // 0,27 → 0,45 la main avant lâche le bord et va pincer le bout libre de la barre ; 0,47 → 0,62 elle soulève la barre (ouverture) ; 0,78 → 0,92 elle la rabat (clac).
+    // Le clap est alors tenu par le torse (pièce objetT), la main avant suit toujours le bout de la barre.
+    if (q.claque > 0 && q.tenu === 'clap') {
+      const c = clamp(q.claque), o = q.tenuO = Object.assign({}, q.tenuO), k = o.taille || 1, tl = q.tilt || 0;
+      const uA = ease(smooth(0, 0.25, c)), uB = ease(smooth(0.27, 0.45, c));
+      if (o.barre == null) o.barre = 0.62 * ease(smooth(0.47, 0.62, c)) * (1 - smooth(0.78, 0.92, c));
+      const b = clamp(o.barre, 0, 0.9), SF = def.parts.armF_up.at;
+      const a0 = libreF ? -0.3 : (A.armF_up || 0), b0 = libreF ? -0.55 : (A.armF_lo || 0);
+      const F0 = mp(new DOMMatrix().translate(SF[0], SF[1]).rotate(a0 * D).translate(0, LA).rotate(b0 * D), [4, 96]);   // poing de la pose « tenu »
+      const R = (p) => rotP([p[0] * k, p[1] * k], -tl), G = OBJ.clap.grip, gr = R(G), hg = R(CLAP.hinge);
+      const O = lerpP([F0[0] - gr[0], F0[1] - gr[1]], [44 - hg[0], -118 - hg[1]], uA), W = (p) => { const v = R(p); return [O[0] + v[0], O[1] + v[1]]; };
+      const pin = barreObj(b, CLAP_PINCE), TF = lerpP(W(G), W(pin), uB); TF[1] -= 26 * k * Math.sin(PI * uB);
+      if (libreF) { A.armF_up = a0; A.armF_lo = b0; }
+      armTo(q, def, 'armF', TF, 'bas', 1);
+      const GB = [-34, 9], wB = ease(smooth(0.06, 0.3, c));
+      armTo(q, def, 'armB', W(GB), 'bas', wB);
+      q.handF = 'fist'; if (wB > 0.5) q.handB = 'fist';
+      const at = (p) => (s) => Object.assign(s, { at: [p[0] * k, p[1] * k] });
+      q._T = { name: 'clap', oo: heldOpts('clap', o, q), x: O[0], y: O[1], a: -tl, k,
+        padsF: uB < 0.04 ? BORD([1, 0]).map(at(G)) : uB > 0.96 ? clapPince(b, [pin[0] * k, pin[1] * k]) : null,
+        padsB: wB > 0.9 ? BORD([0, -1]).map(at(GB)) : null };
       A.head = (A.head || 0) + 0.05 * cl;
     }
     if (pr > 0) { tendVers(q, env, def, 'armF', q.cible, [190, -110], pr, 0.3); if (!has(q.tenu)) q.handF = 'open'; }
@@ -730,7 +864,7 @@
       armF_up: upDef([-2, -140], C.costume, 14009, 17, sleeve(false)),
       armF_lo: foreDef('armF_up', C.costume, C.peau, false, 14010, { cuff: '#efe9dc' }),
     };
-    Object.assign(parts, legParts(L, 14030), heldParts(C.peau, 14040));
+    Object.assign(parts, legParts(L, 14030), heldParts(C.peau, 14040, C.peauD));
     return { hipY: -(L.th + L.sh + 14), parts, handLen: 100, rod: { part: 'torso', at: [-24, 12] }, order: ORDER(['cheveux']), nom: 'dirigeant' + k.toUpperCase(), _legs: L };
   }
   CH.dowDirigeantA = mkDirigeant('a');
@@ -771,6 +905,7 @@
   DOW.sac = (x, y, s, o) => { o = o || {}; return acc('sac', x, y, (s == null ? 1 : s) * (o.taille || 1), o); };
   DOW.bobine = (x, y, s, o) => acc('bobine', x, y, s, o);
   DOW.casque = (x, y, s, o) => acc('casque', x, y, s, o);
+  DOW.enveloppe = (x, y, s, o) => acc('enveloppe', x, y, s, o);              // (x,y) = centre ; o.ouverte 0..1 ; o.couche (posée à plat) ; o.rot
   EXTRA.pile = { draw: drawPile, base: [0, 0] };
   DOW.pile = function (t, o) {
     o = o || {}; const s = o.s == null ? 1 : o.s, x = o.x == null ? 540 : o.x, y = o.y == null ? 1420 : o.y, n = o.n == null ? 8 : o.n;
