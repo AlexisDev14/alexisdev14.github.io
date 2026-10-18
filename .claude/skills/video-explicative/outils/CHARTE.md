@@ -95,7 +95,9 @@
 - Coude plié à l'envers dans 4 plans sur 6 (Barbe Noire), vu par l'utilisateur seulement → test de chaque geste de bras au casting, `bendSign` noté dans `persos.md` par bras et direction, contrôle automatique « ATTENTION coude à l'envers » au rendu, gros plans des bras avant d'envoyer.
 - Élément clé posé à x ≈ 200 sous un pan de rideau qui se ferme (la chute devient illisible) → rien de clé à x < 250 ni x > 780 pendant un mouvement du rideau.
 - Violence montrée (tête coupée en carton) → jamais de mort ni de violence à l'image : rideau, ombre, chapeau qui roule, fumée.
+- Personnage qui disparaît une ou deux images pendant un demi-tour (pivot par écrasement horizontal jusqu'à 0 : House invisible au plan 1) → l'échelle x ne descend jamais sous 0,25 en valeur absolue, `dir` bascule à ce seuil.
 - Carte tenue à bout de bras qui masquait l'avant-bras et la main d'Emma (affiche Mercedes) → un objet plat tenu à la main se dessine DERRIÈRE la marionnette, la main posée sur son bord ou son coin ; l'avant-bras reste entier.
+- Geste du gag qui vise un objet mais tombe à côté (Madame qui « enlace » le tuyau bleu en tendant la main vers un visiteur posé juste à côté : on croit qu'elle lui parle ; Pompidou) → la main est POSÉE sur l'objet du gag, le visage tourné vers lui, et aucun personnage ne se tient juste à côté de cet objet pendant le gag.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.

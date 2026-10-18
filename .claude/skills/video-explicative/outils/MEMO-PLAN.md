@@ -38,6 +38,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - ⛔ **Aucune mort ni violence montrée** (pas de tête coupée, de sang, de coup qui touche, de corps à terre, même en carton) : on la suggère comme au théâtre (rideau qui tombe, ombre sur la toile, chapeau qui roule, fumée, objet qui tombe à la place).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
 - Ce que la voix révèle n'apparaît qu'au moment où elle le dit (jamais avant son mot).
+- Demi-tour par écrasement horizontal : l'échelle x ne descend jamais sous 0,25 (sinon le personnage disparaît une image).
 - Lieux et présences : respecte la ligne « Lieux et présences » de ta consigne. Une action à distance (envoyer, écrire à, appeler) se joue sur deux lieux : le destinataire dans une vignette (`M.vignette`, API §4e), l'objet qui voyage par `M.envoi` ; jamais le destinataire dans la pièce de l'expéditeur.
 - Positions : celles du plan de scène ; si l'image exige de s'en écarter, fais-le et donne tes positions réelles dans ton rapport.
 - Chaque figurant d'un groupe a sa propre tenue (jamais de clones).
