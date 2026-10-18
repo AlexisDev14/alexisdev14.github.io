@@ -81,6 +81,7 @@ Lance un agent `model: "haiku"` avec cette consigne (à compléter) :
 ### Choix (toi)
 Critères :
 0. **Grand public d'abord** (souhait de l'utilisateur) : le sujet parle au plus grand nombre dès la première seconde (un nom, un objet, une marque, un lieu, une expression que tout le monde connaît : Lacoste, Big Ben, la boussole, le Téflon, « mettre les pieds dans le plat »). Pas de sujet de niche (personnage obscur, discipline pointue, terme technique). Peu importe que la question soit ancienne : entre une question récente pointue et une ancienne grand public, prends l'ancienne.
+0 bis. **De saison, ou intemporel** : un sujet lié à une date ou une saison (galette des rois, Noël, Halloween, Pâques, poisson d'avril, rentrée, vacances d'été, Saint-Valentin…) ne se prend que dans les 6 semaines qui précèdent cette date, jamais hors saison (leçon : une galette des rois livrée en octobre). Hors de cette fenêtre, prends un autre sujet ; le compte rendu dit s'il est de saison.
 1. Un récit en 6 temps (situation → problème → décision → conséquence → réaction → retournement).
 2. Un personnage ou un objet incarnable en marionnette (bonus : déjà dans la bibliothèque).
 3. Un potentiel satirique (ironie, paradoxe, réaction excessive).
