@@ -4,7 +4,7 @@
 
 ## 1. Format
 - 1080 × 1920, 30 im/s, **chaque plan dure exactement sa voix** (`durees.json`, ≈ 9 à 11 s ; `DUREE` dans `duree.js`), H.264 yuv420p + AAC stéréo 192 kb/s.
-- Voix off, sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
+- Voix off ElevenLabs : **incluse dans chaque plan** par `produire.sh` (`<video>/voix/pN.mp3` à 0 s, −14 LUFS, crête −1 dBFS ; les bruitages gardent leurs niveaux, sous la voix). Sous-titres, carton de fin et logo : ajoutés au montage par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
 
 ## 2. Le théâtre (fourni par le kit, ne pas redessiner)
 - Petit théâtre de papier vu de face, caméra fixe : cadre de scène en bois sombre et moulures dorées, lambrequin de velours à franges, rampe de lampes à huile (flammes qui vacillent), coquille du souffleur, plancher en lattes avec **deux fentes** (arrière `ST.slotB`, avant `ST.slotF`) d'où sortent les tiges.
@@ -100,6 +100,6 @@
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
-3. `verifier.sh` tout « OK » (format, durée, son, crête ≤ −22).
+3. `verifier.sh` tout « OK » (format, durée = celle de la voix, son : voix incluse à −14 LUFS et crête ≤ −1 dBFS, ou bruitages seuls à crête ≤ −22 sans voix).
 4. Raccord de rideau : première image du plan = dernière image du plan précédent pour le rideau (ouvert, fermé ou en mouvement).
 5. Aucune ligne « ATTENTION » de `sauts.py` (objet qui surgit, disparaît ou saute en une image ; fond nu de la scène) ni de `raccord.sh` (SSIM < 0,92 avec la fin du plan précédent) laissée sans correction ou sans justification écrite. Ces deux contrôles tournent dans `produire.sh` ; au Téflon, `sauts.py` aurait relevé 13 sauts réels (porte du frigo qui claque d'une image à l'autre, bocal et spatule qui disparaissent, poêle qui apparaît d'un coup).

@@ -311,10 +311,29 @@ def events(timeline_js):
     return {k: float(v) for k, v in re.findall(r"(\w+):\s*(-?[\d.]+)", s.split('TL.EVENTS =')[1].split('};')[0])}
 
 
-def mux(video, sfx, sortie):
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', video, '-i', sfx, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
-                    '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-shortest', sortie], check=True)
-    print('→', sortie)
+VOIX_LUFS = -14.0      # sonie de la voix off dans le plan (réglage de montage de l'utilisateur : −14 LUFS, crête −1 dBFS)
+
+
+def sonie(fichier):
+    """Sonie intégrée (LUFS) d'un fichier audio, mesurée par ffmpeg (ebur128)."""
+    err = subprocess.run(['ffmpeg', '-nostats', '-i', fichier, '-af', 'ebur128', '-f', 'null', '-'], capture_output=True, text=True).stderr
+    return float(re.findall(r'I:\s+(-?[\d.]+) LUFS', err)[-1])
+
+
+def mux(video, sfx, sortie, voix=None):
+    """Assemble l'image et les bruitages ; avec voix (pN.mp3 d'ElevenLabs), la voix off est posée à 0 s, amenée à
+    VOIX_LUFS, mêlée aux bruitages (inchangés, déjà calibrés sous la voix) puis limitée à −1 dBFS."""
+    cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-i', video, '-i', sfx]
+    if voix and os.path.exists(voix):
+        g = VOIX_LUFS - sonie(voix)
+        cmd += ['-i', voix, '-filter_complex',
+                f'[2:a]volume={g:.2f}dB,aresample=48000,aformat=channel_layouts=stereo,apad[v];'
+                '[1:a][v]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.891:level=false[a]',
+                '-map', '0:v', '-map', '[a]']
+    else:
+        cmd += ['-map', '0:v', '-map', '1:a']
+    subprocess.run(cmd + ['-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-shortest', sortie], check=True)
+    print('→', sortie, '(voix off incluse)' if voix and os.path.exists(voix) else '(bruitages seuls : pas de voix/' + os.path.basename(sortie).split('_')[0] + '.mp3)')
 
 
 DESCRIPTIONS = {
