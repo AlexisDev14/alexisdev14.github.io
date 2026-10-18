@@ -34,7 +34,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Geste clé sur le mot clé (± 0,2 s) ; gag avec la chute, jamais avant ; une action principale à la fois ; anticipation → action → rebond ; durées mini : geste 0,3 s, expression 0,6 s, gag 1,5–2 s ; changement de posture par étapes sur 0,8–1,2 s.
 - **Le plan dure exactement sa voix** : `DUREE` (secondes) et `IMAGES` dans `duree.js`, affichés par `construire.sh` (« pN prêt : 10,83 s, 325 images ») ; ce n'est plus 10 s. Chaque geste tombe sur son mot, même après 10 s.
 - Toute action finie avec le dernier mot (D − 0,3 s au plus) ; puis image stable (respiration, flammes) jusqu'à D, ou rideau si la conduite le prévoit. Jamais figé.
-- Objets tenus : la main **entoure le corps** de l'objet, ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
+- Objets tenus : la main **entoure le corps, le bord ou le manche** de l'objet (jamais un coin au bout des doigts, jamais un objet qui flotte à côté de la main), une partie mobile (barre du clap, rabat, couvercle) est actionnée par une main qui la suit ; gros plan de chaque prise et de chaque passage de main en main avant `produire.sh` ; ouverture vers le haut ; accessoires sans tige (ils volent) ; marionnettes toujours sur leur tige ; chute = à plat sur le plancher, tige retirée (`rod:false`).
 - ⛔ **Aucune mort ni violence montrée** (pas de tête coupée, de sang, de coup qui touche, de corps à terre, même en carton) : on la suggère comme au théâtre (rideau qui tombe, ombre sur la toile, chapeau qui roule, fumée, objet qui tombe à la place).
 - Interdits : texte, lettres, chiffres, logos (sauf texte demandé par l'utilisateur et écrit dans la fiche) ; doigt seul tendu (main ouverte) ; bras croisés de profil ; objet qui tombe sur une tête ou passe devant un visage qui réagit ; anachronisme ; objet géant qui écrase la scène.
 - Ce que la voix révèle n'apparaît qu'au moment où elle le dit (jamais avant son mot).
@@ -42,6 +42,8 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Lieux et présences : respecte la ligne « Lieux et présences » de ta consigne. Une action à distance (envoyer, écrire à, appeler) se joue sur deux lieux : le destinataire dans une vignette (`M.vignette`, API §4e), l'objet qui voyage par `M.envoi` ; jamais le destinataire dans la pièce de l'expéditeur.
 - Positions : celles du plan de scène ; si l'image exige de s'en écarter, fais-le et donne tes positions réelles dans ton rapport.
 - Chaque figurant d'un groupe a sa propre tenue (jamais de clones).
+- **Composition** : ton plan part des positions du plan précédent à la coupe, puis change de disposition dès la première action (déplacements, hauteurs, élément nouveau) : ta planche ne doit pas ressembler à celle du plan précédent.
+- **Gestes expressifs** : demande-toi « que croit-on qu'il fait ? » (bras qui pendent mains à la taille = il porte un objet invisible ; bras tendu vers quelqu'un = il le désigne) ; la joie = bras levés en V, menton levé, visage visible.
 - Bras : tout bras plié passe par `M.ik` avec le `bendSign` indiqué dans `persos.md` pour ce bras et cette direction ; le rendu signale « ATTENTION coude à l'envers » : à corriger, jamais à justifier.
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
 

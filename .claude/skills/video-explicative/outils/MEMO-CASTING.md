@@ -65,6 +65,8 @@ Ce qui a coûté le plus de retours au Téflon, à régler dès le casting : mai
 2. **Série côte à côte** à l'échelle de la vidéo : couleurs nettement distinctes.
 3. **Comparaison** : chaque nouveau personnage à la même échelle, côte à côte avec les personnages existants **nommés dans ta consigne** (et sinon tous ceux du kit et de la bibliothèque qui portent la même coiffe ou la même silhouette) : aucune ressemblance. Un doute (même chapeau, même carrure, mêmes couleurs) = change la coiffe, la silhouette ou la couleur dominante avant de continuer, et dis-le dans ton rapport.
 4. **Téléphone** : la planche réduite : chaque objet clé se lit.
+5. **Prises** : chaque objet tenu, dans chaque main et chaque direction, agrandi (s ≈ 1,6, recadré sur la main) : la main entoure le bord, le corps ou le manche (doigts par-dessus), jamais un coin au bout des doigts ; un objet à partie mobile (clap, enveloppe à rabat, boîte) montré ouvert, à mi-course et fermé, la partie mobile suivie par une main ; un objet plat qu'on soupèse repose à plat sur la paume. Leçon Downey : clap et enveloppe mal tenus, relevés par l'utilisateur.
+6. **Gestes expressifs** prévus (joie, surprise, refus) : chacun se lit seul, sans contexte (« que croit-on qu'il fait ? ») ; la joie = bras levés en V, menton levé.
 
 Commandes : `bash OUTILS/essai.sh <video>/casting 1,5` (prépare le dossier et rend la planche en une ligne ; la planche s'affiche à petite taille d'abord, puis gros plans des tests). 4 itérations au plus.
 
