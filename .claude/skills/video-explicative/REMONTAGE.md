@@ -19,6 +19,39 @@ sous-titrée.mp4 » et « <Sujet> — sources.zip » (rien d'autre remplacé ni 
    par `queuedAt` croissant ; puis les non validées, même ordre. Prendre la première.
 4. `python3 -I OUTILS/remontages.py debut <id> "<Sujet>"` AVANT tout travail ; à la fin `fait <id> "<note>"` ou `impossible <id> "<cause>"`.
 
+## Designs Canva (relevés le 19/10/2026 ; les titres Canva ne reprennent pas toujours le sujet)
+Utiliser ces ids directement (read-design / export-design) ; pour une vidéo absente du tableau, `search-designs` avec un mot-clé du sujet.
+| Id BO | Sujet | Design d'origine (texte) | Copie « — sans sous-titres » (image + son) |
+|---|---|---|---|
+| v_20261015_0938 | L'étoile Mercedes | DAHYEWS8V3U « Mercedes » | — |
+| v_20261015_1206 | Barbe Noire | DAHYExpFebA | — |
+| v_20261015_1749 | Manneken-Pis | DAHYL00YXoY | — |
+| v_20261015_2048 | Le Beau Danube bleu | DAHYMFsajN8 | — |
+| v_20261015_2349 | Le conteneur | DAHYMP4D1Dw | — |
+| v_20261016_0249 | Mettre les pieds dans le plat | DAHYMkHurKI | — |
+| v_20261016_0549 | Le tandem | DAHYM1Q4EJA | — |
+| v_20261016_0849 | L'autruche | DAHYLSJY9rU « Autruche » | — |
+| v_20261016_1447_xl4np | Arc de triomphe | DAHX4c1_1ZU | DAHYcdyrUQo |
+| v_20261016_1447_cbcsd | Monsieur Poubelle | DAHXzylOdIU « Poubelle » | DAHYcZWZS3o |
+| v_20261016_1447_5uq5t | Le reblochon | DAHX5uk_LpA « Reblochon » | DAHYcaeVnlc |
+| v_20261016_1447_5qhs5 | Le Téflon | DAHX-McB3oY | DAHYcbu2lHI |
+| v_20261016_1449 | Le Swoosh de Nike | DAHYQXsJ9mI | — |
+| v_20261016_1749 | L'Oscar en plâtre | DAHYQtnAsts | — |
+| v_20261017_0049 | Léonard de Vinci | DAHYQoWyewY | — |
+| v_20261017_0548 | Fleming | DAHYQqNZQ7M | — |
+| v_20261017_1048 | Le Toblerone | DAHYRLCoPWQ | — |
+| v_20261018_1348 | Robert Downey Jr | DAHYYY1ay-8 (il existe aussi « Copie de… » DAHYb-d-c7c, plus récente : demander à l'utilisateur) | — |
+
+Pas encore de montage Canva (19/10) : Paris vaut bien une messe, La fève de la galette, Sésame ouvre-toi, Dr House. Une vidéo sans
+design Canva n'est ni réservée ni marquée : passer à la suivante (elle sera reprise quand le montage existera). Robert Downey Jr :
+« impossible » (« deux designs : lequel est l'officiel ? ») tant que l'utilisateur n'a pas tranché.
+
+## Texte des sous-titres
+Le texte du design d'origine est la référence (mots dits), mais ses coquilles se corrigent dans script.txt sans changer un mot dit :
+orthographe et accords (« sireuse » → « cireuse », « il trait » → « ils traient »), espace manquante (« !Belle »), ponctuation
+(« Qui paye Les propriétaires » → « Qui paye ? Les propriétaires »), mot manquant évident (« canne pêche » → « canne à pêche »).
+Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé.
+
 ## Étapes (`OUTILS` = `.claude/skills/video-explicative/outils`, `T` = `<scratchpad>/<slug>`)
 1. **Canva** : `search-designs` (query = sujet, ou ses premiers mots) → le design 1080×1920 du sujet (pas une « Copie de … » si
    l'original existe ; en cas de doute, le plus récemment modifié). Introuvable → « impossible ».
