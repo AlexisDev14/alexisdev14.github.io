@@ -25,6 +25,10 @@ sous-titrée.mp4 » et « <Sujet> — sources.zip » (rien d'autre remplacé ni 
    - `read-design` (design_content) = texte des sous-titres Canva = **le texte final dit** → `T/script.txt` : un paragraphe par phrase
      ou groupe de phrases (lignes vides entre paragraphes), chiffres en chiffres, sans le texte du carton de fin.
    - `export-design` (type mp4, quality `vertical_1080p`), télécharger l'URL rendue (curl) → `T/canva.mp4`.
+   - **Version sans sous-titres préparée par l'utilisateur** : si `search-designs` trouve aussi « <Sujet> — sans sous-titres » (copie
+     où il a supprimé les sous-titres), l'exporter de même → `T/propre.mp4` : c'est déjà l'image ET le son officiels. Le texte vient
+     toujours du design d'origine. Sauter alors les étapes 2 et 3 : `ffmpeg -i T/propre.mp4 -af "volume=<−14 − sonie>dB,alimiter=limit=0.891:level=false"`
+     (sonie mesurée par `sfx_lib.sonie`, vidéo copiée) → « T/<Sujet> — vidéo complète.mp4 », et `mots_whisper.py` sur T/propre.mp4.
 2. **Plans propres** : `python3 -I OUTILS/drive_recup.py <id du dossier Drive (driveFolderUrl)> T/drive` ; garder tous les mp4 du
    dossier qui ne sont PAS un montage (pN_final.mp4, mN.mp4… dans « Plans » ou à la racine ; exclure « <Sujet>.mp4 » et les « — vidéo
    complète… »). Aucun plan → « impossible » (les sous-titres Canva resteraient).
