@@ -54,7 +54,7 @@ Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé
 
 ## Étapes (`OUTILS` = `.claude/skills/video-explicative/outils`, `T` = `<scratchpad>/<slug>`)
 1. **Canva** : `search-designs` (query = sujet, ou ses premiers mots) → le design 1080×1920 du sujet (pas une « Copie de … » si
-   l'original existe ; en cas de doute, le plus récemment modifié). Introuvable → « impossible ».
+   l'original existe ; en cas de doute, le plus récemment modifié). Introuvable → passer à la vidéo suivante, sans marquer.
    - `read-design` (design_content) = texte des sous-titres Canva = **le texte final dit** → `T/script.txt` : un paragraphe par phrase
      ou groupe de phrases (lignes vides entre paragraphes), chiffres en chiffres, sans le texte du carton de fin.
    - `export-design` (type mp4, quality `vertical_1080p`), télécharger l'URL rendue (curl) → `T/canva.mp4`.
