@@ -12,5 +12,5 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261016_1148 | La boussole, un aimant qui pointe vers un pôle sud | à refaire | 2026-10-19 13:00 | livrée avec reconstruire.py d'avant le 19/10 13 h (image la plus proche une à une) : saccades ; à refaire entièrement |
 | v_20261015_0938 | L'étoile Mercedes, carte postale | fait | 2026-10-19 13:24 | Canva (DAHYEWS8V3U) ; refait le 19/10 avec reconstruire.py corrigé (plan 3 = p3_final_v0) ; 60,87 s ; fluidité OK (1 image figée quand le montage bouge, 0 retour, 0 bond) ; gardé du montage 55,43–60,87 s (carton Clark seul) |
 | v_20261015_1206 | Barbe Noire, le pirate qui fumait | fait | 2026-10-19 13:40 | Canva DAHYExpFebA, 64,57 s, 1766/1937 images refaites depuis les plans, gardé du montage : 58,87–64,57 s (carton de fin), fluidité OK |
-| v_20261015_1749 | Manneken-Pis, mille costumes | en cours | 2026-10-19 13:46 |  |
 | v_20261015_2048 | Le Beau Danube bleu | en cours | 2026-10-19 13:48 |  |
+| v_20261015_1749 | Manneken-Pis, mille costumes | fait | 2026-10-19 13:55 | 63,73 s ; image refaite depuis les plans p1-p6 (1717 im + 25 en fondu), seul le carton de fin gardé du montage (58,07-63,73 s) ; coquille d'or -> dort |
