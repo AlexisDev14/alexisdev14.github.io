@@ -59,6 +59,17 @@ choix = []                                    # par image du montage : (plan, im
 for t, e in enumerate(chemin):
     if e == N or dist[t, e] >= SEUIL: choix.append(None); continue
     i = int(np.searchsorted(debuts, e, side='right') - 1); choix.append((i, int(e - debuts[i])))
+# Bords des fondus Canva : en début et en fin de fondu, l'image du montage s'éloigne déjà du plan (écart qui monte) mais reste sous
+# SEUIL ; le chemin y tient alors la même image plusieurs fois (petit arrêt avant le fondu refait). Ces images rejoignent le fondu.
+ecarts = np.array([dist[t, debuts[c[0]] + c[1]] for t, c in enumerate(choix) if c])
+BORD = max(3.0, 1.6 * float(np.median(ecarts))) if len(ecarts) else SEUIL
+def ecart(t): return dist[t, debuts[choix[t][0]] + choix[t][1]]
+for t in [t for t in range(1, len(choix)) if choix[t] is None and choix[t - 1]]:
+    u = t - 1
+    while u > 0 and choix[u] and ecart(u) > BORD: choix[u] = None; u -= 1
+for t in [t for t in range(len(choix) - 1) if choix[t] is None and choix[t + 1]]:
+    u = t + 1
+    while u < len(choix) - 1 and choix[u] and ecart(u) > BORD: choix[u] = None; u += 1
 
 # Image : on parcourt le montage et chaque plan dans l'ordre, une image à la fois (mémoire faible).
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', '30', '-i', '-',
@@ -120,15 +131,17 @@ print(f'→ {SORTIE} : {len(choix)} images, {len(choix) - len(garde) - fondus} r
       + ''.join(f'\n   gardé du montage : {a:.2f}–{b:.2f} s' for a, b in tranches) + f'\n   son du montage, gain {g:+.2f} dB')
 
 # Fluidité (la planche, image fixe, ne voit pas une saccade) : sur les images refaites, la vidéo doit bouger comme le montage.
-#  - images figées (vignette identique à la précédente) : pas plus que dans le montage (+20 % + 20 images) ;
+#  - image figée alors que le montage bouge (écart de vignette nul dans la sortie, > 0,5 dans le montage) : au plus 6 en tout.
+#    (On ne compare pas le NOMBRE d'images figées : la compression de Canva fait bouger d'un rien ses images immobiles, alors que
+#    les images identiques des plans restent identiques ; ce compte-là donne de fausses alertes.)
 #  - retours en arrière dans un plan : aucun ; bonds de plus de 3 images dans un plan (hors coupe) : au plus 3.
 refaites = [t for t in range(1, len(choix)) if choix[t] and choix[t - 1]]
-fig_m = sum(np.abs(vm[t] - vm[t - 1]).mean() < 0.02 for t in refaites)
-fig_s = sum(np.abs(vp[choix[t][0]][choix[t][1]] - vp[choix[t - 1][0]][choix[t - 1][1]]).mean() < 0.02 for t in refaites)
+def vig(c): return vp[c[0]][c[1]]
+figees = [t for t in refaites if np.abs(vig(choix[t]) - vig(choix[t - 1])).mean() < 0.02 and np.abs(vm[t] - vm[t - 1]).mean() > 0.5]
 meme = [t for t in refaites if choix[t][0] == choix[t - 1][0]]
 retours = [t for t in meme if choix[t][1] < choix[t - 1][1]]
 bonds = [t for t in meme if choix[t][1] - choix[t - 1][1] > 3]
-ok = fig_s <= fig_m * 1.2 + 20 and not retours and len(bonds) <= 3
-print(f'{"OK   " if ok else "ÉCHEC"} fluidité : {fig_s} images figées (montage : {fig_m}), {len(retours)} retours en arrière, {len(bonds)} bonds'
-      + ''.join(f'\n   à {t / 30:.2f} s : {"retour" if t in retours else "bond"}' for t in sorted(retours + bonds)[:10]))
+ok = len(figees) <= 6 and not retours and len(bonds) <= 3
+print(f'{"OK   " if ok else "ÉCHEC"} fluidité : {len(figees)} images figées quand le montage bouge, {len(retours)} retours en arrière, {len(bonds)} bonds'
+      + ''.join(f'\n   à {t / 30:.2f} s : {"retour" if t in retours else "bond" if t in bonds else "figée"}' for t in sorted(retours + bonds + figees)[:12]))
 if not ok: sys.exit(2)

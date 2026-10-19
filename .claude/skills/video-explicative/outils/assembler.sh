@@ -45,3 +45,5 @@ else:
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-af', f'volume={g:.2f}dB,alimiter=limit=0.891:level=false', '-c:v', 'copy'] + fin, check=True)
 print(f'→ {sortie} (6 plans bout à bout, voix off incluse, gain {g:+.2f} dB' + (', conclusion Clark à la fin)' if os.path.exists(concl) else ')'))" "$OUT" "$TMP/brut.mkv" "$S" "$CONCL"
 AVEC_VOIX=1 "$OUT/verifier.sh" "$S" "$ATTENDU"
+# Fluidité de bout en bout : conduite du rideau (durées) et les 5 coupes (aucun saut d'image). Un ÉCHEC se corrige avant la livraison.
+python3 -I "$OUT/fluidite.py" "$V" || echo "ÉCHEC fluidité : corriger le plan (ou la conduite) signalé, relancer produire.sh puis assembler.sh"

@@ -257,6 +257,7 @@ M.makeCloud = function (seed, s = 1) {
 };
 // nuage suspendu à deux fils (balancement)
 M.hung = function (cv, x, y, t, o = {}) {
+  t = TG(t);
   const sw = Math.sin(t * (o.f || 0.8) + (o.ph || 0)) * (o.amp ?? 0.02);
   c.save(); c.translate(x, y); c.rotate(sw);
   c.strokeStyle = 'rgba(20,15,10,0.55)'; c.lineWidth = 1.3;

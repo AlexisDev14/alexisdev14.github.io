@@ -368,6 +368,7 @@ M.bicorne = function (x, y, s, rot = 0, dir = 1) {
 };
 // petit drapeau tricolore sur hampe (ondule) — (x,y) = bas de la hampe
 M.drapeau = function (x, y, s, t, ph = 0, len = 200) {
+  t = TG(t);
   c.save(); c.translate(x, y); c.scale(s, s);
   const pl = LW; LW = 1 / Math.hypot(c.getTransform().a, c.getTransform().b);
   c.fillStyle = '#5b3d22'; c.fillRect(-2.5, -len, 5, len);

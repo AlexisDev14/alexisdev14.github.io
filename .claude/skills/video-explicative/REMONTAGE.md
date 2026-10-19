@@ -68,7 +68,9 @@ design et le signaler dans le résumé.
      toujours du design d'origine. Sauter alors les étapes 2 et 3 : `ffmpeg -i T/propre.mp4 -af "volume=<−14 − sonie>dB,alimiter=limit=0.891:level=false"`
      (sonie mesurée par `sfx_lib.sonie`, vidéo copiée) → « T/<Sujet> — vidéo complète.mp4 », et `mots_whisper.py` sur T/propre.mp4.
 2. **Plans propres** : `python3 -I OUTILS/drive_recup.py <id du dossier Drive (driveFolderUrl)> T/drive` ; ne garder QUE les plans
-   nommés `pN_final.mp4` (dans « Plans » ou à la racine ; deux versions d'un même plan → `pN_final_2.mp4`, les passer toutes les deux). ⛔ Jamais un montage (« Mercedes.mp4 », « Le tandem.mp4 », « <Sujet>.mp4 »,
+   nommés `pN_final*.mp4` (dans « Plans » ou à la racine), TOUTES les versions d'un plan comprises (`p3_final_v0.mp4`, `p3_final_v1.mp4`,
+   `pN_final_2.mp4`…) : le montage Canva utilise parfois une ancienne version (Mercedes : plan 3 = `p3_final_v0`) ; sans elle,
+   reconstruire.py recopie les images d'un autre plan à la place. ⛔ Jamais un montage (« Mercedes.mp4 », « Le tandem.mp4 », « <Sujet>.mp4 »,
    « — vidéo complète… ») : il porte des sous-titres et serait recopié avec eux. Aucun pN_final.mp4 (vidéos importées : Arc de triomphe,
    Monsieur Poubelle, Reblochon, Téflon) et pas de copie Canva « — sans sous-titres » → « impossible » (« copie Canva sans sous-titres
    à préparer par l'utilisateur »).
@@ -76,8 +78,9 @@ design et le signaler dans le résumé.
    Il suit les plans dans l'ordre (chemin Viterbi : avancer d'une image est gratuit, tenir ou sauter une image coûte peu, une coupe
    coûte cher), ce qui suit aussi les changements de vitesse de Canva. ⛔ Ne jamais revenir au choix « image la plus proche, une à
    une » : les plans bougent lentement, l'image retenue va et vient et la vidéo SACCADE (défaut des livraisons avant le 19/10, 13 h).
-   Il finit par la ligne « fluidité » et sort en erreur (code 2) si « ÉCHEC » : plus d'images figées que le montage, retour en
-   arrière ou bonds dans un plan. ÉCHEC → ne rien livrer ; regarder les instants donnés (planche.sh --de A --a B) ; si un plan du
+   Les bords des fondus Canva (écart qui monte avant et après le fondu) sont refaits dans le fondu, sans arrêt sur image.
+   Il finit par la ligne « fluidité » et sort en erreur (code 2) si « ÉCHEC » : plus de 6 images figées alors que le montage bouge,
+   retour en arrière ou plus de 3 bonds dans un plan. ÉCHEC → ne rien livrer ; regarder les instants donnés (planche.sh --de A --a B) ; si un plan du
    Drive diffère du montage → « impossible » (« copie Canva sans sous-titres à préparer par l'utilisateur »). Il dit aussi quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) est normal
    (les fondus enchaînés de Canva entre deux plans, qui montrent déjà le sous-titre suivant, sont refaits en fondu sans texte). Plus de 1 s gardée AVANT le carton (plan retouché dans Canva, absent du Drive) : regarder ces
    instants (planche.sh --de A --a B) ; s'il y reste des sous-titres Canva → « impossible » avec les instants.

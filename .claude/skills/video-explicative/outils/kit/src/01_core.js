@@ -27,6 +27,11 @@ function spring(t, zeta = 0.45, omega = 12) {
   const wd = omega * Math.sqrt(1 - zeta * zeta);
   return 1 - Math.exp(-zeta * omega * t) * (Math.cos(wd * t) + (zeta * omega / wd) * Math.sin(wd * t));
 }
+// Temps GLOBAL de la vidéo (début du plan + t) pour les animations d'ambiance continues (rampe, projecteurs, poussière, drapeaux,
+// décors suspendus, papillons, poissons, fleurs) : avec le temps local du plan, elles repartaient de zéro à chaque coupe et la
+// lumière ou le décor « sautait » d'un plan à l'autre (tulipomanie, Pompidou). M.debut() est défini dans 05_conduite.js.
+const TG = (t) => (typeof M.debut === 'function' ? M.debut() : 0) + t;
+M.tg = TG;                                   // dans scene.js : const g = M.tg(t) pour les balancements d'ambiance
 const wob = (t, t0, amp, f = 2, k = 4) => (t < t0 ? 0 : amp * Math.sin(TAU * f * (t - t0)) * Math.exp(-k * (t - t0)));
 function hash(n) { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
 function noise(t, seed = 0) { const i = Math.floor(t), f = t - i, u = f * f * (3 - 2 * f); return lerp(hash(i + seed * 57.31), hash(i + 1 + seed * 57.31), u) * 2 - 1; }

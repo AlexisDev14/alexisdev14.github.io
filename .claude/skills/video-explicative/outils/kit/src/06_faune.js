@@ -152,6 +152,7 @@ M.marmotte = function (t, x, y, s = 0.5, o = {}) {
 
 // Papillons qui volettent dans une zone. o : { x, y, rx=120, ry=60, n=3, s=1, seed, cols }
 M.papillons = function (t, o = {}) {
+  t = TG(t);
   const R = rng(o.seed || 7), n = o.n || 3, s = o.s || 1, cols = o.cols || ['#d8a03a', '#e9e2cf', '#b9643e', '#8fa2b8'];
   for (let i = 0; i < n; i++) {
     const a = R() * TAU, f1 = 0.35 + R() * 0.3, f2 = 0.5 + R() * 0.4, col = cols[i % cols.length];
@@ -166,6 +167,7 @@ M.papillons = function (t, o = {}) {
 
 // Poissons qui sautent hors de l'eau (mer, lac, rivière). o : { x0, x1, y (surface), n=3, periode=3.2, s=1, seed, col }
 M.poissons = function (t, o = {}) {
+  t = TG(t);
   const R = rng(o.seed || 9), n = o.n || 3, per = o.periode || 3.2, s = o.s || 1, col = fCol(o.col || '#7e8f98', o.brume || 0);
   for (let i = 0; i < n; i++) {
     const x = lerp(o.x0 || 300, o.x1 || 800, R()), off = R() * per, dir = R() < 0.5 ? -1 : 1;
@@ -184,6 +186,7 @@ M.poissons = function (t, o = {}) {
 
 // Bande de fleurs et d'herbes qui ondulent (pied de coulisse, prairie, bord de chemin). o : { x0, x1, y, n=30, h=40, seed, cols, brume=0, herbe=true }
 M.fleurs = function (t, o = {}) {
+  t = TG(t);
   const R = rng(o.seed || 11), n = o.n || 30, x0 = o.x0 == null ? 140 : o.x0, x1 = o.x1 == null ? 940 : o.x1, y = o.y || 1390, h = o.h || 40, br = o.brume || 0;
   const cols = (o.cols || ['#c9b45a', '#e8e0cc', '#b46a6a', '#8b8fb8', '#d89a4a']).map((k) => fCol(k, br)), vert = fCol('#5f6b45', br), vertL = fCol('#7d8a5a', br);
   for (let i = 0; i < n; i++) {

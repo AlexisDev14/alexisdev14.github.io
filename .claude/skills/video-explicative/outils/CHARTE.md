@@ -30,12 +30,14 @@
 
 ## 5. Mise en scène
 - **Le rideau a une conduite pour toute la vidéo** (`<video>/rideau.json`, API §4b), décidée dans la fiche, plan par plan :
+  - **un rideau de théâtre se manœuvre à la main, sans à-coup** : ouverture du plan 1 en 0,9 à 1,6 s ; chaque fermeture ou réouverture d'un `change` en 0,6 à 0,8 s (jamais moins de 0,5 s : en 0,27 s il « claque », tulipomanie), fermé 0,2 à 0,7 s ; `demi` ≥ 0,45 s par mouvement ; fermeture finale ≥ 0,8 s ; 0,3 s au moins entre deux mouvements. `fluidite.py --rideau` le contrôle sur `rideau.json` ;
   - **début** : le plan 1 s'ouvre sur le rideau (0,1 → ≈ 1,2 s) ;
   - **changement de lieu ou d'époque** entre deux plans : `change` à cheval sur la coupe (fermeture ≈ D−0,6 → D−0,05 s du plan N de durée D, fermé pendant la coupe, réouverture ≈ 0,15 → 0,85 s du plan N+1) ; la voix continue rideau fermé. Ou bien machinerie (décor qui monte/descend) si le lieu reste le même théâtre ;
-  - **changement à l'intérieur d'un plan** : `change` (≈ 1,1–1,4 s en tout, fermé ≤ 0,3 s) ou machinerie ;
+  - **changement à l'intérieur d'un plan** : `change` (≈ 1,5–2 s en tout : 0,6–0,8 s pour fermer, fermé 0,2–0,4 s, 0,6–0,8 s pour rouvrir) ou machinerie dans le même lieu ;
   - **ellipse de temps sans changer de lieu** (« plus tard », « des siècles plus tard ») : `demi` (les pans se resserrent à moitié et se rouvrent, ≈ 1,2 s) ;
   - **même lieu, action continue** : rien, le rideau reste ouvert à travers la coupe ;
-  - **fin de la vidéo** : le rideau **se ferme après la chute** du dernier plan (≈ 0,2 → 1,05 s après le dernier mot ; le plan 6 dure la voix + 1,3 s), une fois le gag vu ; dernière image rideau fermé.
+  - **fin de la vidéo** : le rideau **se ferme après la chute** du dernier plan (≈ 0,2 → 1,05 s après le dernier mot ; le plan 6 dure la voix + 1,3 s), une fois le gag vu ; fermé au moins 0,25 s avant la fin du plan 6, dernière image rideau fermé (puis la conclusion Clark).
+- **Continuité à chaque coupe** : la vidéo se regarde d'un bout à l'autre comme un seul spectacle. La dernière image du plan N et la première du plan N+1 sont identiques (poses, positions, objets, décor, lumière et poursuite `spot`), rideau ouvert, fermé ou en mouvement ; seul change ensuite ce que le plan N+1 fait bouger. Tout balancement d'ambiance (coulisses, toiles, lustre, flammes, personnage qui respire) s'écrit avec le temps global `g = M.tg(t)`, pas `t` (sinon il repart de zéro à la coupe) ; la rampe, les projecteurs, la poussière, les drapeaux, les décors suspendus, papillons, poissons et fleurs du kit le font déjà.
 - Le rideau n'est **jamais** en mouvement sur un mot-clé dont l'image compte, ni devant le geste clé ou le gag ; au plus 2 mouvements de rideau par plan ; pas deux `change` dans deux coupes consécutives (varier avec la machinerie ou `demi`).
 - Le geste clé tombe sur le mot clé de la voix (écart < 0,2 s) ; le gag arrive avec la chute, jamais avant.
 - Anticipation → action → rebond (ressorts amortis), durées minimales : geste 0,3 s, expression 0,6 s, gag 1,5–2 s. Une action principale à la fois.
@@ -105,10 +107,13 @@
 - Clap de cinéma tenu par un coin qui flotte au bout des doigts, enveloppe mal prise par Robert (Downey, relevé par l'utilisateur) → la main **entoure le bord ou le corps** de l'objet (doigts visibles par-dessus le bord), objet plat posé à plat sur la paume quand on le soupèse ; une partie mobile (barre du clap, rabat) est actionnée par une main qui la suit ; un gros plan de chaque prise avant d'envoyer le plan.
 - Deux plans consécutifs « trop identiques » (Downey : même rangée de cinq profils devant le même fond vert aux plans 3 et 4) → partir des mêmes positions à la coupe, puis changer la composition dès la première action (déplacements, hauteurs, élément de décor nouveau, action au premier plan).
 - Bras « placés bizarrement » dans un geste de joie (Downey, plan 6 : avant-bras pendant vers l'avant, mains à la taille, comme s'il portait un objet invisible) → la joie se joue bras levés en V, mains ouvertes vers le ciel, menton levé ; toujours se demander « que croit-on qu'il fait ? ».
+- Rideau qui « claque » (tulipomanie : fermetures et réouvertures en 0,27–0,4 s, dont la fermeture finale) → durées de la conduite (§5) contrôlées par `fluidite.py --rideau` avant tout rendu.
+- Saut d'image à la coupe (tulipomanie p5 → p6 : marchand qui change de pose et fenêtre déplacée d'une image à l'autre ; p4 → p5 : deux personnages déplacés ; Pompidou : lumière des projecteurs et poursuite qui changent d'un coup, caniche dans une autre pose) → image 0 = état exact de `M.RACC` du plan précédent, même `spot`, ambiances en temps global (`M.tg`) ; `fluidite.py` (lancé par `raccord.sh` et `assembler.sh`) le mesure. SSIM ≥ 0,92 ne suffit pas : il ne voit pas une pose qui change.
+- Changement de lieu par la machinerie entre deux lieux différents (tulipomanie p6 : la taverne monte aux cintres et laisse place aux champs) → deux lieux différents = `change` au rideau ; la machinerie seulement pour changer de décor dans le même lieu ou faire apparaître un élément.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
 3. `verifier.sh` tout « OK » (format, durée = celle de la voix, son : voix incluse à −14 LUFS et crête ≤ −1 dBFS, ou bruitages seuls à crête ≤ −22 sans voix).
-4. Raccord de rideau : première image du plan = dernière image du plan précédent pour le rideau (ouvert, fermé ou en mouvement).
+4. Raccord : première image du plan = dernière image du plan précédent (rideau, poses, objets, décor, lumière) ; `raccord.sh` affiche la ligne `fluidite.py` « coupe pN-1 → pN », qui doit être OK.
 5. Aucune ligne « ATTENTION » de `sauts.py` (objet qui surgit, disparaît ou saute en une image ; fond nu de la scène) ni de `raccord.sh` (SSIM < 0,92 avec la fin du plan précédent) laissée sans correction ou sans justification écrite. Ces deux contrôles tournent dans `produire.sh` ; au Téflon, `sauts.py` aurait relevé 13 sauts réels (porte du frigo qui claque d'une image à l'autre, bocal et spatule qui disparaissent, poêle qui apparaît d'un coup).

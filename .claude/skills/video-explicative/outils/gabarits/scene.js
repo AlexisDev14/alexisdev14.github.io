@@ -12,10 +12,12 @@ const SCENE = (() => {
   };
   S.draw = (t) => {
     const ctx = M.ctx();
+    const g = M.tg(t);                          // temps GLOBAL : tout balancement d'ambiance (coulisses, toiles, lustres, flammes,
+                                                // personnage qui respire au repos) s'écrit avec g, pas t, sinon il saute à la coupe
     ctx.drawImage(K.sky, 0, 0);
-    M.flat(K.wingL, 120, ST.back, { rot: 0.006 * Math.sin(t * 0.9), cast });
-    M.flat(K.wingR, 960, ST.back, { rot: 0.006 * Math.sin(t * 0.8 + 1), cast });
-    M.flat(K.row, 540, ST.back + 2 * Math.sin(t * 1.3));
+    M.flat(K.wingL, 120, ST.back, { rot: 0.006 * Math.sin(g * 0.9), cast });
+    M.flat(K.wingR, 960, ST.back, { rot: 0.006 * Math.sin(g * 0.8 + 1), cast });
+    M.flat(K.row, 540, ST.back + 2 * Math.sin(g * 1.3));
     // extérieur : faune et flore lointaines, discrètes (M.oiseaux, M.passage, M.marmotte, M.papillons, M.poissons, M.fleurs)
     M.drawFloor();
     // marionnettes : M.puppet(C.napoleon, pose, x, FEET, échelle, { dir: 1, slot: ST.slotF, cast });

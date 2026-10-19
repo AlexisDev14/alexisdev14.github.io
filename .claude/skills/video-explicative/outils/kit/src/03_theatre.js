@@ -223,6 +223,7 @@ M.curtain = function (t, f, o = {}) {
 
 // ---------------------------------------------------------------- rampe (lampes à huile)
 M.footlights = function (t) {
+  t = TG(t);
   const y = ST.front + 34;
   for (let i = 0; i < 9; i++) {
     const x = 100 + i * 110; if (Math.abs(x - 540) < 80) continue;
@@ -246,6 +247,7 @@ M.footlights = function (t) {
 const DUST = [];
 { const R = rng(2024); for (let i = 0; i < 90; i++) DUST.push({ x: R(), y: R(), s: 0.6 + R() * 1.6, v: 0.004 + R() * 0.012, ph: R() * TAU, b: R() < 0.5 ? 0 : 1 }); }
 M.stageLight = function (t, o = {}) {
+  t = TG(t);
   if (o.spot === undefined) o = Object.assign({ spot: { x: 520, y: 1060, r: 470, a: 0.42 } }, o);
   const fl = 1 + 0.04 * noise(t * 5, 3);
   // faisceaux des projecteurs (depuis les cintres)

@@ -26,3 +26,5 @@ if awk -v s="$S" -v t="$SEUIL" 'BEGIN{exit !(s >= t)}'; then
 else
   echo "ATTENTION raccord p$P → p$N (SSIM $SS) : voir $V/out/p$N/raccord.png"
 fi
+# Saut d'image à la coupe (pose, objet, décor ou lumière qui change d'un coup) : SSIM ne le voit pas, fluidite.py le mesure.
+python3 -I "$(cd "$(dirname "$0")" && pwd)/fluidite.py" "$V" --coupe "$N" || true
