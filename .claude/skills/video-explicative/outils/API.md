@@ -153,6 +153,18 @@ Petites silhouettes de carton, fonctions pures de t, à dessiner **avant `M.draw
 
 `kind` (`M.BETES`) : `chamois bouquetin cerf biche vache cheval mouton chevre renard loup lapin`. Échelles : au fond (crête) `s` 0,25–0,4 ; prairie intermédiaire 0,4–0,6. Poser les pieds **sur** un relief dessiné (crête de colline, bord de prairie, rive), jamais en l'air sur la toile du ciel.
 
+## 4f. Ambiance : la vie du décor (`kit/src/08_ambiance.js`)
+Fonctions pures du temps **global** (continuent d'un plan à l'autre, sans saut à la coupe), à dessiner dans le décor avant les marionnettes ; aucune lettre ni chiffre. Au moins 3 par lieu (CHARTE §3).
+| Appel | Effet |
+|---|---|
+| `M.flamme(t, {x, y, s=1, lueur=true, r=90, seed})` | flamme de bougie, lampe, lanterne ou âtre qui vacille, avec sa lueur ; `(x,y)` = pied de la flamme |
+| `M.fumee(t, {x, y, s=1, n=6, haut=220, vent=30, col, a=0.7, per=3.2, seed})` | fumée en volutes de papier qui montent et se dissipent (cheminée, pipe, tasse, marmite, forge, locomotive) |
+| `M.pendule(t, {x, y, s=1, per=2, bois})` | pendule murale : cadran à traits, aiguilles qui tournent, balancier ; `(x,y)` = haut du boîtier |
+| `M.voilage(t, {x, y, w=140, h=320, cote=1, amp=10, col})` | voilage de fenêtre qui ondule ; `(x,y)` = bord gauche de la tringle |
+| `M.nuages(t, {y0=260, y1=520, n=4, vit=14, s=1, seed, brume})` | nuages de carton qui défilent lentement (ciel d'extérieur) |
+| `M.passants(t, {y, s=0.45, n=3, per=14, x0=150, x1=930, brume=0.45, seed, femmes})` | passants en ombre chinoise qui traversent au fond (rue, place, quai) ; pâlis par la brume, toujours derrière l'action |
+| `M.poussiere(t, {x, y, w=260, h=420, n=26, a=0.7, seed})` | grains de poussière qui flottent dans un rayon de lumière |
+
 ## 4d. Raccords entre plans — `<video>/raccords/pN.js`
 Chaque plan **écrit son état final** (ce que le plan suivant doit reprendre à 0 s) dans `<video>/raccords/pN.js`, et seulement ce fichier : `M.RACC.p3 = { prefet:{x:190, s:0.93, dir:1}, boites:[{x:575, s:1.1, bande:'vert'}, …], ciel:'paris', … };`
 `construire.sh` réunit tous ces fichiers dans le `raccords.js` de chaque plan (chargé avant `persos.js`). Le plan N+1 **lit** `M.RACC['p' + (M.PLAN - 1)]` pour placer son image 0 au lieu de recopier des valeurs à la main ; si le plan N est corrigé, il suffit de relancer `construire.sh` et `produire.sh` du plan N+1.

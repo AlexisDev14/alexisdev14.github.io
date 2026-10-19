@@ -7,6 +7,7 @@ export PATH="/usr/bin:$PATH"
 # Contrôles, dans l'ordre :
 #   verifier.sh : format, durée, son (un ÉCHEC fait échouer produire.sh, après les deux autres contrôles) ;
 #   sauts.py    : sauts brusques (accessoire qui surgit ou disparaît) et fond nu visible dans la scène (ATTENTION, sans blocage) ;
+#   decor.py    : richesse du décor (détail et vie au-dessus des têtes ; ATTENTION, sans blocage, à corriger) ;
 #   raccord.sh  : fin du plan précédent contre début de celui-ci, si N ≥ 2 et si out/p(N-1)/p(N-1)_final.mp4 existe
 #                 (ATTENTION sans blocage ; image de comparaison out/pN/raccord.png).
 # La sortie du rendu est allégée : les lignes de progression « image k/N » de render.cjs sont filtrées (les erreurs restent).
@@ -20,6 +21,7 @@ python3 -I -c "import sys; sys.path.insert(0, '$OUT'); from sfx_lib import mux; 
 RC=0
 "$OUT/verifier.sh" "$V/out/$N/${N}_final.mp4" || RC=$?
 python3 -I "$OUT/sauts.py" "$V/out/$N/${N}_final.mp4" || true
+python3 -I "$OUT/decor.py" "$V/out/$N/$N.mp4" || true
 NUM="${N#p}"
 if [[ "$NUM" =~ ^[0-9]+$ ]] && [ "$NUM" -ge 2 ] && [ -f "$V/out/p$((NUM - 1))/p$((NUM - 1))_final.mp4" ]; then
   "$OUT/raccord.sh" "$V" "$NUM" || true
