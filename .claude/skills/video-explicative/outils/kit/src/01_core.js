@@ -242,8 +242,8 @@ function controleCoudes(def, pose, mats, sc, nom, dir = 1) {
       const sin = (ux * fy - uy * fx) / (nu * nf);          // > 0 : l'avant-bras tourne dans le sens horaire à l'écran
       if (sin * dir > 0.34) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (vers l\'arrière)');
       // 3) « main derrière » : même bras tendu, la main dépasse nettement derrière le dos (main « en aile ») ;
-      //    le balancement de la marche (≈ ±0,3 rad) reste sous le seuil
-      if ((S[0] - Hd[0]) * dir > 0.42 * (nu + nf)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (main derrière)');
+      //    seuil 0,25 longueur de bras : un balancement de marche ample le déclenche aussi (le garder petit)
+      if ((S[0] - Hd[0]) * dir > 0.25 * (nu + nf)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (main derrière)');
     }
     const sx = Hd[0] - S[0], sy = Hd[1] - S[1], L = Math.hypot(sx, sy);
     if (L < 1 || Math.abs(sx) < 0.35 * L) continue;
