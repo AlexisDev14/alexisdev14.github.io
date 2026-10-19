@@ -227,7 +227,8 @@ const ROD_WIRE = ['#1a1a1a', '#77736b', '#222'];
 //     (main « en aile » derrière lui, main dans le dos ou poing sur la hanche vus de profil, bras qui rattrape un objet
 //     derrière lui). Un vrai coude plie toujours vers l'avant : vu de profil, l'avant-bras tourne vers le côté où regarde
 //     le personnage (dir). Test : produit vectoriel bras × avant-bras de signe opposé à dir (relevés par l'utilisateur
-//     sur le paris-brest : Durand main en aile, coureur qui tient la selle derrière lui).
+//     sur le paris-brest : Durand main en aile, coureur qui tient la selle derrière lui) ;
+//  3) « main derrière » : bras tendu vers l'arrière, la main dépasse derrière le dos (même sans pli du coude).
 // Bras tendu ou bras caché : pas de contrôle. Nom affiché : o.nom (option de M.puppet), def.nom, sinon la position x.
 function controleCoudes(def, pose, mats, sc, nom, dir = 1) {
   if (typeof window === 'undefined' || !def.handLen) return;
@@ -240,6 +241,9 @@ function controleCoudes(def, pose, mats, sc, nom, dir = 1) {
     if (nu > 1 && nf > 1) {
       const sin = (ux * fy - uy * fx) / (nu * nf);          // > 0 : l'avant-bras tourne dans le sens horaire à l'écran
       if (sin * dir > 0.34) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (vers l\'arrière)');
+      // 3) « main derrière » : même bras tendu, la main dépasse nettement derrière le dos (main « en aile ») ;
+      //    le balancement de la marche (≈ ±0,3 rad) reste sous le seuil
+      if ((S[0] - Hd[0]) * dir > 0.42 * (nu + nf)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (main derrière)');
     }
     const sx = Hd[0] - S[0], sy = Hd[1] - S[1], L = Math.hypot(sx, sy);
     if (L < 1 || Math.abs(sx) < 0.35 * L) continue;
