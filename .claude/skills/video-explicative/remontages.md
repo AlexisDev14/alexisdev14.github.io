@@ -10,3 +10,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261015_0938 | L'étoile Mercedes, carte postale | fait | 2026-10-19 10:06 | Canva (DAHYEWS8V3U) ; 60,9 s ; 1 631 images refaites, 39 en fondu refait, carton de fin gardé ; aucune coquille |
 | v_20261015_1206 | Barbe Noire, le pirate qui fumait | fait | 2026-10-19 10:20 | 64,57 s, tranche gardée du montage : 58,97–64,57 s (carton de fin seul) |
 | v_20261015_1749 | Manneken-Pis, mille costumes | fait | 2026-10-19 10:30 | 63,73 s ; gardé du montage : carton de fin 58,13–63,73 s seulement |
+| v_20261015_2048 | Le Beau Danube bleu, la valse que Brahms enviait | en cours | 2026-10-19 10:32 |  |
