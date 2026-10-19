@@ -226,8 +226,8 @@ const ROD_WIRE = ['#1a1a1a', '#77736b', '#222'];
 // « ATTENTION … » avec les instants. Types :
 //   coude   coude cassé à l'envers : en repère du bras, la main passe DERRIÈRE l'axe du bras (le coude ne plie que vers
 //           l'avant, comme M.ik avec bendSign 1) ; ou coude au-dessus de la ligne épaule–main d'un bras plié non vertical ;
-//   arriere main du bras AVANT qui travaille DERRIÈRE le personnage (dans le repère du corps, plus de 45 % du bras en arrière de
-//           l'épaule, du côté opposé au regard) : pinceau, outil, geste tourné vers le dos alors qu'il fait face à l'objet ;
+//   arriere main qui dépasse DERRIÈRE le personnage (dans le repère du corps, plus d'un quart de bras en arrière
+//           de l'épaule, du côté opposé au regard ; les deux bras) : pinceau, outil, geste tourné vers le dos alors qu'il fait face à l'objet ;
 //   pied    pied à l'envers (pointe vers l'arrière) ou qui pique vers le bas / le haut (> 55° sous l'horizontale ou > 45° au-dessus).
 // Dispense (rare, à justifier dans le rapport) : pose.libre = { armF: 1, legB: 1, … } pour ce membre dans cette pose,
 // ou def.libre = { … } pour une marionnette dont le dessin ne suit pas la convention (animal, robe sans pieds).
@@ -252,9 +252,11 @@ function controleCoudes(def, pose, mats, sc, nom, root) {
       const u = ((E[0] - S[0]) * sx + (E[1] - S[1]) * sy) / (D * D);
       if (u > 0.05 && u < 0.95 && E[1] < S[1] + u * sy - Math.max(6, 10 * sc)) { note('coude', arm); continue; }
     }
-    // 3. main qui travaille derrière le dos : bras AVANT seulement (le bras arrière tendu derrière = bras écartés, permis)
+    // 3. main derrière le dos (main « en aile », bras tendu vers l'arrière, outil tenu derrière soi ; retours paris-brest
+    //    et Oscar) : la main dépasse de plus d'un quart de bras derrière l'épaule, dans le repère du corps, pour les deux bras.
+    //    Un balancement de marche ample le déclenche aussi : le garder petit.
     const Sb = rl(S), Hb = rl(Hd), Eb = rl(E), Lb = Math.hypot(Eb[0] - Sb[0], Eb[1] - Sb[1]) + def.handLen;
-    if (arm === 'armF' && Hb[0] - Sb[0] < -0.45 * Lb) note('arriere', arm);
+    if (Hb[0] - Sb[0] < -0.25 * Lb) note('arriere', arm);
   }
   for (const leg of ['legF', 'legB']) {
     const k = mats[leg + '_lo'] ? leg + '_lo' : leg, m = mats[k];
