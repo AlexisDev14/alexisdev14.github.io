@@ -12,3 +12,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261015_1749 | Manneken-Pis, mille costumes | fait | 2026-10-19 10:30 | 63,73 s ; gardé du montage : carton de fin 58,13–63,73 s seulement |
 | v_20261015_2048 | Le Beau Danube bleu, la valse que Brahms enviait | fait | 2026-10-19 10:39 | 65,17 s ; 1786 images refaites depuis les plans, gardé du montage 59,53–65,17 s (carton de fin seul) |
 | v_20261015_2349 | Le conteneur, né d'une journée d'attente | fait | 2026-10-19 11:04 | 65,2 s ; 1787 images refaites depuis les plans, gardé du montage 59,57–65,20 s (carton Clark) ; coquille Maclean → McLean (×2), 5,85 $ |
+| v_20261016_0249 | Mettre les pieds dans le plat, une histoire de mare | en cours | 2026-10-19 11:13 |  |
