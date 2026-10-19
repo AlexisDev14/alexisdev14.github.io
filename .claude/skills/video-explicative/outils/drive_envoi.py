@@ -2,7 +2,7 @@
 # Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <p6_final.mp4>   (« - » : pas de fichier texte)
 #   "<Sujet>" peut être « id:<id du dossier> » pour déposer dans un dossier existant précis (lien du registre).
 #   Le type MIME suit toujours l'extension (.png → image/png, .txt → text/plain…), y compris pour le 2e argument.
-# Rangement dans le dossier du sujet : sous-dossier « Plans » (plans pN_final.mp4), sous-dossier « Audio » (.mp3, .wav) ; le reste
+# Rangement dans le dossier du sujet : sous-dossier « Plans » (plans pN_final.mp4), sous-dossier « Audio » (.mp3, .wav), sous-dossier « Sources » (.zip de sources.sh) ; le reste
 # (vidéos complètes d'assembler.sh et soustitres.py, fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
 # Renvoi sans doublon : un fichier de même nom déjà présent dans le dossier est REMPLACÉ (nouvelle version du même
 # fichier, même lien), jamais dupliqué ni mis à la corbeille. Relancer le script après une correction est donc sans risque.
@@ -62,8 +62,8 @@ def envoyer(tok, chemin, parent, mime):
 
 
 MIME = {'.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.json': 'application/json', '.md': 'text/markdown', '.png': 'image/png', '.jpg': 'image/jpeg',
-        '.txt': 'text/plain', '.mp4': 'video/mp4'}
-RANGEMENT = {'.mp4': 'Plans', '.mp3': 'Audio', '.wav': 'Audio'}
+        '.txt': 'text/plain', '.mp4': 'video/mp4', '.zip': 'application/zip'}
+RANGEMENT = {'.mp4': 'Plans', '.mp3': 'Audio', '.wav': 'Audio', '.zip': 'Sources'}
 
 
 if __name__ == '__main__':
