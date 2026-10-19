@@ -17,7 +17,7 @@ Exemples validés par l'utilisateur (à lire avant d'écrire) : `OUTILS/exemples
 - **Expressions qui racontent** : le complice fait un clin d'œil au public, la victime a peur (`brow: 'worry'`, `mouth: 'o'`), le témoin s'étonne (mains aux joues par `M.ik`, bouche en « o »).
 - **Jamais de main levée paume ouverte** (rappelle un salut), ni de geste ou de symbole ambigu.
 - **Le coude plie toujours vers l'avant** : l'avant-bras part du côté opposé au dos du personnage, jamais vers l'arrière (Lacoste, bras avant en pose `dos` : avant-bras replié vers son dos, refusé). De profil, n'utilise pas les poses « mains dans le dos » pour le bras visible : mets le bras le long du corps, ou la main vers l'avant par `M.ik`.
-- Les gestes demandés par l'utilisateur passent par `M.ik` vers un point de la tête ou du corps (`r.w('head', x, y)`) ; aucune ligne « ATTENTION coude à l'envers » au rendu.
+- Les gestes demandés par l'utilisateur passent par `M.ik` vers un point de la tête ou du corps (`r.w('head', x, y)`) ; aucune ligne « ATTENTION » de membres (coude, main derrière le dos, pied) au rendu.
 - Un objet qui vole (carte ailée, lettre) : petites ailes de papier ivoire bordées de blanc, l'objet penché vers son destinataire, un pointillé depuis l'expéditeur (voir `mercedes/scene.js`, `aile` et `carteAilee`).
 - Les personnages de l'affiche sont ceux du **cœur de l'histoire** (l'inventeur et celui qui en tire l'idée, le héros et sa victime) ; un personnage secondaire de la vidéo n'y figure pas (Téflon : Colette retirée, Plunkett et Marc Grégoire gardés).
 - Coffres, couvercles, objets orientés : vérifier qu'ils s'ouvrent vers le centre et ne sortent pas du cadre (`dir`).

@@ -221,24 +221,48 @@ function drawRod(T0, x0, y0, ang, slotY, w, col) {
 const ROD_WOOD = ['#5b3d22', '#c8a06a', '#6e4a2a'];
 const ROD_WIRE = ['#1a1a1a', '#77736b', '#222'];
 
-// Contrôle automatique « coude à l'envers » : un bras plié dont le coude passe AU-DESSUS de la ligne épaule–main
-// (à l'écran) est noté dans window.COUDES ; render.cjs le signale (ligne « ATTENTION coude »). Bras quasi vertical,
-// bras tendu ou bras caché : pas de contrôle. Nom affiché : o.nom (option de M.puppet), def.nom, sinon la position x.
-function controleCoudes(def, pose, mats, sc, nom) {
-  if (typeof window === 'undefined' || !def.handLen) return;
+// Contrôle automatique des membres (leçons Barbe Noire, Oscar : bras et jambes « pas dans le bon sens », vus par l'utilisateur
+// seulement). Chaque défaut est noté dans window.COUDES sous la forme « type|nom pièce » ; render.cjs l'affiche en ligne
+// « ATTENTION … » avec les instants. Types :
+//   coude   coude cassé à l'envers : en repère du bras, la main passe DERRIÈRE l'axe du bras (le coude ne plie que vers
+//           l'avant, comme M.ik avec bendSign 1) ; ou coude au-dessus de la ligne épaule–main d'un bras plié non vertical ;
+//   arriere main du bras AVANT qui travaille DERRIÈRE le personnage (dans le repère du corps, plus de 45 % du bras en arrière de
+//           l'épaule, du côté opposé au regard) : pinceau, outil, geste tourné vers le dos alors qu'il fait face à l'objet ;
+//   pied    pied à l'envers (pointe vers l'arrière) ou qui pique vers le bas / le haut (> 55° sous l'horizontale ou > 45° au-dessus).
+// Dispense (rare, à justifier dans le rapport) : pose.libre = { armF: 1, legB: 1, … } pour ce membre dans cette pose,
+// ou def.libre = { … } pour une marionnette dont le dessin ne suit pas la convention (animal, robe sans pieds).
+function controleCoudes(def, pose, mats, sc, nom, root) {
+  const rl = (P) => { const q = new DOMPoint(P[0], P[1]).matrixTransform(root.inverse()); return [q.x, q.y]; };   // repère du corps : +x = devant
+  if (typeof window === 'undefined') return;
+  const libre = (k) => (pose.libre && pose.libre[k]) || (def.libre && def.libre[k]);
+  const note = (type, k) => (window.COUDES = window.COUDES || []).push(type + '|' + nom + ' ' + k);
   for (const arm of ['armF', 'armB']) {
     const up = mats[arm + '_up'], lo = mats[arm + '_lo'];
-    if (!up || !lo || (pose.hide && (pose.hide[arm + '_up'] || pose.hide[arm + '_lo']))) continue;
+    if (!def.handLen || !up || !lo || libre(arm) || (pose.hide && (pose.hide[arm + '_up'] || pose.hide[arm + '_lo']))) continue;
     const S = wpt(up, 0, 0), E = wpt(lo, 0, 0), Hd = wpt(lo, 0, def.handLen);
-    const sx = Hd[0] - S[0], sy = Hd[1] - S[1], L = Math.hypot(sx, sy);
-    if (L < 1 || Math.abs(sx) < 0.35 * L) continue;
-    const u = ((E[0] - S[0]) * sx + (E[1] - S[1]) * sy) / (L * L);
-    if (u <= 0.05 || u >= 0.95) continue;
+    const L1 = Math.hypot(E[0] - S[0], E[1] - S[1]), L = L1 + def.handLen * sc;
+    // 1. sens du coude, en repère du bras (indépendant de l'orientation)
+    const hl = new DOMPoint(Hd[0], Hd[1]).matrixTransform(up.inverse());
     const a1 = Math.atan2(E[1] - S[1], E[0] - S[0]), a2 = Math.atan2(Hd[1] - E[1], Hd[0] - E[0]);
     let pli = Math.abs(a2 - a1); if (pli > Math.PI) pli = TAU - pli;
-    if (pli < 0.3) continue;
-    const yLigne = S[1] + u * sy;
-    if (E[1] < yLigne - Math.max(6, 10 * sc)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm);
+    if (pli > 0.3 && hl.x < -0.12 * def.handLen) { note('coude', arm); continue; }
+    // 2. ancien contrôle : coude au-dessus de la ligne épaule–main
+    const sx = Hd[0] - S[0], sy = Hd[1] - S[1], D = Math.hypot(sx, sy);
+    if (D >= 1 && Math.abs(sx) >= 0.35 * D && pli >= 0.3) {
+      const u = ((E[0] - S[0]) * sx + (E[1] - S[1]) * sy) / (D * D);
+      if (u > 0.05 && u < 0.95 && E[1] < S[1] + u * sy - Math.max(6, 10 * sc)) { note('coude', arm); continue; }
+    }
+    // 3. main qui travaille derrière le dos : bras AVANT seulement (le bras arrière tendu derrière = bras écartés, permis)
+    const Sb = rl(S), Hb = rl(Hd), Eb = rl(E), Lb = Math.hypot(Eb[0] - Sb[0], Eb[1] - Sb[1]) + def.handLen;
+    if (arm === 'armF' && Hb[0] - Sb[0] < -0.45 * Lb) note('arriere', arm);
+  }
+  for (const leg of ['legF', 'legB']) {
+    const k = mats[leg + '_lo'] ? leg + '_lo' : leg, m = mats[k];
+    if (!m || !def.parts[k] || libre(leg) || (pose.hide && pose.hide[k])) continue;
+    const A = rl(wpt(m, 0, 0)), B = rl(wpt(m, 100, 0));   // repère du corps : un personnage couché garde ses pieds justes
+    const vx = B[0] - A[0], vy = B[1] - A[1];
+    const ang = Math.atan2(vy, vx);            // 0 = pointe vers l'avant, > 0 = vers le bas
+    if (vx < 0 || ang > 0.96 || ang < -0.79) note('pied', leg);
   }
 }
 
@@ -247,7 +271,7 @@ function puppet(def, pose, x, y, s, o = {}) {
   const { T0, root, mats } = partMatrices(def, pose, x, y, s, dir);
   const sc = Math.hypot(T0.a, T0.b) * s;
   const slot = o.slot != null ? o.slot : y + 18 * s;
-  if (!SIL) controleCoudes(def, pose, mats, sc, o.nom || def.nom || `x≈${Math.round(x)}`);
+  if (!SIL) controleCoudes(def, pose, mats, sc, o.nom || def.nom || `x≈${Math.round(x)}`, root);
   const doDraw = () => {
     const prevLW = LW; LW = 1 / sc;
     if (!SIL && o.floorShadow !== false) {

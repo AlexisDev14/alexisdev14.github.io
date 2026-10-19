@@ -70,12 +70,19 @@ const args = gpu ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '-
   const chunk = Math.ceil(list.length / pages.length);
   await Promise.all(pages.map(async (p, k) => { for (const f of list.slice(k * chunk, (k + 1) * chunk)) await grab(p, f); }));
   await browser.close(); server.close();
-  // coudes à l'envers (contrôle du kit) : une ligne par bras, avec les plages de temps
+  // membres à l'envers (contrôle du kit : coude, main derrière le dos, pied) : une ligne par membre, avec les plages de temps
   for (const [k, fs_] of Object.entries(COUDES)) {
     const v = [...fs_].sort((a, b) => a - b), plages = []; let a0 = v[0], b0 = v[0];
     for (const f of v.slice(1)) { if (f - b0 <= (stills ? 45 : 2)) b0 = f; else { plages.push([a0, b0]); a0 = b0 = f; } }
     plages.push([a0, b0]);
-    console.log(`ATTENTION coude à l'envers : ${k} à ${plages.map(([a, b]) => a === b ? (a / FPS).toFixed(2) + ' s' : (a / FPS).toFixed(2) + '–' + (b / FPS).toFixed(2) + ' s').join(', ')} (coude au-dessus de la ligne épaule–main : essayer l'autre bendSign de M.ik)`);
+    const [type, qui] = k.includes('|') ? k.split('|') : ['coude', k];
+    const quand = plages.map(([a, b]) => a === b ? (a / FPS).toFixed(2) + ' s' : (a / FPS).toFixed(2) + '–' + (b / FPS).toFixed(2) + ' s').join(', ');
+    const MSG = {
+      coude: ["coude à l'envers", "le coude ne plie que vers l'avant (main du côté de la poitrine) : l'autre bendSign de M.ik"],
+      arriere: ['main derrière le dos', "la main qui agit (outil, pinceau, objet, geste) va vers ce qu'il regarde : cible devant lui, ou retourner le personnage (dir)"],
+      pied: ["pied à l'envers", "la pointe du pied va vers l'avant (sens du regard), à plat ou presque : angle de la jambe, ou retourner le personnage"],
+    }[type] || [type, ''];
+    console.log(`ATTENTION ${MSG[0]} : ${qui} à ${quand} (${MSG[1]} ; dispense pose.libre seulement si le geste l'exige, justifiée dans le rapport)`);
   }
   if (stills) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'planche-'));

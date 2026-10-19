@@ -45,7 +45,7 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Chaque figurant d'un groupe a sa propre tenue (jamais de clones).
 - **Composition** : ton plan part des positions du plan précédent à la coupe, puis change de disposition dès la première action (déplacements, hauteurs, élément nouveau) : ta planche ne doit pas ressembler à celle du plan précédent.
 - **Gestes expressifs** : demande-toi « que croit-on qu'il fait ? » (bras qui pendent mains à la taille = il porte un objet invisible ; bras tendu vers quelqu'un = il le désigne) ; la joie = bras levés en V, menton levé, visage visible.
-- Bras : tout bras plié passe par `M.ik` avec le `bendSign` indiqué dans `persos.md` pour ce bras et cette direction ; le rendu signale « ATTENTION coude à l'envers » : à corriger, jamais à justifier.
+- Bras : tout bras plié passe par `M.ik` avec le `bendSign` indiqué dans `persos.md` pour ce bras et cette direction ; le rendu signale « ATTENTION coude à l'envers », « ATTENTION main derrière le dos » (la main du bras avant qui agit va vers ce que le personnage regarde, jamais derrière lui : pinceau, outil, geste) et « ATTENTION pied à l'envers » (pointe du pied vers l'avant, à plat ou presque) : à corriger, jamais à justifier (dispense `pose.libre` seulement pour un geste qui l'exige, dite dans ton rapport). Ton rapport donne le nombre de lignes « ATTENTION » membres du rendu complet : 0 attendu.
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
 
 ## 6. Bruitages (`mixage.py`)
