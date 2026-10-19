@@ -7,4 +7,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261015_0401 | Big Ben, la cloche fêlée | fait | 2026-10-19 08:30 | à la main ; voix des mp3, fins de plan coupées, 56 s |
 | v_20261016_1148 | La boussole, un aimant qui pointe vers un pôle sud | fait | 2026-10-19 10:00 | à la main ; montage Canva officiel, sous-titres Canva retirés, 63,6 s |
 | v_20261018_0749 | Le Centre Pompidou, Notre-Dame de la tuyauterie | fait | 2026-10-18 20:00 | à la main (reprise complète des plans 1 à 3) |
-| v_20261015_0938 | L'étoile Mercedes, carte postale | en cours | 2026-10-19 09:58 |  |
+| v_20261015_0938 | L'étoile Mercedes, carte postale | fait | 2026-10-19 10:06 | Canva (DAHYEWS8V3U) ; 60,9 s ; 1 631 images refaites, 39 en fondu refait, carton de fin gardé ; aucune coquille |
