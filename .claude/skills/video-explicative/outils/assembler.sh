@@ -5,7 +5,9 @@ export PATH="/usr/bin:$PATH"
 # Lit <dossier_video>/out/p1/p1_final.mp4 … p6_final.mp4 (dans l'ordre ; tous doivent exister) et écrit par défaut
 # <dossier_video>/out/video_complete.mp4 : image des plans recopiée telle quelle (sans réencodage), son AAC 192k stéréo ramené à −14 LUFS
 # (VOIX_LUFS de sfx_lib), crête −1 dBFS. Les plans se raccordent tels quels : le rideau et ses bruitages enjambent déjà les coupes.
-# Contrôle à la fin : verifier.sh (durée attendue = somme des 6 plans, son avec voix).
+# Puis la conclusion Clark (outils/conclusion/conclusion.mp4, 5 s, son d'origine) est collée à la fin : toute vidéo complète
+# (et donc sa version sous-titrée, faite à partir d'elle, sans sous-titre sur la conclusion) se termine par elle.
+# Contrôle à la fin : verifier.sh (durée attendue = somme des 6 plans + conclusion, son avec voix).
 set -eo pipefail
 OUT="$(cd "$(dirname "$0")" && pwd)"; V="$(cd "$1" && pwd)"; S="${2:-$V/out/video_complete.mp4}"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
@@ -23,10 +25,22 @@ done
 ffmpeg -y -loglevel error -f concat -safe 0 -i "$TMP/liste.txt" "${ENTREES[@]}" \
   -filter_complex "${FILTRE}[a1][a2][a3][a4][a5][a6]concat=n=6:v=0:a=1[a]" -map 0:v -map '[a]' \
   -c:v copy -c:a pcm_s16le -ar 48000 -ac 2 "$TMP/brut.mkv"
+# Conclusion Clark (conclusion/conclusion.mp4, fournie par l'utilisateur, 5 s) collée à la fin, telle quelle : son propre son, sans gain.
+CONCL="$OUT/conclusion/conclusion.mp4"
+if [ -f "$CONCL" ]; then
+  ATTENDU=$(python3 -c "print(round($ATTENDU + $(ffprobe -v error -select_streams v:0 -show_entries stream=duration -of csv=p=0 "$CONCL"), 4))")
+fi
 python3 -I -c "
-import subprocess, sys; out, brut, sortie = sys.argv[1:4]; sys.path.insert(0, out); from sfx_lib import sonie, VOIX_LUFS
+import os, subprocess, sys; out, brut, sortie, concl = sys.argv[1:5]; sys.path.insert(0, out); from sfx_lib import sonie, VOIX_LUFS
 g = VOIX_LUFS - sonie(brut)
-subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-af', f'volume={g:.2f}dB,alimiter=limit=0.891:level=false',
-                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-movflags', '+faststart', sortie], check=True)
-print(f'→ {sortie} (6 plans bout à bout, voix off incluse, gain {g:+.2f} dB)')" "$OUT" "$TMP/brut.mkv" "$S"
+fin = ['-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-movflags', '+faststart', sortie]
+if os.path.exists(concl):   # plans ramenés à −14 LUFS, puis la conclusion à la suite (image réencodée une fois, crf 18)
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-i', concl, '-filter_complex',
+                    f'[0:a]volume={g:.2f}dB,alimiter=limit=0.891:level=false,aresample=48000[a0];'
+                    '[1:a]aresample=48000,aformat=channel_layouts=stereo[a1];[0:v]setsar=1[v0];'
+                    '[1:v]scale=1080:1920,fps=30,setsar=1,format=yuv420p[v1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]',
+                    '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p'] + fin, check=True)
+else:
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-af', f'volume={g:.2f}dB,alimiter=limit=0.891:level=false', '-c:v', 'copy'] + fin, check=True)
+print(f'→ {sortie} (6 plans bout à bout, voix off incluse, gain {g:+.2f} dB' + (', conclusion Clark à la fin)' if os.path.exists(concl) else ')'))" "$OUT" "$TMP/brut.mkv" "$S" "$CONCL"
 AVEC_VOIX=1 "$OUT/verifier.sh" "$S" "$ATTENDU"
