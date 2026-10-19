@@ -29,13 +29,67 @@ def lecteur(f):
 
 vm = vignettes(M)
 vp = [vignettes(p) for p in PLANS]
-choix = []                                    # par image du montage : (plan, image) ou None
+dist = [np.stack([np.abs(p - vm[t]).mean(axis=(1, 2)) for t in range(len(vm))]) for p in vp]   # par plan : (images montage, images plan)
+libre = []                                    # par image du montage : meilleure image, prise seule : (plan, image) ou None
 for t in range(len(vm)):
     best = (1e9, None, None)
-    for i, p in enumerate(vp):
-        d = np.abs(p - vm[t]).mean(axis=(1, 2)); k = int(d.argmin())
-        if d[k] < best[0]: best = (float(d[k]), i, k)
-    choix.append((best[1], best[2]) if best[0] < SEUIL else None)
+    for i, d in enumerate(dist):
+        k = int(d[t].argmin())
+        if d[t, k] < best[0]: best = (float(d[t, k]), i, k)
+    libre.append((best[1], best[2]) if best[0] < SEUIL else None)
+
+# Les plans bougent lentement (beaucoup d'images voisines presque identiques) : l'image la plus proche, prise une à une, va et
+# vient d'une image à l'autre et la vidéo saccade. On impose donc à chaque passage d'un plan une avance régulière,
+# image = k0 + vitesse × t (Canva change parfois la vitesse d'un plan : 0,8 à 1,2), ajustée sur tout le passage.
+def ajuste(i, a, b):                          # passage du plan i sur les images a..b-1 du montage → (coût, vitesse, k0)
+    d, ts = dist[i][a:b], np.arange(b - a)
+    kl = d.argmin(axis=1); best = (1e9, 1.0, 0.0)
+    for s in np.arange(0.80, 1.2001, 0.005):
+        m = np.median(kl - s * ts)
+        for k0 in m + np.arange(-15, 15.5, 0.5):
+            ks = np.rint(k0 + s * ts).astype(int); ok = (ks >= 0) & (ks < d.shape[1])
+            c = np.where(ok, d[ts, np.clip(ks, 0, d.shape[1] - 1)], 50).mean()
+            if c < best[0]: best = (float(c), float(s), float(k0))
+    return best
+def image_ajustee(i, a, s, k0, t):
+    return int(np.clip(np.rint(k0 + s * (t - a)), 0, len(vp[i]) - 1))
+passages = []                                 # [plan, début, fin] : suites d'images retrouvées dans un même plan
+for t, c in enumerate(libre):
+    if c is None: continue
+    if passages and passages[-1][0] == c[0] and passages[-1][2] >= t - 3: passages[-1][2] = t + 1
+    else: passages.append([c[0], t, t + 1])
+COURT = 10                                    # un passage plus court est du bruit (rideau, ciel) : rendu au voisin
+while any(b - a < COURT for _, a, b in passages) and len(passages) > 1:
+    j = min(range(len(passages)), key=lambda j: passages[j][2] - passages[j][1])
+    if passages[j][2] - passages[j][1] >= COURT: break
+    a, b = passages[j][1], passages[j][2]
+    if j > 0 and (j == len(passages) - 1 or passages[j - 1][2] >= passages[j + 1][1] - (b - a) - 3) and passages[j - 1][2] >= a - 3:
+        passages[j - 1][2] = b
+    elif j < len(passages) - 1 and passages[j + 1][1] <= b + 3: passages[j + 1][1] = a
+    passages.pop(j)
+    fus = []                                  # deux passages voisins du même plan redeviennent un seul
+    for p in passages:
+        if fus and fus[-1][0] == p[0] and fus[-1][2] >= p[1] - 3: fus[-1][2] = p[2]
+        else: fus.append(p)
+    passages = fus
+fits = [ajuste(*p) for p in passages]
+for j in range(len(passages) - 1):            # coupe exacte entre deux passages contigus : là où les deux ajustements se valent
+    (i1, a1, b1), (i2, a2, b2) = passages[j], passages[j + 1]
+    if a2 - b1 > 3: continue
+    _, s1, k1 = fits[j]; _, s2, k2 = fits[j + 1]
+    lo, hi = max(a1 + 1, b1 - 15), min(b2 - 1, a2 + 15)
+    cout = lambda c: (sum(dist[i1][t, image_ajustee(i1, a1, s1, k1, t)] for t in range(lo, c))
+                      + sum(dist[i2][t, image_ajustee(i2, a2, s2, k2, t)] for t in range(c, hi)))
+    c = min(range(lo, hi + 1), key=cout)
+    k2 = k2 + s2 * (c - a2)                   # même droite, origine déplacée en c
+    passages[j][2], passages[j + 1][1] = c, c; fits[j + 1] = (fits[j + 1][0], s2, k2)
+choix = [None] * len(vm)                      # par image du montage : (plan, image) ou None
+for (i, a, b), (_, s, k0) in zip(passages, fits):
+    print(f'   plan {os.path.basename(PLANS[i])} : {a / 30:.2f}–{b / 30:.2f} s, vitesse ×{s:.3f}')
+    for t in range(a, b):
+        k = image_ajustee(i, a, s, k0, t)
+        if dist[i][t, k] < SEUIL: choix[t] = (i, k)
+        elif libre[t] and libre[t][0] == i: choix[t] = libre[t]   # passage que Canva a accéléré par endroits (rideau)
 
 # Image : on parcourt le montage et chaque plan dans l'ordre, une image à la fois (mémoire faible).
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', '30', '-i', '-',

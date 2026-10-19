@@ -68,7 +68,8 @@ Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé
    Monsieur Poubelle, Reblochon, Téflon) et pas de copie Canva « — sans sous-titres » → « impossible » (« copie Canva sans sous-titres
    à préparer par l'utilisateur »).
 3. **Image sans sous-titres** : `python3 -I OUTILS/reconstruire.py T/canva.mp4 "T/<Sujet> — vidéo complète.mp4" <les plans>`.
-   Il dit quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) est normal
+   Il cale chaque plan du montage sur une avance régulière (décalage + vitesse, affichée : Canva change parfois la vitesse d'un plan) :
+   prendre l'image la plus proche une à une faisait saccader la vidéo (avant le 19/10, 13 h). Il dit quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) est normal
    (les fondus enchaînés de Canva entre deux plans, qui montrent déjà le sous-titre suivant, sont refaits en fondu sans texte). Plus de 1 s gardée AVANT le carton (plan retouché dans Canva, absent du Drive) : regarder ces
    instants (planche.sh --de A --a B) ; s'il y reste des sous-titres Canva → « impossible » avec les instants.
 4. **Instants des mots** (venv une fois : `python3 -m venv <scratchpad>/venv-fw && <scratchpad>/venv-fw/bin/pip install -q faster-whisper`) :
