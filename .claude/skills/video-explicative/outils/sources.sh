@@ -7,6 +7,7 @@
 # Reprise : télécharger l'archive, la décompresser dans un nouveau dossier de travail, y remettre voix/pN.mp3 (sous-dossier
 #   « Audio ») et out/pN/pN_final.mp4 (« Plans ») depuis le Drive, puis construire.sh / produire.sh sur le plan à corriger.
 set -eo pipefail
+[ $# -eq 2 ] || { echo "Usage : sources.sh <dossier_video> <sortie.zip>"; exit 2; }
 V="$(cd "$1" && pwd)"; Z="$2"
 case "$Z" in /*) ;; *) Z="$PWD/$Z" ;; esac
 cd "$V"
