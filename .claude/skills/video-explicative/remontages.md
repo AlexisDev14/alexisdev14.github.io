@@ -13,4 +13,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261015_2048 | Le Beau Danube bleu, la valse que Brahms enviait | à refaire | 2026-10-19 13:00 | livrée avec reconstruire.py d'avant le 19/10 13 h (image la plus proche une à une) : saccades ; à refaire entièrement |
 | v_20261015_2349 | Le conteneur, né d'une journée d'attente | à refaire | 2026-10-19 13:00 | livrée avec reconstruire.py d'avant le 19/10 13 h (image la plus proche une à une) : saccades ; à refaire entièrement |
 | v_20261016_1148 | La boussole, un aimant qui pointe vers un pôle sud | à refaire | 2026-10-19 13:00 | livrée avec reconstruire.py d'avant le 19/10 13 h (image la plus proche une à une) : saccades ; à refaire entièrement |
-| v_20261015_0938 | L'étoile Mercedes, carte postale | en cours | 2026-10-19 13:21 |  |
+| v_20261015_0938 | L'étoile Mercedes, carte postale | fait | 2026-10-19 13:23 | déjà fait selon l'utilisateur (19/10), non remonté par la routine |
