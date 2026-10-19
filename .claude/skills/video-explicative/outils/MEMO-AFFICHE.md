@@ -11,6 +11,7 @@ Exemples validés par l'utilisateur (à lire avant d'écrire) : `OUTILS/exemples
 - Lumière : `M.stageLight(t, { spot: { x: 540, y: 1150, r: 620, a: 0.25 } })`, une toile de fond au couchant ou à l'aube plutôt que de jour.
 
 ## 2. Ce que l'utilisateur a corrigé (à respecter)
+- **Jamais de bras redessiné par-dessus un objet tenu** (affiche « La première écriture » : bras du poète posé en diagonale sur l'addition, bras arrière parti derrière le dos, « ça va pas du tout ») → une tablette ou une carte se tient par la prise du kit (main sous le bord inférieur, avant-bras horizontal, ou main sur le bord) : rien du bras sur l'objet, l'autre bras le long du corps ou main sur la poitrine. Pas de montage « deux mains par les bords » fait à la main.
 - **Bras jamais masqués** par un objet tenu : un objet plat (carte, lettre, feuille) se dessine **derrière** la marionnette, la main posée sur son bord ou son coin (dessiner la marionnette une fois sous un `clip` vide pour connaître la position de la main, puis l'objet, puis la marionnette ; voir `mercedes/scene.js`).
 - **Un objet brandi se tient devant le personnage**, bras tendu devant (ex. le drapeau blanc du matelot, `armF_up` ≈ −1,15, `armF_lo` ≈ −0,55) : un bras levé de profil qui cache la tête « fait bizarre » en 2D.
 - **Visages visibles** : ni bras, ni objet, ni carte devant un visage (le visage d'Emma caché par la carte, refusé).
