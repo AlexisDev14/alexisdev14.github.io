@@ -1,6 +1,6 @@
 // Affiche « La fève de la galette, le roi qui payait la tournée » : une seule image (t = 1,4 s). Rideau ouvert.
 // Cadrage serré (×1,6) : Gontran (tête B, barbu : joues pleines, regard en coin coupable), roi de travers, main sur le ventre :
-// il vient d'avaler la fève... L'addition tombe des cintres à côté de lui. Sous la table, le Petit fait un clin
+// il vient d'avaler la fève... Sous la table, le Petit fait un clin
 // d'œil au public et montre la vraie fève : la figurine en porcelaine.
 const SCENE = (() => {
   const S = {}, ST = M.ST, GAL = M.gal;
@@ -8,7 +8,7 @@ const SCENE = (() => {
   const cast = { dx: 22, dy: 10, a: 0.3 };
   const FEET = ST.slotF - 34, FEETB = ST.slotB - 30;
   const ZX = 540, ZY = 923, ZK = 1.6;   // agrandissement d'ensemble (repère local → écran : Z + ZK·(p − Z))
-  const GX = 552, GS = 1.0;             // Gontran : écran x ≈ 560, sommet de la couronne ≈ 790
+  const GX = 578, GS = 1.0;             // Gontran : écran x ≈ 600, sommet de la couronne ≈ 790
   const PX = 365, PS = 1.0;             // le Petit, sous la table, à gauche, tourné vers la droite
   let BASE = null;                      // r.w rend des points écran (agrandissement compris) : on les trace sans lui
   S.init = () => { GAL.init(); };
@@ -25,14 +25,6 @@ const SCENE = (() => {
   }
   function point(r, x, y, rad, col) { const c = ctx(), w = tr(r, [x, y]); c.save(); c.setTransform(BASE); c.fillStyle = col; c.beginPath(); c.arc(w[0], w[1], rad * ZK, 0, M.TAU); c.fill(); c.restore(); }
   function arc(cx, cy, R, a0, a1, n) { const P = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; P.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); } return P; }
-  // l'addition pend des cintres sur deux fils (dessinée à l'échelle de l'écran)
-  function addition(t, x, y, s, deroule) {
-    const c = ctx(); c.save(); c.setTransform(BASE);
-    c.strokeStyle = 'rgba(240,230,205,0.75)'; c.lineWidth = 2.5;
-    for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(x + sx * 62 * s, y); c.lineTo(x + sx * 50 * s, 0); c.stroke(); }
-    GAL.addition(x, y, s, { deroule, t, cast: { a: 0.35, dx: 14, dy: 8 } });
-    c.restore();
-  }
   S.draw = (t) => {
     const c = ctx(); BASE = c.getTransform();
     // la cible d'atteinte est lue en points écran : sous l'agrandissement on la donne déjà agrandie (Zp)
@@ -63,8 +55,7 @@ const SCENE = (() => {
     trait(rP, [[8, -51.5], [12, -55.5], [18, -57], [24, -55]], 'rgba(85,38,16,1)', 2.8);          // sourcil arqué levé
     trait(rP, [[27, -19], [21, -16], [15, -17], [11, -21], [9, -26]], 'rgba(130,50,45,0.95)', 2.4); // sourire en coin
     trait(rP, [[9, -26], [7, -25]], 'rgba(130,50,45,0.8)', 1.6);                                    // fossette
-    addition(t, 812, 800, 1.1, 0.84);
-    M.stageLight(t, { spot: { x: 540, y: 1150, r: 540, a: 0.42 } });
+    M.stageLight(t, { spot: { x: 580, y: 1150, r: 540, a: 0.42 } });
     M.curtain(t, 1, {});
     M.drawFrame(t);
   };
