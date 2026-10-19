@@ -75,7 +75,7 @@ const args = gpu ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '-
     const v = [...fs_].sort((a, b) => a - b), plages = []; let a0 = v[0], b0 = v[0];
     for (const f of v.slice(1)) { if (f - b0 <= (stills ? 45 : 2)) b0 = f; else { plages.push([a0, b0]); a0 = b0 = f; } }
     plages.push([a0, b0]);
-    console.log(`ATTENTION coude à l'envers : ${k} à ${plages.map(([a, b]) => a === b ? (a / FPS).toFixed(2) + ' s' : (a / FPS).toFixed(2) + '–' + (b / FPS).toFixed(2) + ' s').join(', ')} (coude au-dessus de la ligne épaule–main : essayer l'autre bendSign de M.ik)`);
+    console.log(`ATTENTION coude à l'envers : ${k} à ${plages.map(([a, b]) => a === b ? (a / FPS).toFixed(2) + ' s' : (a / FPS).toFixed(2) + '–' + (b / FPS).toFixed(2) + ' s').join(', ')} (« au-dessus » : coude au-dessus de la ligne épaule–main, essayer l'autre bendSign de M.ik ; « vers l'arrière » : l'avant-bras repart vers le dos, le coude plie à l'envers : changer le geste pour que la main reste devant le personnage, jamais derrière lui ; à corriger, jamais à justifier)`);
   }
   if (stills) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'planche-'));

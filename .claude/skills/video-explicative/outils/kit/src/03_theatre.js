@@ -186,7 +186,7 @@ M.curtain = function (t, f, o = {}) {
   const top = 160, bot = ST.front + 6;
   const swing = o.swing || 0;
   for (const side of [-1, 1]) {
-    const w = lerp(520, o.openW || 74, clamp(f));
+    const w = f < 0 ? 520 - f * 700 : lerp(520, o.openW || 74, clamp(f));   // f < 0 : pans pressés l'un contre l'autre (rebond de fermeture)
     const x0 = side < 0 ? ST.L - 12 : ST.R + 12 - w;
     const n = 12, fw = w / n;
     for (let i = 0; i < n; i++) {
@@ -218,6 +218,16 @@ M.curtain = function (t, f, o = {}) {
     c.beginPath();
     for (let xx = x0; xx < x0 + w; xx += 5) { const lead = side < 0 ? (xx - x0) / w : 1 - (xx - x0) / w; const ddx = swing * side * lead * 0.6; c.moveTo(xx + ddx, bot - 4); c.lineTo(xx + ddx + 0.5, bot + 12); }
     c.stroke();
+  }
+  // rideau fermé ou presque : la rampe éclaire le bas du velours d'une lueur chaude qui vacille (le spectateur attend la suite)
+  const k = clamp((0.35 - f) / 0.35);
+  if (k > 0) {
+    const tt = TG(t), fl = 1 + 0.06 * noise(tt * 5, 7);
+    c.save(); c.globalCompositeOperation = 'lighter';
+    const gl = c.createRadialGradient(540, bot + 40, 30, 540, bot + 40, 760 * fl);
+    gl.addColorStop(0, `rgba(255,170,80,${0.22 * k})`); gl.addColorStop(0.45, `rgba(220,110,50,${0.09 * k})`); gl.addColorStop(1, 'rgba(200,80,40,0)');
+    c.fillStyle = gl; c.fillRect(ST.L - 12, top, ST.R - ST.L + 24, bot - top + 20);
+    c.restore();
   }
 };
 

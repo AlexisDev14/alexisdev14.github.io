@@ -26,6 +26,10 @@ M.conduite = function (cues, o = {}) {
   const fAt = (T) => {
     let f = f0;
     for (const s of segs) { if (T < s.a) break; f = T >= s.b ? s.to : M.lerp(s.from, s.to, M.ease((T - s.a) / (s.b - s.a))); }
+    // arrivée « à la main » : les pans dépassent à peine leur point d'arrivée puis se posent (rebond amorti, ≈ 0,5 s).
+    // Fermé, les deux pans se pressent l'un contre l'autre (f < 0) puis se détendent sans jamais rouvrir de fente (≥ 2 px de recouvrement).
+    let last = null; for (const s of segs) { if (T >= s.b) last = s; else break; }
+    if (last && T - last.b < 0.8) f += M.wob(T, last.b, 0.025 * (last.to - last.from), 1.6, 6);
     return f;
   };
   const etat = (T) => {

@@ -221,15 +221,26 @@ function drawRod(T0, x0, y0, ang, slotY, w, col) {
 const ROD_WOOD = ['#5b3d22', '#c8a06a', '#6e4a2a'];
 const ROD_WIRE = ['#1a1a1a', '#77736b', '#222'];
 
-// Contrôle automatique « coude à l'envers » : un bras plié dont le coude passe AU-DESSUS de la ligne épaule–main
-// (à l'écran) est noté dans window.COUDES ; render.cjs le signale (ligne « ATTENTION coude »). Bras quasi vertical,
-// bras tendu ou bras caché : pas de contrôle. Nom affiché : o.nom (option de M.puppet), def.nom, sinon la position x.
-function controleCoudes(def, pose, mats, sc, nom) {
+// Contrôle automatique « coude à l'envers » (noté dans window.COUDES ; render.cjs le signale, ligne « ATTENTION coude ») :
+//  1) « au-dessus » : un bras plié dont le coude passe AU-DESSUS de la ligne épaule–main (à l'écran) ;
+//  2) « vers l'arrière » : un coude qui plie à l'envers de l'anatomie, l'avant-bras qui repart vers le DOS du personnage
+//     (main « en aile » derrière lui, main dans le dos ou poing sur la hanche vus de profil, bras qui rattrape un objet
+//     derrière lui). Un vrai coude plie toujours vers l'avant : vu de profil, l'avant-bras tourne vers le côté où regarde
+//     le personnage (dir). Test : produit vectoriel bras × avant-bras de signe opposé à dir (relevés par l'utilisateur
+//     sur le paris-brest : Durand main en aile, coureur qui tient la selle derrière lui).
+// Bras tendu ou bras caché : pas de contrôle. Nom affiché : o.nom (option de M.puppet), def.nom, sinon la position x.
+function controleCoudes(def, pose, mats, sc, nom, dir = 1) {
   if (typeof window === 'undefined' || !def.handLen) return;
   for (const arm of ['armF', 'armB']) {
     const up = mats[arm + '_up'], lo = mats[arm + '_lo'];
     if (!up || !lo || (pose.hide && (pose.hide[arm + '_up'] || pose.hide[arm + '_lo']))) continue;
     const S = wpt(up, 0, 0), E = wpt(lo, 0, 0), Hd = wpt(lo, 0, def.handLen);
+    const ux = E[0] - S[0], uy = E[1] - S[1], fx = Hd[0] - E[0], fy = Hd[1] - E[1];
+    const nu = Math.hypot(ux, uy), nf = Math.hypot(fx, fy);
+    if (nu > 1 && nf > 1) {
+      const sin = (ux * fy - uy * fx) / (nu * nf);          // > 0 : l'avant-bras tourne dans le sens horaire à l'écran
+      if (sin * dir > 0.34) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (vers l\'arrière)');
+    }
     const sx = Hd[0] - S[0], sy = Hd[1] - S[1], L = Math.hypot(sx, sy);
     if (L < 1 || Math.abs(sx) < 0.35 * L) continue;
     const u = ((E[0] - S[0]) * sx + (E[1] - S[1]) * sy) / (L * L);
@@ -238,7 +249,7 @@ function controleCoudes(def, pose, mats, sc, nom) {
     let pli = Math.abs(a2 - a1); if (pli > Math.PI) pli = TAU - pli;
     if (pli < 0.3) continue;
     const yLigne = S[1] + u * sy;
-    if (E[1] < yLigne - Math.max(6, 10 * sc)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm);
+    if (E[1] < yLigne - Math.max(6, 10 * sc)) (window.COUDES = window.COUDES || []).push(nom + ' ' + arm + ' (au-dessus)');
   }
 }
 
@@ -247,7 +258,7 @@ function puppet(def, pose, x, y, s, o = {}) {
   const { T0, root, mats } = partMatrices(def, pose, x, y, s, dir);
   const sc = Math.hypot(T0.a, T0.b) * s;
   const slot = o.slot != null ? o.slot : y + 18 * s;
-  if (!SIL) controleCoudes(def, pose, mats, sc, o.nom || def.nom || `x≈${Math.round(x)}`);
+  if (!SIL) controleCoudes(def, pose, mats, sc, o.nom || def.nom || `x≈${Math.round(x)}`, dir);
   const doDraw = () => {
     const prevLW = LW; LW = 1 / sc;
     if (!SIL && o.floorShadow !== false) {
