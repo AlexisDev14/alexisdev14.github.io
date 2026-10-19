@@ -21,3 +21,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261016_1447_5uq5t | Le reblochon, né d'une fraude au lait | fait | 2026-10-19 15:15 | Canva copie sans sous-titres (DAHYcaeVnlc, image + son), texte du design DAHX5uk_LpA ; 66,97 s ; remonté de 10,2 dB (−14,0 LUFS, crête −1,1, limiteur 0,87) ; carton −12,9 LUFS ; coquille : il trait → ils traient |
 | v_20261016_0849 | L'autruche qui avalait la clé de son enclos | en cours | 2026-10-19 15:16 |  |
 | v_20261017_1048 | Le Toblerone | fait | 2026-10-19 15:19 | Canva (DAHYRLCoPWQ) ; 68,13 s ; fluidité OK (1 image figée, 0 bond) ; gardé du montage 62,73–68,13 s (fermeture du rideau + carton Clark), logo Canva retiré sur 62,73–63,20 s |
+| v_20261017_0548 | Fleming | en cours | 2026-10-19 15:20 |  |
