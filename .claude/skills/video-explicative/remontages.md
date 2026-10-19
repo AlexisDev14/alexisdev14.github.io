@@ -14,3 +14,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261015_1206 | Barbe Noire, le pirate qui fumait | fait | 2026-10-19 13:40 | Canva DAHYExpFebA, 64,57 s, 1766/1937 images refaites depuis les plans, gardé du montage : 58,87–64,57 s (carton de fin), fluidité OK |
 | v_20261015_1749 | Manneken-Pis, mille costumes | fait | 2026-10-19 13:55 | 63,73 s ; image refaite depuis les plans p1-p6 (1717 im + 25 en fondu), seul le carton de fin gardé du montage (58,07-63,73 s) ; coquille d'or -> dort |
 | v_20261015_2048 | Le Beau Danube bleu | fait | 2026-10-19 13:59 | Canva (DAHYMFsajN8) ; 65,17 s ; fluidité OK (1 image figée, 0 bond) ; gardé du montage 59,47–65,17 s (fermeture du rideau + carton Clark), logo Canva retiré sur 59,47–60,17 s |
+| v_20261018_1348 | Robert Downey Jr, l'acteur que personne n'assurait | en cours | 2026-10-19 14:18 |  |
