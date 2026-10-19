@@ -11,6 +11,8 @@
 #       Réserve le sujet AVANT tout travail : relit le registre à jour, refuse si l'id ou le sujet y est déjà, ajoute la
 #       ligne « en cours », committe et pousse ce seul fichier (sur la branche courante et sur master), en réessayant si
 #       une autre session a poussé entre-temps. Code de sortie 2 = déjà pris : choisir un autre sujet.
+#       Vidéo calendrier (sans question Clark) : id `calendrier-AAAA-MM-JJ` (jour visé) ; un second sujet pour le même jour
+#       est refusé (code 2). `etat` liste les jours à venir déjà pris.
 #
 #   python3 -I registre.py livrer "<Sujet>" "<lien du dossier Drive>" [<id du contenu au BO>]
 #       Passe la ligne du sujet à « livrée » avec le lien Drive (et l'id du contenu dans le planificateur du BO, ex.
@@ -74,6 +76,9 @@ def etat():
     conseil = sorted([t for t in THEMES if t not in recents], key=lambda t: (compte[t], THEMES.index(t)))
     print(f'Thèmes CONSEILLÉS (absents des {RECENTS} dernières, les moins servis d\'abord) : ' + ', '.join(conseil))
     print('Types de récit à éviter (2 dernières) : ' + ' ; '.join(types))
+    cal = sorted(m.group(1) for r in rows for m in [re.search(r'calendrier-(\d{4}-\d{2}-\d{2})', r['id'])] if m)
+    futurs = [c for c in cal if c >= f'{datetime.date.today():%Y-%m-%d}']
+    print('Jours déjà pris par une vidéo calendrier : ' + (', '.join(futurs) if futurs else 'aucun'))
     en_cours = [r['sujet'] for r in rows if 'en cours' in r['statut']]
     if en_cours:
         print('En cours dans une autre session (ne pas reprendre) : ' + ' ; '.join(en_cours))
