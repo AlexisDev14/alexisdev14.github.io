@@ -118,3 +118,17 @@ for t in range(len(choix) + 1):
     if not dedans and debut is not None: tranches.append((debut / 30, t / 30)); debut = None
 print(f'→ {SORTIE} : {len(choix)} images, {len(choix) - len(garde) - fondus} refaites depuis les plans, {fondus} en fondu refait, {len(garde)} gardées du montage'
       + ''.join(f'\n   gardé du montage : {a:.2f}–{b:.2f} s' for a, b in tranches) + f'\n   son du montage, gain {g:+.2f} dB')
+
+# Fluidité (la planche, image fixe, ne voit pas une saccade) : sur les images refaites, la vidéo doit bouger comme le montage.
+#  - images figées (vignette identique à la précédente) : pas plus que dans le montage (+20 % + 20 images) ;
+#  - retours en arrière dans un plan : aucun ; bonds de plus de 3 images dans un plan (hors coupe) : au plus 3.
+refaites = [t for t in range(1, len(choix)) if choix[t] and choix[t - 1]]
+fig_m = sum(np.abs(vm[t] - vm[t - 1]).mean() < 0.02 for t in refaites)
+fig_s = sum(np.abs(vp[choix[t][0]][choix[t][1]] - vp[choix[t - 1][0]][choix[t - 1][1]]).mean() < 0.02 for t in refaites)
+meme = [t for t in refaites if choix[t][0] == choix[t - 1][0]]
+retours = [t for t in meme if choix[t][1] < choix[t - 1][1]]
+bonds = [t for t in meme if choix[t][1] - choix[t - 1][1] > 3]
+ok = fig_s <= fig_m * 1.2 + 20 and not retours and len(bonds) <= 3
+print(f'{"OK   " if ok else "ÉCHEC"} fluidité : {fig_s} images figées (montage : {fig_m}), {len(retours)} retours en arrière, {len(bonds)} bonds'
+      + ''.join(f'\n   à {t / 30:.2f} s : {"retour" if t in retours else "bond"}' for t in sorted(retours + bonds)[:10]))
+if not ok: sys.exit(2)

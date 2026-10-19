@@ -12,7 +12,8 @@ sous-titrée.mp4 » et « <Sujet> — sources.zip » (rien d'autre remplacé ni 
 
 ## Choix de la vidéo (routine « Remontage vidéos Clark », une vidéo par exécution)
 1. `python3 -I OUTILS/remontages.py etat` : ids déjà « fait » ou « impossible » (à écarter), et « en cours » (à écarter si posé il y a
-   moins de 2 h : une autre exécution y travaille ; au-delà, exécution interrompue, à reprendre).
+   moins de 2 h : une autre exécution y travaille ; au-delà, exécution interrompue, à reprendre). Les ids « à refaire » (livrées avec
+   un défaut d'outil corrigé depuis) sont candidates comme une vidéo jamais faite : on les refait entièrement (étapes 1 à 7).
 2. Firestore `video_slots` (LECTURE SEULE, `list_documents`, masque : subject, driveFolderUrl, queued, queuedAt, validation.at,
    publications.tiktok.state) : candidates = encore à publier (`queued` true, aucune publication à l'état « publie »), non écartées.
 3. Ordre = ordre de publication du BO (file `queuedAt` croissant, 2 par jour) : d'abord les vidéos validées (`validation.at` présent),
@@ -51,6 +52,10 @@ Le texte du design d'origine est la référence (mots dits), mais ses coquilles 
 orthographe et accords (« sireuse » → « cireuse », « il trait » → « ils traient »), espace manquante (« !Belle »), ponctuation
 (« Qui paye Les propriétaires » → « Qui paye ? Les propriétaires »), mot manquant évident (« canne pêche » → « canne à pêche »).
 Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé.
+Pas de guillemets (« », “ ”) dans script.txt : soustitres.py les détache du mot (« » » seul à l'écran, doubles espaces) ; écrire
+`on la nomme tandem` plutôt que `on la nomme « tandem »`. Vérifier la liste des sous-titres (lignes `Dialogue` du `.ass`) : ni
+guillemet ni ponctuation seule, ni double espace. Si Whisper entend un autre mot que le design (« le mot » / « le nom »), garder le
+design et le signaler dans le résumé.
 
 ## Étapes (`OUTILS` = `.claude/skills/video-explicative/outils`, `T` = `<scratchpad>/<slug>`)
 1. **Canva** : `search-designs` (query = sujet, ou ses premiers mots) → le design 1080×1920 du sujet (pas une « Copie de … » si
@@ -68,8 +73,12 @@ Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé
    Monsieur Poubelle, Reblochon, Téflon) et pas de copie Canva « — sans sous-titres » → « impossible » (« copie Canva sans sous-titres
    à préparer par l'utilisateur »).
 3. **Image sans sous-titres** : `python3 -I OUTILS/reconstruire.py T/canva.mp4 "T/<Sujet> — vidéo complète.mp4" <les plans>`.
-   Il cale chaque plan du montage sur une avance régulière (décalage + vitesse, affichée : Canva change parfois la vitesse d'un plan) :
-   prendre l'image la plus proche une à une faisait saccader la vidéo (avant le 19/10, 13 h). Il dit quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) est normal
+   Il suit les plans dans l'ordre (chemin Viterbi : avancer d'une image est gratuit, tenir ou sauter une image coûte peu, une coupe
+   coûte cher), ce qui suit aussi les changements de vitesse de Canva. ⛔ Ne jamais revenir au choix « image la plus proche, une à
+   une » : les plans bougent lentement, l'image retenue va et vient et la vidéo SACCADE (défaut des livraisons avant le 19/10, 13 h).
+   Il finit par la ligne « fluidité » et sort en erreur (code 2) si « ÉCHEC » : plus d'images figées que le montage, retour en
+   arrière ou bonds dans un plan. ÉCHEC → ne rien livrer ; regarder les instants donnés (planche.sh --de A --a B) ; si un plan du
+   Drive diffère du montage → « impossible » (« copie Canva sans sous-titres à préparer par l'utilisateur »). Il dit aussi quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) est normal
    (les fondus enchaînés de Canva entre deux plans, qui montrent déjà le sous-titre suivant, sont refaits en fondu sans texte). Plus de 1 s gardée AVANT le carton (plan retouché dans Canva, absent du Drive) : regarder ces
    instants (planche.sh --de A --a B) ; s'il y reste des sous-titres Canva → « impossible » avec les instants.
 4. **Instants des mots** (venv une fois : `python3 -m venv <scratchpad>/venv-fw && <scratchpad>/venv-fw/bin/pip install -q faster-whisper`) :
@@ -79,6 +88,9 @@ Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé
    `ffmpeg -nostats -sseof -5 -i "<sous-titrée>" -af ebur128 -f null - 2>&1 | grep "I:" | tail -1` entre −16 et −12 LUFS.
 6. **Contrôle visuel** : `bash OUTILS/planche.sh "<sous-titrée>" T/planche.png` : aucun sous-titre ni logo Canva, nouveaux sous-titres
    justes et lisibles, pas d'image qui saute, carton de fin présent. Liste des sous-titres : lignes `Dialogue` du `.ass`.
+   La planche est faite d'images fixes : elle ne montre PAS une saccade. Mouvement : `python3 -I OUTILS/sauts.py "<complète>"` et
+   `python3 -I OUTILS/sauts.py T/canva.mp4` ; chaque saut de la vidéo complète doit être une coupe entre plans ou exister aussi
+   dans canva.mp4 (à ± 0,3 s) ; une série de sauts rapprochés (plusieurs par seconde) = saccade → ne rien livrer.
 7. **Livraison** : `bash OUTILS/sources.sh T "T/<Sujet> — sources.zip"` (script.txt, canva.json) puis
    `python3 -I OUTILS/drive_envoi.py id:<id> - "<complète>" "<sous-titrée>" "<sources.zip>"` (les mêmes noms sont remplacés, rien
    d'autre). `remontages.py fait <id> "<durée, tranches gardées du montage>"`. Le remplacement dans le BO est fait par l'utilisateur.
