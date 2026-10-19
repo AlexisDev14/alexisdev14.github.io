@@ -40,11 +40,11 @@ Utiliser ces ids directement (read-design / export-design) ; pour une vidéo abs
 | v_20261017_0049 | Léonard de Vinci | DAHYQoWyewY | — |
 | v_20261017_0548 | Fleming | DAHYQqNZQ7M | — |
 | v_20261017_1048 | Le Toblerone | DAHYRLCoPWQ | — |
-| v_20261018_1348 | Robert Downey Jr | DAHYYY1ay-8 (il existe aussi « Copie de… » DAHYb-d-c7c, plus récente : demander à l'utilisateur) | — |
+| v_20261018_1348 | Robert Downey Jr | DAHYYY1ay-8 | — |
 
-Pas encore de montage Canva (19/10) : Paris vaut bien une messe, La fève de la galette, Sésame ouvre-toi, Dr House. Une vidéo sans
-design Canva n'est ni réservée ni marquée : passer à la suivante (elle sera reprise quand le montage existera). Robert Downey Jr :
-« impossible » (« deux designs : lequel est l'officiel ? ») tant que l'utilisateur n'a pas tranché.
+Sans montage Canva (19/10, l'utilisateur ne les a pas retravaillées) : Paris vaut bien une messe (v_20261017_1548), La fève de la
+galette (v_20261017_1948), Sésame ouvre-toi (v_20261017_2349), Dr House (v_20261018_0348). Elles se font depuis le Drive : section
+« Vidéo sans montage Canva ». Une autre vidéo sans design Canva : passer à la suivante, sans la marquer.
 
 ## Texte des sous-titres
 Le texte du design d'origine est la référence (mots dits), mais ses coquilles se corrigent dans script.txt sans changer un mot dit :
@@ -82,5 +82,13 @@ Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé
    `python3 -I OUTILS/drive_envoi.py id:<id> - "<complète>" "<sous-titrée>" "<sources.zip>"` (les mêmes noms sont remplacés, rien
    d'autre). `remontages.py fait <id> "<durée, tranches gardées du montage>"`. Le remplacement dans le BO est fait par l'utilisateur.
 
-Ancienne méthode (plans et mp3 du Drive, utilisée pour Big Ben à la demande de l'utilisateur) : `voix_montage.py`, `raccourcir.py`,
-puis assembler.sh et soustitres.py sans `--global`.
+## Vidéo sans montage Canva (depuis le Drive ; méthode validée sur Big Ben)
+1. `drive_recup.py <id> T/drive` ; copier `Audio/pN.mp3` dans `T/voix/`. Texte : champ `script` de `video_slots/<id>` (Firestore,
+   lecture seule) → `T/script.txt`, 6 paragraphes (un par plan), années et grands nombres remis en chiffres, coquilles corrigées.
+2. `mots_whisper.py T/voix/p?.mp3` → `T/voix/pN.json`.
+3. Plans SANS voix (10 s, sonie < −30 LUFS : Paris vaut bien une messe, La fève, Sésame) : `python3 -I OUTILS/raccourcir.py T T/drive/Plans`
+   (fins mortes retirées, voix posée à 0 s). Plans AVEC voix (calés sur la voix, ≈ −14 LUFS : Dr House) : copier chaque
+   `Plans/pN_final.mp4` dans `T/out/pN/` tel quel.
+4. `bash OUTILS/assembler.sh T "T/out/<Sujet> — vidéo complète.mp4"` (ajoute la conclusion Clark au niveau de la vidéo), puis
+   `python3 -I OUTILS/soustitres.py T "T/out/<Sujet> — vidéo complète.mp4" "T/out/<Sujet> — vidéo complète sous-titrée.mp4"` (sans --global).
+5. Contrôles, sources.sh, drive_envoi.py comme aux étapes 5 à 7 ci-dessus ; `remontages.py fait <id> "Drive (sans Canva), <durée>"`.
