@@ -103,3 +103,18 @@ BOU.piano({ t, deroule: 1 }, 660, FEET, 0.88, { dir: -1, cast });
 // plan 3 : la boîte nue monte de la trappe, puis l'exosquelette sort
 BOU.centre(t, 540, ST.back, 1, { monte: m, boite: 1, structure: st, escaliers: es, tuyaux: tu });
 ```
+
+## Dessin sur le plan (reprise) — `persos.js`, chargé après la bibliothèque
+Option **`dessin: 'quartier' | 'centre'`** de la feuille du plan : la feuille déroulée est alors vue **DE FACE**, papier ivoire clair, dessin net ; sans `dessin`, tout est inchangé (dos de la feuille). Aucun texte. Elle marche partout où passe la feuille ; avec un `deroule` partiel, le dessin reste fixé au rouleau du haut et se révèle en se déroulant :
+- `dessin: 'quartier'` (plan 1) : plan de Paris bleu nuit sur ivoire, îlots hachurés, jardins verts, rues en traits doubles, la Seine bleu pâle en bas avec île et ponts ; au centre un grand rectangle VIDE cerné de rouge à main levée (≈ 67 × 62 px à s 0,88). Lisible dès 176 × 211 px.
+- `dessin: 'centre'` (plan 2) : façade en élévation, exosquelette blanc sur lavis bleu-gris, tuyaux bleus (×2), vert (×2), jaune, tube rouge de l'escalier en diagonale par-dessus. Couleurs vives ; lisible dès 176 × 211 px.
+- Appels : `BOU.plan(x, y, s, { deroule: 1, dessin: 'quartier' })` (x,y = milieu du rouleau du haut ; 200 × 240 à s 1) · `BOU.pompidou({ t, deroule: d, tenuO: { dessin: 'quartier' } }, x, FEET, 0.9, { cast })` · `BOU.piano({ t, brandir: 1, haut: 0.5, tenuO: { dessin: 'centre', deroule: 1 } }, …)` (`brandir` ne déroule pas seul : mettre `deroule: 1` dans `tenuO`). Piège : le dessin ne change pas de côté avec `dir: -1` (la feuille est retournée comme le personnage : l'image est en miroir, sans conséquence, sans texte) ; la feuille déroulée s'étend devant le porteur (≈ 90 à 270 px devant lui à s 0,9) et recouvre ce qui s'y trouve : dégager la place.
+
+**`BOU.grandPlan(x1, x2, yHaut, s, o)`** : grand plan tenu à deux, face au public. Une barre-rouleau de x1 à x2 (écran) à la hauteur `yHaut`, la feuille pend dessous ; largeur = x2 − x1 (≤ 260 conseillé, s'étend telle quelle sinon), hauteur pleine = 0,9 × largeur (260 → 234 px). `s` : épaisseur des rouleaux et finesse du trait (0,88). `o` : `dessin` (`'centre'` par défaut), `deroule` 0..1 (1 : se déroule vers le bas), `cast`, `alpha`, `ombre`, `t`. Dessiner la feuille **avant** les deux personnages (leurs poings passent par-dessus les bouts de la barre). Renvoie (et `BOU.grandPlanPts(x1, x2, yHaut, s, o)` renvoie sans dessiner) `{ g1, g2, centre, bas, w, h }` : **points de prise** `g1 = [x1, yHaut]` (bout gauche) et `g2 = [x2, yHaut]` (bout droit), `centre` = milieu de la feuille, `bas` = rouleau du bas (écran).
+```js
+const x1 = 560, x2 = 820, g = BOU.grandPlanPts(x1, x2, 1080, 0.88, {});
+BOU.grandPlan(x1, x2, 1080, 0.88, { dessin: 'centre', deroule: d, cast });                 // d = ease(…) 0..1
+BOU.piano({ t, touche: 1, cible: g.g1, expr: 'ravi' }, x1 - 100, FEET, 0.88, { cast });      // dir 1 : main avant au bout gauche
+BOU.rogers({ t, touche: 1, cible: g.g2 }, x2 + 100, FEET, 0.88, { dir: -1, cast });          // dir -1 : main avant au bout droit
+```
+Placer chaque porteur à ≈ 100 px (à s 0,88) du bout qu'il tient (la main avant l'atteint, bras plié) ; `yHaut ≈ 1080` = hauteur de poitrine pour des pieds à FEET (1416). Hors de portée le bras se tend vers la cible. Vérifié : `casting/scene.js` (Piano dir 1 + Rogers dir −1 ; Pompidou `deroule` ; `brandir` ; `deroule` de Piano en dir −1).

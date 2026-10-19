@@ -56,6 +56,10 @@
 - 3 à 8 bruitages par plan. Sons organiques = échantillons CC0 de `sons/` (licences dans `sons/LICENCES.md`) ; synthèse pour velours, anneaux, poulies, clacs.
 
 ## 8. Erreurs déjà commises (à vérifier à chaque plan)
+- Plan, carte, lettre ou tableau montré au public **vide** (on n'en voit que le dos) → il montre un dessin lisible, de face, qui dit l'histoire (plan de quartier, esquisse du projet) ; aucune lettre (leçon Pompidou).
+- Objet au rôle évident dessiné dans le mauvais sens (marteau de juge **vertical** pendu au fil) → l'objet se montre dans la position où on l'utilise : marteau de juge manche horizontal, qui s'abat (leçon Pompidou).
+- Deux personnages qui apparaissent ou réagissent avec **la même pose**, ou une énumération jouée avec le même geste répété → une posture différente pour chacun et un geste différent sur chaque mot (brandir, révérence, poing sur la hanche, tirer, bras écartés, main posée, ajuster…) (leçon Pompidou).
+- Changement de lieu sans transition (le décor disparaît d'un coup à la coupe) → le changement se fait au rideau (`change` dans la conduite, à cheval sur la coupe si besoin) (leçon Pompidou).
 - Bras avant dont l'avant-bras repart vers le dos (pose « mains dans le dos » vue de profil : coude cassé à l'envers, sans alerte du rendu) → le coude plie toujours vers l'avant, l'avant-bras orienté à l'opposé du dos ; bras le long du corps ou main vers l'avant (`M.ik`).
 - Marionnette à l'horizontale **au bout de sa tige** (on dirait que la tige « rentre dans les fesses ») → une chute finit **à plat sur le plancher**, la tige est lâchée et redescend par la fente avant l'impact.
 - Monument étiré / mal proportionné (l'arc dessiné en bande verticale) → proportions vraies, c'est la feuille qui grandit.

@@ -1222,3 +1222,256 @@
     c.restore();
   };
 })();
+
+// persos.js — reprise Pompidou : DESSIN SUR LE PLAN (option `dessin` du plan, vu de face) + BOU.grandPlan (grand plan tenu à deux).
+// Chargé APRÈS bibliotheque/pompidou.js : enveloppe M.bou.OBJ.plan.draw et M.bou.plan. Mode d'emploi : persos.md, section « Dessin sur le plan (reprise) ».
+// Aucun texte, lettre, chiffre ni logo. Déterministe (M.rng à graine fixe), fonction pure de o.
+(function () {
+  'use strict';
+  const BOU = M.bou;
+  if (!BOU || !BOU.OBJ) return;
+  const PI = Math.PI, TAU = M.TAU, { strokePts, piece, clamp } = M;
+  const cx_ = () => M.ctx(), SIL = () => M._sil();
+  const OFFP = [[-9000, -9000, 1], [-8999, -9000, 1], [-9000, -8999, 1]];
+  const IV = '#ece4cf', IVD = '#cfc3a5', FACE = '#f2ecd9', ENCRE = '#23304a';
+  const pc = (pts, base, paint, seed) => piece(pts, base, paint || null, { seed: seed || 0 });
+  const ep = (cx, cy, rx, ry, n, a0, a1) => { const o = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; o.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); } return o; };
+  const ell = (cx, cy, rx, ry, n) => { const o = ep(cx, cy, rx, ry, n || 16, 0, TAU); o.pop(); return o; };
+  const rrect = (x0, y0, x1, y1, r) => ep(x1 - r, y0 + r, r, r, 4, -PI / 2, 0).concat(ep(x1 - r, y1 - r, r, r, 4, 0, PI / 2), ep(x0 + r, y1 - r, r, r, 4, PI / 2, PI), ep(x0 + r, y0 + r, r, r, 4, PI, PI * 1.5));
+  const LW = (px) => px * M._lw();                                       // épaisseur en pixels écran → unités locales
+
+  // ------------------------------------------------------------ outils de dessin brut (toujours après `if (SIL()) return;`)
+  function poly(c, pts, close) { c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); if (close) c.closePath(); }
+  function hatchIn(c, pts, ang, sp, col, px) {                          // hachures parallèles clippées dans le polygone
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const p of pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+    const cxm = (x0 + x1) / 2, cym = (y0 + y1) / 2, R = Math.hypot(x1 - x0, y1 - y0) / 2 + 2, ca = Math.cos(ang), sa = Math.sin(ang);
+    c.save(); poly(c, pts, true); c.clip(); c.strokeStyle = col; c.lineWidth = LW(px); c.lineCap = 'butt'; c.beginPath();
+    for (let d = -R; d <= R; d += sp) { c.moveTo(cxm + ca * -R - sa * d, cym + sa * -R + ca * d); c.lineTo(cxm + ca * R - sa * d, cym + sa * R + ca * d); }
+    c.stroke(); c.restore();
+  }
+  function wobbleRect(x0, y0, x1, y1, R, amp) {                         // rectangle tracé à main levée (coins qui dépassent)
+    const pts = [], seg = (a, b, n) => { for (let i = 0; i < n; i++) { const u = i / n; pts.push([a[0] + (b[0] - a[0]) * u + (R() - 0.5) * amp, a[1] + (b[1] - a[1]) * u + (R() - 0.5) * amp]); } };
+    const o = 3 + R() * 3;
+    seg([x0 - o, y0 + (R() - 0.5) * 3], [x1 + o * 0.6, y0 + (R() - 0.5) * 3], 8); seg([x1 + (R() - 0.5) * 3, y0 - o * 0.4], [x1 + (R() - 0.5) * 3, y1 + o], 8);
+    seg([x1 + o * 0.5, y1 + (R() - 0.5) * 3], [x0 - o * 0.7, y1 + (R() - 0.5) * 3], 8); seg([x0 + (R() - 0.5) * 3, y1 + o * 0.5], [x0 + (R() - 0.5) * 3, y0 - o], 8);
+    return pts;
+  }
+
+  // ------------------------------------------------------------ dessin « quartier » (plan 1) : plan de Paris, grand rectangle vide cerclé de rouge
+  function dessinQuartier(c, W, H) {
+    const R = M.rng(4107), k = W / 200;
+    // grille de cellules (fractions), pivotée d'un rien ; la cellule (2,2) reste VIDE
+    const cols = [-0.08, 0.15, 0.31, 0.69, 0.85, 1.08], rows = [-0.06, 0.17, 0.33, 0.62, 0.82];
+    c.save(); c.translate(W / 2, H * 0.45); c.rotate(-0.07); c.translate(-W / 2, -H * 0.45);
+    for (let ri = 0; ri < 4; ri++) for (let ci = 0; ci < 5; ci++) {
+      if (ci === 2 && ri === 2) continue;
+      const g = 4.8 * k, xa = cols[ci] * W + g, xb = cols[ci + 1] * W - g, ya = rows[ri] * H + g, yb = rows[ri + 1] * H - g;
+      const nx = (xb - xa) > 54 * k ? (R() < 0.6 ? 2 : 1) : 1, ny = (yb - ya) > 52 * k ? (R() < 0.6 ? 2 : 1) : 1, gs = 3.6 * k;
+      for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
+        const bw = (xb - xa - gs * (nx - 1)) / nx, bh = (yb - ya - gs * (ny - 1)) / ny;
+        const bx = xa + i * (bw + gs), by = ya + j * (bh + gs);
+        const sk = (R() - 0.5) * 3.2 * k, pts = [[bx + sk, by], [bx + bw - sk, by + sk * 0.6], [bx + bw, by + bh - sk], [bx, by + bh]];
+        const kind = R();
+        poly(c, pts, true);
+        if (kind < 0.16) {                                              // jardin : lavis vert, petits arbres
+          c.fillStyle = '#b5c4a0'; c.fill();
+          c.fillStyle = 'rgba(70,100,60,0.55)';
+          for (let q = 0; q < 6; q++) { c.beginPath(); c.arc(bx + 6 * k + R() * (bw - 12 * k), by + 6 * k + R() * (bh - 12 * k), (1.6 + R() * 1.4) * k, 0, TAU); c.fill(); }
+        } else {
+          c.fillStyle = '#ddd2b4'; c.fill();
+          hatchIn(c, pts, 0.7 + (R() < 0.5 ? 0 : 1.57), 3.4 * k, 'rgba(35,48,74,0.5)', 0.9);
+          if (kind > 0.8 && bw > 20 * k && bh > 20 * k) {               // cour intérieure
+            const cp = [[bx + bw * 0.28, by + bh * 0.28], [bx + bw * 0.72, by + bh * 0.28], [bx + bw * 0.72, by + bh * 0.72], [bx + bw * 0.28, by + bh * 0.72]];
+            poly(c, cp, true); c.fillStyle = FACE; c.fill(); c.strokeStyle = 'rgba(35,48,74,0.7)'; c.lineWidth = LW(0.9); c.stroke();
+          }
+        }
+        poly(c, pts, true); c.strokeStyle = ENCRE; c.lineWidth = LW(1.5); c.lineJoin = 'round'; c.stroke();
+      }
+    }
+    // la parcelle vide : un peu plus claire, bordée d'un fin trait d'encre
+    const ex0 = cols[2] * W + 3 * k, ex1 = cols[3] * W - 3 * k, ey0 = rows[2] * H + 3 * k, ey1 = rows[3] * H - 3 * k;
+    c.fillStyle = '#f7f2e2'; c.fillRect(ex0, ey0, ex1 - ex0, ey1 - ey0);
+    c.strokeStyle = 'rgba(35,48,74,0.5)'; c.lineWidth = LW(1); c.setLineDash([LW(3), LW(3)]); c.strokeRect(ex0, ey0, ex1 - ex0, ey1 - ey0); c.setLineDash([]);
+    // la Seine : bande bleu pâle en bas, deux berges d'encre, îlot, ponts
+    const yb = H * 0.82, bank = (x) => yb + 5 * Math.sin(x / W * TAU * 1.1 + 0.6) + 3 * Math.sin(x / W * TAU * 2.7);
+    c.restore();
+    c.save();
+    const top = [], low = []; for (let x = -4; x <= W + 4; x += 6) { top.push([x, bank(x)]); low.push([x, bank(x) + H * 0.2]); }
+    poly(c, top.concat(low.reverse()), true); c.fillStyle = '#98bfd8'; c.fill();
+    c.lineCap = 'round';
+    c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = LW(1.3);
+    for (let r = 0; r < 3; r++) for (let q = 0; q < 5; q++) { const x = (q + 0.2 + 0.5 * (r % 2)) * W / 5 + (R() - 0.5) * 6, y = bank(x) + 12 * k + r * 11 * k; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 5 * k, y - 3 * k, x + 10 * k, y); c.quadraticCurveTo(x + 15 * k, y + 3 * k, x + 20 * k, y); c.stroke(); }
+    c.strokeStyle = ENCRE; c.lineWidth = LW(1.6); poly(c, top, false); c.stroke();
+    c.lineWidth = LW(1); c.strokeStyle = 'rgba(35,48,74,0.75)'; poly(c, top.map((p) => [p[0], p[1] + 3.4 * k]), false); c.stroke();
+    // île : lentille au milieu du fleuve
+    const iy = bank(W * 0.34) + 15 * k;
+    const isl = ep(W * 0.34, iy, 25 * k, 5.6 * k, 20, 0, TAU); poly(c, isl, true); c.fillStyle = '#ddd2b4'; c.fill(); hatchIn(c, isl, 0.7, 3 * k, 'rgba(35,48,74,0.5)', 0.9); c.strokeStyle = ENCRE; c.lineWidth = LW(1.4); poly(c, isl, true); c.stroke();
+    // ponts : doubles traits
+    for (const bxp of [0.2, 0.34, 0.6, 0.82]) {
+      const x = bxp * W, ya2 = bank(x) - 1, yb2 = bank(x) + (bxp === 0.34 ? 21 : 24) * k;
+      for (const dx of [-2.2 * k, 2.2 * k]) { c.beginPath(); c.moveTo(x + dx, ya2); c.lineTo(x + dx, yb2); c.strokeStyle = ENCRE; c.lineWidth = LW(1.5); c.stroke(); }
+      c.beginPath(); c.moveTo(x, ya2); c.lineTo(x, yb2); c.strokeStyle = '#ece4cf'; c.lineWidth = LW(2.2 * k); c.stroke();
+    }
+    c.restore();
+    // cerne rouge à main levée, deux passes, par-dessus tout
+    c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+    const rr = M.rng(9903), ex = { x0: ex0 - 4 * k, x1: ex1 + 4 * k, y0: ey0 - 4 * k, y1: ey1 + 4 * k };
+    const cr = [[W / 2, H / 2]];                                         // (centre, non utilisé)
+    c.strokeStyle = 'rgba(120,28,24,0.35)'; c.lineWidth = LW(4.4); poly(c, wobbleRect(ex.x0 + 1, ex.y0 + 1.5, ex.x1 + 1, ex.y1 + 1.5, rr, 2.2), true); c.stroke();
+    c.strokeStyle = '#c0372e'; c.lineWidth = LW(3.2); poly(c, wobbleRect(ex.x0, ex.y0, ex.x1, ex.y1, rr, 2.4), true); c.stroke();
+    c.strokeStyle = 'rgba(214,80,62,0.8)'; c.lineWidth = LW(1.6); poly(c, wobbleRect(ex.x0 + 1.5, ex.y0 + 1, ex.x1 - 1, ex.y1 - 1, rr, 2.6), false); c.stroke();
+    c.restore();
+  }
+
+  // ------------------------------------------------------------ dessin « centre » (plan 2) : élévation de la façade, exosquelette blanc, tuyaux vifs
+  function tube(c, pts, w, base, light, dark, o) {
+    o = o || {}; c.save(); c.lineCap = o.cap || 'butt'; c.lineJoin = 'round';
+    c.strokeStyle = ENCRE; c.lineWidth = LW(1) + w + LW(2.4); poly(c, pts, false); c.stroke();
+    c.strokeStyle = dark; c.lineWidth = w; poly(c, pts, false); c.stroke();
+    c.strokeStyle = base; c.lineWidth = w * 0.72; poly(c, pts.map((p) => [p[0] - (o.dx == null ? w * 0.08 : o.dx), p[1] - (o.dy || 0)]), false); c.stroke();
+    c.strokeStyle = light; c.lineWidth = Math.max(LW(1.4), w * 0.16); poly(c, pts.map((p) => [p[0] - (o.dx == null ? w * 0.22 : o.dx * 2), p[1] - (o.dy || 0) * 2]), false); c.stroke();
+    c.restore();
+  }
+  function bride(c, x, y, w, k) {                                       // bague / bride autour d'un tube vertical
+    c.fillStyle = '#e8e2d0'; c.fillRect(x - w / 2 - 2.2 * k, y - 2 * k, w + 4.4 * k, 4 * k);
+    c.strokeStyle = ENCRE; c.lineWidth = LW(1.1); c.strokeRect(x - w / 2 - 2.2 * k, y - 2 * k, w + 4.4 * k, 4 * k);
+  }
+  function bouche(c, x, y, w, k, col) {                                 // ouverture elliptique en haut d'un tube
+    c.beginPath(); c.ellipse(x, y, w / 2 + 1 * k, 3.6 * k, 0, 0, TAU); c.fillStyle = col; c.fill(); c.strokeStyle = ENCRE; c.lineWidth = LW(1.4); c.stroke();
+    c.beginPath(); c.ellipse(x, y + 0.5 * k, w / 2 - 2.2 * k, 2.1 * k, 0, 0, TAU); c.fillStyle = 'rgba(20,24,40,0.85)'; c.fill();
+  }
+  function dessinCentre(c, W, H) {
+    const k = W / 200, R = M.rng(5207);
+    const bx0 = 0.09 * W, bx1 = 0.91 * W, by0 = 0.2 * H, by1 = 0.86 * H;
+    // lavis de ciel derrière
+    const sg = c.createLinearGradient(0, 0, 0, by0 + 20); sg.addColorStop(0, 'rgba(180,200,220,0.55)'); sg.addColorStop(1, 'rgba(180,200,220,0)'); c.fillStyle = sg; c.fillRect(0, 0, W, by0 + 20);
+    // corps du bâtiment : lavis bleu-gris
+    const bg = c.createLinearGradient(0, by0, 0, by1); bg.addColorStop(0, '#97a6b9'); bg.addColorStop(1, '#788aa2'); c.fillStyle = bg; c.fillRect(bx0, by0, bx1 - bx0, by1 - by0);
+    // planchers vitrés : bandes sombres entre les poutres
+    const nF = 5, fh = (by1 - by0) / nF;
+    for (let i = 0; i < nF; i++) { c.fillStyle = i % 2 ? 'rgba(40,58,90,0.28)' : 'rgba(40,58,90,0.14)'; c.fillRect(bx0, by0 + i * fh + fh * 0.18, bx1 - bx0, fh * 0.64); }
+    // exosquelette blanc : poutres horizontales, montants, croix de saint-André ; filet d'encre décalé sous chaque trait blanc
+    const nC = 6, cw = (bx1 - bx0) / nC;
+    const wl = (x0, y0, x1, y1, wpx) => {
+      c.lineCap = 'butt'; c.strokeStyle = 'rgba(35,48,74,0.8)'; c.lineWidth = LW(wpx + 1.6); c.beginPath(); c.moveTo(x0 + 0.8, y0 + 1); c.lineTo(x1 + 0.8, y1 + 1); c.stroke();
+      c.strokeStyle = '#f6f3ea'; c.lineWidth = LW(wpx); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+    };
+    for (let i = 0; i <= nF; i++) wl(bx0 - 3 * k, by0 + i * fh, bx1 + 3 * k, by0 + i * fh, 2.8);
+    for (let j = 0; j <= nC; j++) wl(bx0 + j * cw, by0 - 5 * k, bx0 + j * cw, by1, 2.8);
+    for (let i = 0; i < nF; i++) for (let j = 0; j < nC; j++) if ((i * 3 + j * 5) % 4 === 0) { wl(bx0 + j * cw, by0 + i * fh, bx0 + (j + 1) * cw, by0 + (i + 1) * fh, 1.8); wl(bx0 + (j + 1) * cw, by0 + i * fh, bx0 + j * cw, by0 + (i + 1) * fh, 1.8); }
+    // toit et sol
+    c.fillStyle = '#5b6b84'; c.fillRect(bx0 - 4 * k, by0 - 7 * k, bx1 - bx0 + 8 * k, 4.6 * k); c.strokeStyle = ENCRE; c.lineWidth = LW(1.3); c.strokeRect(bx0 - 4 * k, by0 - 7 * k, bx1 - bx0 + 8 * k, 4.6 * k);
+    c.strokeStyle = ENCRE; c.lineWidth = LW(1.5); c.strokeRect(bx0, by0, bx1 - bx0, by1 - by0);
+    c.fillStyle = '#cdbf9c'; c.fillRect(0, by1, W, H - by1);
+    hatchIn(c, [[0, by1], [W, by1], [W, H], [0, H]], 0.5, 3 * k, 'rgba(35,48,74,0.45)', 0.9);
+    c.strokeStyle = ENCRE; c.lineWidth = LW(1.6); c.beginPath(); c.moveTo(0, by1 + 0.5); c.lineTo(W, by1 + 0.5); c.stroke();
+    // lavis de couleur vive derrière les tuyaux (le côté « dessin à l'aquarelle »)
+    const wash = (x, y, r, col) => { const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(x - r, y - r, 2 * r, 2 * r); };
+    wash(0.27 * W, by0 + 0.4 * (by1 - by0), 44 * k, 'rgba(70,130,215,0.42)'); wash(0.8 * W, by0 + 0.6 * (by1 - by0), 46 * k, 'rgba(70,130,215,0.38)'); wash(0.5 * W, by0 + 0.3 * (by1 - by0), 34 * k, 'rgba(240,200,60,0.4)');
+    // tuyaux
+    const top = by0 - 15 * k, bot = by1 - 2 * k;
+    // bleu (gauche), large
+    let x = 0.25 * W, w = 25 * k;
+    tube(c, [[x, bot], [x, top]], w, '#2f6fca', '#7fb2f2', '#1f4f9a');
+    for (let y = by0 + fh * 0.5; y < bot - 10; y += fh) bride(c, x, y, w, k); bouche(c, x, top, w, k, '#2f6fca');
+    // vert, fin, avec piquages à droite et volant de vanne
+    x = 0.4 * W; w = 12 * k;
+    for (let i = 0; i < nF; i++) { const y = by0 + (i + 0.5) * fh; tube(c, [[x, y], [x + 26 * k, y]], 5 * k, '#4aa65a', '#97d7a0', '#2c7a3c'); bride(c, x + 26 * k, y, 5 * k, k * 0.6); }
+    tube(c, [[x, bot], [x, top + 6 * k]], w, '#44a255', '#9bdca4', '#2a7a3a');
+    for (let y = by0 + fh * 0.2; y < bot - 10; y += fh * 0.9) bride(c, x, y, w, k); bouche(c, x, top + 6 * k, w, k, '#44a255');
+    c.beginPath(); c.arc(x - 12 * k, by0 + 3.6 * fh, 6.5 * k, 0, TAU); c.strokeStyle = ENCRE; c.lineWidth = LW(2.6); c.stroke(); c.strokeStyle = '#d8d0bc'; c.lineWidth = LW(1.2); c.stroke();
+    c.strokeStyle = ENCRE; c.lineWidth = LW(1.3); c.beginPath(); c.moveTo(x - 12 * k - 6 * k, by0 + 3.6 * fh); c.lineTo(x - 12 * k + 6 * k, by0 + 3.6 * fh); c.moveTo(x - 12 * k, by0 + 3.6 * fh - 6 * k); c.lineTo(x - 12 * k, by0 + 3.6 * fh + 6 * k); c.stroke();
+    c.beginPath(); c.moveTo(x - 6 * k, by0 + 3.6 * fh); c.lineTo(x, by0 + 3.6 * fh); c.stroke();
+    // jaune, gaine plate avec boîtes de jonction
+    x = 0.54 * W; w = 14 * k;
+    tube(c, [[x, bot], [x, top + 10 * k]], w, '#eec234', '#fbe686', '#c4951a');
+    for (const f of [0.5, 2.1, 3.7]) { const y = by0 + f * fh; c.fillStyle = '#d9a91e'; c.fillRect(x - 11 * k, y, 22 * k, 11 * k); c.strokeStyle = ENCRE; c.lineWidth = LW(1.3); c.strokeRect(x - 11 * k, y, 22 * k, 11 * k); c.fillStyle = 'rgba(255,240,170,0.8)'; c.fillRect(x - 8 * k, y + 2.5 * k, 16 * k, 3 * k); }
+    bouche(c, x, top + 10 * k, w, k, '#eec234');
+    // grand bleu coudé à droite
+    x = 0.72 * W; w = 27 * k;
+    const jog = by0 + 0.45 * (by1 - by0);
+    tube(c, [[x, bot], [x, jog + 8 * k], [x + 14 * k, jog - 6 * k], [x + 14 * k, top + 3 * k]], w, '#2b78cf', '#80b9f6', '#1d5299');
+    for (const y of [by0 + fh * 0.4, bot - fh * 0.7]) bride(c, x, y, w, k); bouche(c, x + 14 * k, top + 3 * k, w, k, '#2b78cf');
+    // vert fin à l'extrême droite
+    x = 0.855 * W; w = 10 * k;
+    tube(c, [[x, bot], [x, top + 9 * k]], w, '#4aa65a', '#9bdca4', '#2c7a3c'); bouche(c, x, top + 9 * k, w, k, '#4aa65a');
+    // tube rouge de l'escalier : diagonale de bas-gauche en haut-droite, par-dessus
+    const rA = [0.06 * W, by1 - 4 * k], rB = [0.93 * W, by0 + 0.1 * (by1 - by0)];
+    tube(c, [rA, rB], 13 * k, '#d23a2b', '#f58a77', '#9c2018', { dx: 0, dy: 2 * k });
+    const L = Math.hypot(rB[0] - rA[0], rB[1] - rA[1]), ux = (rB[0] - rA[0]) / L, uy = (rB[1] - rA[1]) / L;
+    for (let d = 14 * k; d < L - 8 * k; d += 15 * k) {                  // nervures et appuis
+      const px = rA[0] + ux * d, py = rA[1] + uy * d;
+      c.strokeStyle = 'rgba(255,230,220,0.85)'; c.lineWidth = LW(1.4); c.beginPath(); c.moveTo(px - uy * 5.5 * k, py + ux * 5.5 * k); c.lineTo(px + uy * 5.5 * k, py - ux * 5.5 * k); c.stroke();
+    }
+    for (const d of [0.22, 0.5, 0.78]) { const px = rA[0] + ux * L * d, py = rA[1] + uy * L * d; c.strokeStyle = ENCRE; c.lineWidth = LW(2); c.beginPath(); c.moveTo(px, py + 6 * k); c.lineTo(px, by1); c.stroke(); }
+    // traits d'encre de construction (cotes sans chiffres)
+    c.strokeStyle = 'rgba(35,48,74,0.55)'; c.lineWidth = LW(0.9);
+    c.beginPath(); c.moveTo(bx0 - 8 * k, by0); c.lineTo(bx0 - 8 * k, by1); c.moveTo(bx0 - 11 * k, by0); c.lineTo(bx0 - 5 * k, by0); c.moveTo(bx0 - 11 * k, by1); c.lineTo(bx0 - 5 * k, by1); c.stroke();
+  }
+
+  const DESSINS = { quartier: dessinQuartier, centre: dessinCentre };
+
+  // ------------------------------------------------------------ feuille vue de face
+  function rollBar(x0, x1, y, r, col, seed, both) {
+    pc(rrect(x0, y - r, x1, y + r, r * 0.95), col, () => {
+      strokePts([[x0 + 4, y - r * 0.45], [x1 - 4, y - r * 0.45]], 'rgba(255,255,255,0.65)', 1.5);
+      strokePts([[x0 + 4, y + r * 0.5], [x1 - 4, y + r * 0.5]], 'rgba(110,90,60,0.32)', Math.max(1.2, r * 0.35));
+    }, seed);
+    for (const [ex, sg] of [[x1 - 1, 1], [x0 + 1, -1]]) {
+      if (sg < 0 && !both) continue;                                    // bout gauche visible seulement sur le grand plan
+      pc(ell(ex, y, Math.max(2, r * 0.38), r, 12), IVD, () => {
+        for (let q = 1; q <= 3; q++) strokePts(ep(ex, y, r * 0.3 * q / 3, r * q / 3.4, 8, -PI / 2, PI * 1.2), 'rgba(110,90,60,0.55)', 0.9);
+      }, seed + 1);
+    }
+  }
+  // feuille de largeur W, de hauteur pleine HF, déroulée d (0..1) : haut en (0,0), pend vers +y
+  function drawFace(W, HF, d, nom, rTop, wide) {
+    const H = HF * d, fn = DESSINS[nom];
+    if (H > 4) {
+      pc([[2, 0, 1], [W - 2, 0, 1], [W - 2, H, 1], [2, H, 1]], FACE, () => {
+        if (!SIL()) { const c = cx_(); c.save(); c.lineJoin = 'round'; fn(c, W, HF); c.restore(); }
+        M.shade(0, 0, 0, 16, 0.22, [0, 0, W, H]);                       // ombre du rouleau du haut sur le papier
+        M.shade(0, H, 0, H - 14, 0.12, [0, 0, W, H]);
+        strokePts([[W - 3, 4], [W - 3, H - 2]], 'rgba(255,255,255,0.45)', 1.2);
+      }, 7111);
+      rollBar(wide ? -9 : 0, wide ? W + 9 : W, H, 6 + 7 * (1 - d), IV, 7112, wide);
+      rollBar(wide ? -9 : 0, wide ? W + 9 : W, 0, rTop, IV, 7114, wide);
+    } else rollBar(wide ? -9 : 0, wide ? W + 9 : W, 0, 13, IV, 7114, wide);
+  }
+
+  // ------------------------------------------------------------ branchement sur le plan existant
+  const OBJ = BOU.OBJ, drawPlanOrig = OBJ.plan.draw, PLAN_L = 200, PLAN_H = 240;
+  OBJ.plan.draw = function (o) {
+    if (!o || !DESSINS[o.dessin]) return drawPlanOrig(o);
+    drawFace(PLAN_L, PLAN_H, clamp(o.deroule || 0), o.dessin, 6, false);
+  };
+  const accDefs = {};
+  function accDef(name, fn) { return accDefs[name] || (accDefs[name] = { hipY: 0, handLen: 10, rod: null, parts: { o: { parent: null, at: [0, 0], pts: OFFP, base: '#000', noRivet: true, seed: 1, extra: (p) => fn(p.o, p) } }, order: ['o'] }); }
+  function accDraw(name, draw, base, x, y, s, o) {
+    o = o || {}; s = s == null ? 1 : s;
+    const def = accDef(name, (oo) => { const c = cx_(); c.save(); c.translate(-base[0], -base[1]); draw(oo); c.restore(); });
+    return M.puppet(def, { o: Object.assign({ t: o.t || 0 }, o), tilt: o.rot || 0 }, x, y, s, { dir: o.dir || 1, rod: false, slot: o.slot != null ? o.slot : y + 6 * s, floorShadow: !!o.ombre, cast: o.cast, alpha: o.alpha });
+  }
+  const planOrig = BOU.plan;
+  BOU.plan = function (x, y, s, o) {
+    if (!o || !DESSINS[o.dessin]) return planOrig(x, y, s, o);
+    return accDraw('planDessin', (oo) => OBJ.plan.draw(oo), [PLAN_L / 2, 0], x, y, s, o);
+  };
+
+  // ------------------------------------------------------------ grand plan tenu à deux
+  // BOU.grandPlan(x1, x2, yHaut, s, o) : barre du haut de x1 à x2 (écran), feuille pendue dessous ; hauteur pleine = 0,9 × (x2 − x1).
+  // o : dessin ('quartier' | 'centre'), deroule 0..1 (1), cast, alpha, ombre, t. Renvoie { g1, g2, centre, bas, w, h } (points écran).
+  const GP_R = 7;
+  BOU.grandPlanPts = function (x1, x2, yHaut, s, o) {
+    const w = x2 - x1, h = 0.9 * w, d = clamp(o && o.deroule != null ? o.deroule : 1), hh = h * d;
+    return { g1: [x1, yHaut], g2: [x2, yHaut], centre: [(x1 + x2) / 2, yHaut + hh / 2], bas: [(x1 + x2) / 2, yHaut + hh], w, h };
+  };
+  BOU.grandPlan = function (x1, x2, yHaut, s, o) {
+    o = o || {}; s = s == null ? 0.88 : s;
+    const r = BOU.grandPlanPts(x1, x2, yHaut, s, o), nom = DESSINS[o.dessin] ? o.dessin : 'centre';
+    accDraw('grandPlan', (oo) => drawFace(oo.Wl, 0.9 * oo.Wl, clamp(oo.deroule == null ? 1 : oo.deroule), oo.dessin, GP_R, true), [0, 0], x1, yHaut, s,
+      Object.assign({}, o, { Wl: (x2 - x1) / s, dessin: nom, slot: o.slot != null ? o.slot : yHaut + 6 * s }));
+    return r;
+  };
+})();
