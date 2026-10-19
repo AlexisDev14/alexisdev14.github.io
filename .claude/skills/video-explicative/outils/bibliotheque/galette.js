@@ -404,12 +404,178 @@
   const GO = { peau: '#e6c09c', peauD: '#c99c78', nez: '#c25a4a', cheveux: '#5a3a22', moust: '#4b301b', pp: '#b8913a', ppD: '#94722a', ppL: '#d1ad55',
     ceint: '#5a3d24', manche: '#a88a66', mancheD: '#8a6e4e', chausse: '#4f6475', chausseD: '#3e5160', soulier: '#4a2e1c', chemise: '#ece4d2' };
   const GO_TORSO = [[-12, -190], [6, -188], [14, -176], [24, -166], [34, -156], [50, -132], [66, -104], [78, -72], [83, -40], [79, -10], [69, 12], [56, 32, 1], [-44, 34, 1], [-49, 0], [-49, -60], [-47, -110], [-41, -150], [-28, -176]];
+  // Profil « clair » (défaut ; profilClair:false = ancien profil) : nez rougeaud en pomme de terre dans le contour,
+  // moustache en guidon horizontal, bouche visible dessous, joue qui bombe dans le contour entre moustache et mâchoire.
+  // Repères locaux (tête) : bouche = [44 + 11·joues, -12] ; centre de la joue = [36 + 6·joues, -8] ; œil [21, -58].
+  const goClair = (p) => p.profilClair === true;
+  const GO_NEZ_PC = [[38, -29], [43, -30], [48, -34], [50, -40], [47, -47], [41, -51], [36, -53]];
+  GAL.GONTRAN_PTS = { bouche: (j) => [44 + 11 * (j || 0), -12], joue: (j) => [36 + 6 * (j || 0), -8], oeil: [21, -58] };
+  function goHeadClair(p) {
+    const j = clamp(p.joues || 0), g = clamp(p.anguleux || 0), o = (p.face || {}).mouth === 'o';
+    const pts = [[-18, 18], [14, 18], [22, 15], [30, 9 + 2 * j], [37 + 8 * j, 3 + 2 * j]];
+    if (g > 0.02) pts.push([42 + 10 * j + 12 * g, 5 + 3 * g, 1], [43 + 11 * j + 2 * g, -1, 1], [46 + 12 * j + 22 * g, -6, 1], [44 + 12 * j + 4 * g, -11, 1]);
+    else pts.push([43 + 11 * j, -5]);
+    if (o) pts.push([46 + 12 * j, -8], [41 + 7 * j, -12], [46 + 12 * j, -17]);       // bouche ouverte : encoche sous la moustache
+    else pts.push([45 + 12 * j, -13]);
+    pts.push([43 + 8 * j, -19], [39, -23]);
+    return pts.concat(GO_NEZ_PC, [[34, -58], [32, -64], [31, -72], [27, -84], [16, -95], [0, -101], [-18, -97], [-32, -84], [-40, -64], [-40, -44], [-34, -26], [-26, -10], [-22, 4]]);
+  }
   function goHead(p) {
+    if (goTete(p)) return goTete(p).pts(p);
+    if (goClair(p)) return goHeadClair(p);
     const j = clamp(p.joues || 0), g = clamp(p.anguleux || 0);
     const cheek = [[30 + 12 * j, -4 + 3 * j], [33 + 17 * j, -14], [31 + 13 * j, -24]];
     if (g > 0.02) { cheek[0] = [30 + 12 * j + 2 * g, -4 + 3 * j, 1]; cheek[1] = [36 + 17 * j + 14 * g, -10 + 4 * g, 1]; cheek[2] = [31 + 13 * j + 3 * g, -24, 1]; }
     return [[-18, 18], [14, 18], [16, 8], [24, 0 + 2 * j]].concat(cheek, [[34, -28], [40, -32], [46, -38], [47, -46], [42, -52], [34, -54], [32, -62], [31, -72], [27, -84], [16, -95], [0, -101], [-18, -97], [-32, -84], [-40, -64], [-40, -44], [-34, -26], [-26, -10], [-22, 4]]);
   }
+  // moustache en guidon : barre horizontale sous le nez, pointes qui remontent (arrière sur la joue, avant devant la lèvre)
+  const GO_MOUST_PC = [[15, -33], [19, -29], [26, -28], [34, -30], [40, -31], [48, -29], [55, -29], [59, -34], [62, -32], [60, -25], [54, -21], [44, -20], [36, -21], [28, -21], [20, -22], [14, -28]];
+  const GO_BROW = { n: [-66, -67, -67.5], up: [-68.5, -71.5, -70], frown: [-68.5, -66, -63.5], worry: [-65.5, -68.5, -72] };
+  function goFaceClair(p, f, j) {
+    const g = clamp(p.anguleux || 0);
+    fillPts([[-4, -66], [-20, -72], [-35, -66], [-42, -50], [-37, -30], [-29, -22], [-24, -34], [-18, -50], [-6, -56], [6, -58]], GO.cheveux, 3);   // couronne de cheveux
+    for (const [a, b] of [[[-36, -60], [-30, -40]], [[-28, -66], [-22, -48]], [[-16, -66], [-12, -56]]]) strokePts([a, b], 'rgba(30,18,10,0.5)', 1.2);
+    X.earPaint(-10, -44);
+    strokePts([[-14, -92], [2, -98], [16, -92]], 'rgba(255,250,235,0.8)', 3.2); dot(-2, -88, 3, 'rgba(255,255,240,0.6)');   // crâne luisant
+    hatch([[-24, -40], [4, -28], [10, -8], [-6, 18], [-34, 4]], 0.6, 3.6, 0.28);
+    // joue : léger rose dans le bombé, pli qui la sépare du nez, ombre sous la mâchoire, lustre quand elle est gonflée
+    fillPts([[30, -24], [40 + 8 * j, -20], [44 + 11 * j, -12], [40 + 9 * j, -2], [32 + 5 * j, 4], [26, -4], [25, -16]], 'rgba(222,120,105,' + (0.16 + 0.14 * j) + ')', 0, 0);
+    strokePts([[34, -31], [27, -24], [24, -12], [27, -1], [33 + 4 * j, 6]], 'rgba(150,85,65,' + (0.35 + 0.3 * j) + ')', 1.6);
+    strokePts([[22, 14], [32, 9], [38 + 6 * j, 4]], 'rgba(120,70,50,0.45)', 1.6);
+    if (j > 0.05) strokePts([[40 + 6 * j, -17], [44 + 9 * j, -11]], 'rgba(255,245,230,' + (0.6 * j) + ')', 2.2);
+    if (g > 0.02) {                                                                                     // arêtes de l'objet anguleux sous la peau
+      strokePts([[30, -2], [42 + 10 * j + 12 * g, 5 + 3 * g]], 'rgba(140,80,60,' + (0.7 * g) + ')', 1.4);
+      strokePts([[30, -8], [46 + 12 * j + 22 * g, -6], [36, -14]], 'rgba(140,80,60,' + (0.7 * g) + ')', 1.4);
+      strokePts([[34, -6], [44 + 12 * j + 18 * g, -6.5]], 'rgba(255,240,225,' + (0.6 * g) + ')', 1.6);
+    }
+    // nez rougeaud dans le profil : teinte, narine, reflet
+    fillPts(GO_NEZ_PC.concat([[35, -34], [35, -46]]), 'rgba(196,88,72,0.86)', 0, 0);
+    strokePts([[40, -34], [44, -33], [46, -36]], 'rgba(120,40,35,0.6)', 1.3);
+    dot(45, -43, 2.6, 'rgba(255,225,210,0.7)');
+    // bouche sous la moustache
+    const m = f.mouth || 'n', bx = 44 + 11 * j, by = -12;
+    if (m === 'o') { fillPts([[bx + 6, -18], [bx - 4 - 2 * j, -13], [bx - 5 - 2 * j, -11], [bx + 6, -6]], '#3a1714', 0, 0); strokePts([[bx - 4, -16], [bx - 6 - 2 * j, -12], [bx - 4, -8]], 'rgba(110,35,35,0.9)', 1.6); }
+    else if (m === 'tight') { fillPts([[bx, -14], [bx - 6 - 4 * j, -12], [bx - 10 - 5 * j, -15], [bx - 6 - 4 * j, -10], [bx, -11]], 'rgba(190,95,90,0.85)', 0, 0);
+      strokePts([[bx + 1, -13], [bx - 6 - 4 * j, -12], [bx - 11 - 5 * j, -16]], 'rgba(110,35,35,0.95)', 1.8); }          // lèvres pincées, sourire gêné
+    else if (m === 'smile') strokePts([[bx + 1, -13], [bx - 6, -11], [bx - 12, -16]], 'rgba(110,35,35,0.95)', 2);
+    else strokePts([[bx + 1, by], [bx - 9, by]], 'rgba(110,35,35,0.95)', 1.8);
+    // œil : blanc, pupille (devant ; dans le coin arrière avec regardCoin), paupière selon face.eyes
+    const e = f.eyes || 'open';
+    if (e === 'closed') strokePts([[14, -57], [21, -55], [28, -58]], 'rgba(30,18,16,0.9)', 2);
+    else {
+      const k = e === 'wide' ? 1.35 : 1, cy = -58.5, Y = (y) => cy + (y - cy) * k;
+      fillPts([[13, Y(-58)], [19, Y(-63)], [27, Y(-62.5)], [30, Y(-59)], [26, Y(-55)], [17, Y(-54.5)]], '#f4efe4', 0, 0);
+      const px = p.regardCoin ? 17.5 : 24.5, pr = e === 'wide' ? 2.6 : 3.1;
+      dot(px, -58, pr, '#2a1f1d'); dot(px - 0.9, -59, 1, 'rgba(255,255,255,0.85)');
+      const lid = p.regardCoin ? 2.5 : e === 'half' ? 4 : 0;                                         // paupière qui descend
+      if (lid > 0) fillPts([[12, -58.5], [19, -64], [28, -63.5], [31, -59.5], [27, -63.5 + lid], [19, -64 + lid], [13, -57.5]], GO.peauD, 0, 0);
+      strokePts([[12, -58.5], [19, Y(-63) + lid], [27, Y(-62.5) + lid], [31, -59.5]], 'rgba(28,16,14,0.95)', 1.9);
+      strokePts([[16, Y(-54.5)], [26, Y(-55)]], 'rgba(120,80,60,0.45)', 1);
+    }
+    // sourcil épais (face.brow : n | up | frown | worry = levé côté nez)
+    const b = GO_BROW[f.brow] || GO_BROW.n, d = e === 'wide' ? -1.5 : 0;
+    fillPts([[11, b[0] - 2 + d], [21, b[1] - 2.5 + d], [32, b[2] - 2 + d], [33, b[2] + 1.5 + d], [21, b[1] + 1.5 + d], [11, b[0] + 1 + d]], GO.cheveux, 0, 0);
+    larmes(p, 21, -58);
+  }
+  // ---- Tête B, « bon roi barbu » (option tete:'B' ; absente = tête d'origine) : barbe courte et ronde qui suit la mâchoire
+  //      et englobe la moustache, joues rondes au-dessus, nez rond rougeaud dans le profil, sourcils épais, crâne dégarni.
+  //      Repères locaux (tête) : bouche (devant des lèvres) [44 + 4·joues, -13] ; centre de la joue [24 + 2·joues, -33] ; œil [25, -51].
+  const GO_TETE_B = {
+    bouche: (j) => [44 + 4 * j, -13], joue: (j) => [24 + 2 * j, -33], oeil: [25, -51],
+    pts(p) {
+      const j = clamp(p.joues || 0), dj = 4 * j;
+      return [[-20, 22], [14, 22], [16, 12], [17, 2], [22, 2], [30, 3], [37, 0], [42 + dj, -6], [44 + dj, -11], [46 + dj, -16], [46 + dj, -21], [42, -24],
+        [45, -26], [48, -29], [49, -34], [47, -39], [43, -44], [40, -50], [38, -56], [38, -60], [36, -66], [32, -78], [24, -90], [12, -98],
+        [-4, -101], [-20, -97], [-33, -86], [-40, -70], [-41, -52], [-37, -34], [-31, -18], [-27, -4], [-24, 10]];
+    },
+    bosse(a) { const r = 8 * Math.pow(Math.sin(PI * a), 0.35); return ell(lerp(19, 16, a), lerp(1, 13, a), r * 1.1, r, 12); },
+    paint(p, f, j) {
+      const g = clamp(p.anguleux || 0), dj = 4 * j, EN = 'rgba(40,22,12,';
+      // couronne de cheveux bruns (arrière du crâne), crâne luisant, rides du front
+      fillPts([[4, -60], [-8, -68], [-24, -73], [-37, -64], [-43, -46], [-40, -26], [-31, -14], [-25, -26], [-21, -44], [-12, -56], [0, -52]], GO.cheveux, 3);
+      for (const [a, b] of [[[-36, -58], [-31, -36]], [[-28, -66], [-23, -46]], [[-17, -66], [-12, -56]], [[-40, -40], [-35, -22]]]) strokePts([a, b], EN + '0.5)', 1.2);
+      strokePts([[-12, -92], [2, -97], [16, -91]], 'rgba(255,250,235,0.8)', 3.2); dot(0, -88, 3, 'rgba(255,255,240,0.6)');
+      strokePts([[22, -74], [30, -72]], 'rgba(120,70,50,0.35)', 1.1); strokePts([[20, -68], [31, -66]], 'rgba(120,70,50,0.3)', 1.1);
+      // ombre gravée (nuque, cou, sous la barbe)
+      hatch([[-26, -36], [-2, -26], [6, -4], [-4, 22], [-34, 10]], 0.6, 3.6, 0.28);
+      hatch([[8, 2], [22, 2], [20, 22], [6, 22]], -0.7, 3, 0.35);
+      // barbe : favoris devant l'oreille, suit la mâchoire, englobe la moustache ; bord inférieur = contour
+      const BARBE = [[-3, -54], [5, -52], [6, -40], [8, -30], [14, -23], [22, -20], [30, -22], [36, -24], [42, -24], [56, -22], [56, 10], [20, 10], [12, 4], [4, -4], [-4, -16], [-7, -32], [-7, -46]];
+      fillPts(BARBE, '#4e3220', 2);
+      for (let y = -50; y < 8; y += 5) for (let x = -6; x < 50; x += 5) {
+        const h = hash(x * 3.1 + y * 7.7), xx = x + 2 * h, yy = y + 2 * hash(y * 1.3 + x);
+        if (yy < -24 + (xx < 10 ? -10 - (10 - xx) : 0) && !(xx < 6 && yy > -54)) continue;
+        strokePts([[xx, yy], [xx + 1.5 - 3 * h, yy + 3.5]], h > 0.5 ? EN + '0.6)' : 'rgba(150,105,70,0.45)', 1.1);
+      }
+      // moustache fournie dans la barbe : plus sombre, mèches qui retombent sur la lèvre
+      const MOUST = [[24, -20], [31, -24], [38, -26], [43, -25], [47 + dj, -21], [47 + dj, -14], [44 + dj, -13.5], [40 + dj, -15], [36, -15], [30, -16], [25, -17]];
+      fillPts(MOUST, '#3d2616', 2);
+      for (const x of [28, 32, 36, 40, 44]) strokePts([[x - 1, -24], [x + 1.5, -16]], 'rgba(140,100,65,0.55)', 1.1);
+      strokePts([[25, -17], [30, -16], [36, -15], [42 + dj, -15], [47 + dj, -16]], EN + '0.7)', 1.2);
+      // bouche dans la barbe, sous la moustache
+      const m = f.mouth || 'n', bx = 44 + dj;
+      if (m === 'o') { fillPts([[bx - 11, -15], [bx + 3, -15], [bx + 3, -6], [bx - 9, -5]], '#2a0f0c', 0, 0); fillPts([[bx - 9, -7], [bx + 3, -8], [bx + 3, -4], [bx - 8, -3]], 'rgba(200,110,100,0.95)', 0, 0); }
+      else {
+        fillPts([[bx - 8, -14.8], [bx - 2.5, -14.8], [bx - 3, -12.6], [bx - 7, -12.4]], 'rgba(168,96,86,0.9)', 0, 0);   // petite lèvre inférieure, en retrait dans la barbe
+        if (m === 'tight') strokePts([[bx - 1, -14.8], [bx - 6, -14.2], [bx - 11, -17.5]], 'rgba(90,25,25,0.95)', 1.7);       // pincée, coin relevé : sourire gêné
+        else if (m === 'smile') strokePts([[bx - 1, -14.8], [bx - 6, -13], [bx - 12, -18]], 'rgba(90,25,25,0.95)', 1.9);
+        else strokePts([[bx - 1, -14.8], [bx - 10, -14.8]], 'rgba(90,25,25,0.9)', 1.5);
+      }
+      // joue ronde au-dessus de la barbe (gonfle avec joues)
+      const jc = [24 + 2 * j, -33], jr = 9 + 8 * j, arc = (r, a0, a1) => { const P = []; for (let i = 0; i <= 12; i++) { const a = a0 + (a1 - a0) * i / 12; P.push([jc[0] + r * Math.cos(a), jc[1] + r * Math.sin(a)]); } return P; };
+      if (g > 0.02) {                                       // anguleux : la joue se déforme en pointes (contour de la joue, ombre nette, ≈ 20 px)
+        const SP = [[-2.6, 15], [2.3, 9]], rg = (th) => jr + g * SP.reduce((m, [a0, L]) => { let d = Math.abs(th - a0); if (d > PI) d = TAU - d; return Math.max(m, L * Math.max(0, 1 - d / 0.42)); }, 0);
+        const CH = []; for (let i = 0; i < 48; i++) { const th = -PI + i * TAU / 48; CH.push([jc[0] + rg(th) * Math.cos(th), jc[1] + rg(th) * Math.sin(th)]); }
+        fillPts(CH, GO.peau, 0, 0);
+        for (const [a0, L] of SP) { const tip = [jc[0] + (jr + L * g) * Math.cos(a0), jc[1] + (jr + L * g) * Math.sin(a0)], b1 = [jc[0] + jr * Math.cos(a0 + 0.42), jc[1] + jr * Math.sin(a0 + 0.42)], m1 = [jc[0] + jr * 0.55 * Math.cos(a0 + 0.15), jc[1] + jr * 0.55 * Math.sin(a0 + 0.15)];
+          fillPts([tip, b1, m1], 'rgba(85,42,28,' + (0.5 * g) + ')', 0, 0); }
+        fillPts(arc(jr, 0, 2 * PI), 'rgba(226,122,106,' + (0.2 + 0.2 * j) + ')', 0, 0);
+        strokePts(CH.concat([CH[0]]), 'rgba(80,38,26,' + (0.9 * g) + ')', 1.6);
+      }
+      fillPts(arc(jr, 0, 2 * PI), 'rgba(226,122,106,' + (0.2 + 0.2 * j) + ')', 0, 0); fillPts(arc(jr * 0.6, 0, 2 * PI), 'rgba(226,122,106,' + (0.14 + 0.1 * j) + ')', 0, 0);
+      if (j > 0.05 && g <= 0.02) strokePts(arc(jr, 0.6, 2.8), 'rgba(130,60,45,' + (0.7 * j) + ')', 1.5);
+      strokePts(arc(jr * 0.62, -2.2, -1.1), 'rgba(255,248,238,' + (0.35 + 0.45 * j) + ')', 1.8);
+      dot(jc[0] + 1, jc[1] - jr * 0.5, 1.6 + 1.2 * j, 'rgba(255,250,240,0.7)');
+      // nez rond rougeaud (dans le contour) : teinte, aile, reflet
+      fillPts([[42, -24], [45, -26], [48, -29], [49, -34], [47, -39], [43, -44], [40, -48], [37, -42], [36, -30]], 'rgba(200,96,80,0.55)', 0, 0);   // nez rougeaud
+      fillPts([[43, -27], [47, -29], [48.5, -34], [46.5, -38], [42, -36]], 'rgba(196,72,58,0.75)', 0, 0);                                         // bout plus rouge
+      strokePts([[38, -30], [41, -28], [43, -30], [42, -33]], 'rgba(110,40,32,0.7)', 1.3);                                                       // aile du nez
+      dot(45.5, -35, 2, 'rgba(255,228,212,0.8)');
+      // oreille lisible, bord ourlé
+      const ox = -9, oy = -42;
+      fillPts([[ox - 7, oy - 11], [ox + 4, oy - 13], [ox + 8, oy - 4], [ox + 6, oy + 8], [ox - 1, oy + 13], [ox - 8, oy + 5]], GO.peauD, 0, 0);
+      strokePts([[ox - 7, oy - 11], [ox + 4, oy - 13], [ox + 8, oy - 4], [ox + 6, oy + 8], [ox - 1, oy + 13], [ox - 8, oy + 5], [ox - 7, oy - 11]], 'rgba(90,45,35,0.75)', 1.3);
+      strokePts([[ox + 3, oy - 8], [ox - 3, oy - 5], [ox - 3, oy + 3], [ox + 2, oy + 6]], 'rgba(90,45,35,0.6)', 1.1);
+      // œil : blanc, pupille (devant ; coin arrière avec regardCoin), paupière selon face.eyes ; poche sous l'œil
+      const e = f.eyes || 'open', ex = 25, ey = -51;
+      if (e === 'closed') strokePts([[ex - 7, ey], [ex, ey + 2.5], [ex + 7, ey - 0.5]], 'rgba(30,18,16,0.95)', 2);
+      else {
+        const k = e === 'wide' ? 1.4 : 1, Y = (dy) => ey + dy * k;
+        fillPts([[ex - 7, Y(0.5)], [ex - 2, Y(-4)], [ex + 5, Y(-3.4)], [ex + 7.5, Y(-0.2)], [ex + 4, Y(3)], [ex - 3, Y(3)]], '#f4efe4', 0, 0);
+        const px = p.regardCoin ? ex - 3.6 : ex + 3, pr = e === 'wide' ? 2.4 : 2.9;
+        dot(px, ey - 0.3, pr, '#2a1f1d'); dot(px - 0.8, ey - 1.3, 0.9, 'rgba(255,255,255,0.9)');
+        const lid = p.regardCoin ? 2.6 : e === 'half' ? 3.6 : 0;
+        if (lid > 0) fillPts([[ex - 8, Y(0.5)], [ex - 2, Y(-4.6)], [ex + 5, Y(-4)], [ex + 8.5, Y(-0.4)], [ex + 5, Y(-3.4) + lid], [ex - 2, Y(-4) + lid], [ex - 7, Y(0.8)]], GO.peauD, 0, 0);
+        strokePts([[ex - 7.5, Y(0.6)], [ex - 2, Y(-4) + lid], [ex + 5, Y(-3.4) + lid], [ex + 8, Y(-0.3)]], 'rgba(28,16,14,0.95)', 1.9);
+      }
+      strokePts([[ex - 5, ey + 5.5], [ex + 1, ey + 7], [ex + 6, ey + 5]], 'rgba(130,75,55,0.45)', 1.1);
+      // sourcils épais (n | up | frown | worry = levé côté nez)
+      const B = { n: [-58, -59.5, -59], up: [-60.5, -63.5, -62], frown: [-60, -58, -55], worry: [-57, -60, -64] }[f.brow] || [-58, -59.5, -59], d = e === 'wide' ? -1.5 : 0;
+      const BR = [[ex - 11, B[0] - 1.5 + d], [ex - 1, B[1] - 3 + d], [ex + 10, B[2] - 2.5 + d], [ex + 11, B[2] + 1.2 + d], [ex - 1, B[1] + 1.5 + d], [ex - 11, B[0] + 1.5 + d]];
+      fillPts(BR, GO.cheveux, 0, 0);
+      for (const u of [0.15, 0.4, 0.65, 0.88]) { const x = ex - 11 + 21 * u; strokePts([[x, B[0] + (B[2] - B[0]) * u + 1 + d], [x + 3, B[0] + (B[2] - B[0]) * u - 2.5 + d]], EN + '0.6)', 1); }
+      const lk = clamp(p.larmes || 0);
+      if (lk > 0) {                                         // larmes au coin avant de l'œil, qui glissent le long du nez (loin de la joue)
+        strokePts([[ex - 4, ey + 3], [ex + 7, ey + 1.5]], 'rgba(170,215,240,' + (0.9 * lk) + ')', 2.2);
+        for (let i = 0; i < 2; i++) {
+          const u = (((p.t || 0) * 0.7 + i * 0.5) % 1), xx = ex + 9 + u * 1.5, yy = ey + 4 + u * 22 * lk, r = 3.8 * lk * (1 - 0.3 * u);
+          fillPts([[xx, yy - r * 2.2], [xx + r, yy], [xx, yy + r], [xx - r, yy]], 'rgba(160,210,240,' + (0.9 * (1 - u * 0.5)) + ')', 0, 0);
+          dot(xx - r * 0.3, yy - r * 0.2, r * 0.35, 'rgba(255,255,255,0.8)');
+        }
+      }
+    },
+  };
+  const goTete = (p) => (p.tete === 'ancienne' || p.profilClair === true ? null : GO_TETE_B);   // tête B par défaut ; tete:'ancienne' = tête d'origine
   function mkGontran() {
     const legP = (back) => () => {
       fillPts([[-40, 214, 1], [60, 214, 1], [60, 262, 1], [-40, 262, 1]], GO.soulier);
@@ -435,6 +601,8 @@
       armB_lo: foreDef('armB_up', 94, GO.mancheD, GO.peauD, true, 8105, GO.chemise),
       head: { parent: 'torso', at: [8, -182], pts: goHead, base: GO.peau, seed: 8106, noRivet: true, paint: (p) => {
         const f = p.face || {}, j = clamp(p.joues || 0), g = clamp(p.anguleux || 0);
+        if (goTete(p)) { goTete(p).paint(p, f, j); return; }
+        if (goClair(p)) { goFaceClair(p, f, j); return; }
         fillPts([[-4, -66], [-20, -72], [-35, -66], [-42, -50], [-37, -30], [-29, -22], [-24, -34], [-18, -50], [-6, -56], [6, -58]], GO.cheveux, 3);   // couronne de cheveux
         for (const [a, b] of [[[-36, -60], [-30, -40]], [[-28, -66], [-22, -48]], [[-16, -66], [-12, -56]]]) strokePts([a, b], 'rgba(30,18,10,0.5)', 1.2);
         X.earPaint(-10, -44);
@@ -448,9 +616,11 @@
         X.mouth(f, 30 + 6 * j, -6, 'rgba(120,45,40,0.95)');
         larmes(p, 21, -58);
       } },
-      bosse: { parent: 'head', at: [0, 0], noRivet: true, base: GO.peau, seed: 8107, pts: (p) => { const a = clamp(p.avale || 0); if (a <= 0.01 || a >= 0.99) return OFFP; const r = 8.5 * Math.pow(Math.sin(PI * a), 0.35); return ell(lerp(26, 17, a), lerp(-4, 16, a), r, r * 1.1, 12); }, paint: () => hatch(null, 0.6, 3, 0.2) },
-      moustache: { parent: 'head', at: [0, 0], noRivet: true, base: GO.moust, seed: 8121, pts: (p) => { const j = clamp(p.joues || 0) * 8; return [[28, -35], [38, -34], [44 + j * 0.5, -29], [44 + j, -19], [41 + j, -9], [37 + j, 0, 1], [33 + j, -9], [30 + j * 0.6, -17], [23, -21], [17, -25], [20, -32]]; },
-        paint: () => { for (const d of [0, 4, 8, 12]) strokePts([[36 - d * 0.6, -30], [38 - d, -10]], 'rgba(150,110,70,0.5)', 1); hatch(null, 1.2, 3, 0.2); } },
+      bosse: { parent: 'head', at: [0, 0], noRivet: true, base: GO.peau, seed: 8107, pts: (p) => { const a = clamp(p.avale || 0); if (a <= 0.01 || a >= 0.99) return OFFP; if (goTete(p)) return goTete(p).bosse(a); const r = 8.5 * Math.pow(Math.sin(PI * a), 0.35); return goClair(p) ? ell(lerp(31, 15, a), lerp(8, 22, a), r * 1.1, r * 1.15, 12) : ell(lerp(26, 17, a), lerp(-4, 16, a), r, r * 1.1, 12); }, paint: () => hatch(null, 0.6, 3, 0.2) },
+      moustache: { parent: 'head', at: [0, 0], noRivet: true, base: GO.moust, seed: 8121, pts: (p) => { if (goTete(p)) return OFFP; if (goClair(p)) return GO_MOUST_PC; const j = clamp(p.joues || 0) * 8; return [[28, -35], [38, -34], [44 + j * 0.5, -29], [44 + j, -19], [41 + j, -9], [37 + j, 0, 1], [33 + j, -9], [30 + j * 0.6, -17], [23, -21], [17, -25], [20, -32]]; },
+        paint: (p) => {
+          if (!p || goClair(p)) { for (const x of [22, 30, 38, 46, 54]) strokePts([[x - 3, -29], [x + 2, -22]], 'rgba(150,110,70,0.5)', 1); strokePts([[20, -26], [40, -26], [56, -25]], 'rgba(255,230,190,0.25)', 1.2); hatch(null, 1.2, 3, 0.2); return; }
+          for (const d of [0, 4, 8, 12]) strokePts([[36 - d * 0.6, -30], [38 - d, -10]], 'rgba(150,110,70,0.5)', 1); hatch(null, 1.2, 3, 0.2); } },
       couronneT: { parent: 'head', at: [-5, -80], noRivet: true, base: '#000', seed: 8108, pts: OFFP, extra: (p) => {
         if (!p.couronne) return; const c = cx_(); c.save(); c.scale(0.5, 0.5); drawCouronne({ plie: p.couronnePlie || 0 }); c.restore(); } },
       bourseT: { parent: 'torso', at: [52, -26], noRivet: true, base: '#000', seed: 8109, pts: OFFP, extra: (p) => {
@@ -479,7 +649,7 @@
       if (vt > 0) { const tap = q.tapote ? Math.abs(Math.sin((q.t || 0) * 7)) * 8 : 0; reach(def, q, x, y, s, dir, arm, locPt(def, q, x, y, s, dir, 'torso', [74 + fwd, -70 - tap]), vt, null); if (!held) q[hk] = 'open'; }
       if (po > 0) { const cb = q['cible' + suf] || locPt(def, q, x, y, s, dir, 'torso', [130 + fwd, -22]); reach(def, q, x, y, s, dir, arm, cb, po, held ? 'base' : null); if (!held) q[hk] = 'open'; }
       if (br > 0) reach(def, q, x, y, s, dir, arm, locPt(def, q, x, y, s, dir, 'torso', [150 + fwd, -252]), br, held ? 'centre' : null);
-      if (bo > 0) { const m = locPt(def, q, x, y, s, dir, 'head', held ? [40 + fwd, -18] : [44 + fwd, -14]); reach(def, q, x, y, s, dir, arm, m, bo, held ? 'bouche' : null); }
+      if (bo > 0) { const jq = clamp(q.joues || 0), m = locPt(def, q, x, y, s, dir, 'head', goTete(q) ? ((b) => (held ? [b[0] + fwd, b[1]] : [b[0] + 4 + fwd, b[1] + 1]))(goTete(q).bouche(jq)) : goClair(q) ? (held ? [44 + 11 * jq + fwd, -12] : [48 + 11 * jq + fwd, -11]) : (held ? [40 + fwd, -18] : [44 + fwd, -14])); reach(def, q, x, y, s, dir, arm, m, bo, held ? 'bouche' : null); }
     }
     return finishQ(def, q, x, y, s, dir);
   };

@@ -97,6 +97,8 @@
 - Violence montrée (tête coupée en carton) → jamais de mort ni de violence à l'image : rideau, ombre, chapeau qui roule, fumée.
 - Carte tenue à bout de bras qui masquait l'avant-bras et la main d'Emma (affiche Mercedes) → un objet plat tenu à la main se dessine DERRIÈRE la marionnette, la main posée sur son bord ou son coin ; l'avant-bras reste entier.
 
+- Tête de profil illisible (Gontran, galette : nez rond en « balle de clown », moustache qui pend sous le nez et se lit comme un bec, joue gonflée peinte en tache rose, pas de cou) → jugée « affreuse » par l'utilisateur : une tête se dessine comme un vrai profil gravé (cou, menton, nez qui prolonge le profil, pilosité qui suit la mâchoire, bouche visible), jamais par des formes collées sur un œuf ; au casting, montrer la tête en gros plan (≈ 350 px) dans ses expressions.
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur 10 s) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
