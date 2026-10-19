@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Sous-titres animés, calés mot à mot sur la voix, incrustés dans la vidéo complète.
 #   python3 -I soustitres.py <travail> <video_complete.mp4> <sortie.mp4> [--y 1500] [--x 500]   (--theme accepté et ignoré)
+#   python3 -I soustitres.py <travail> <montage_sans_sous_titres.mp4> <sortie.mp4> --global <montage.json>   (montage Canva refait par
+#     reconstruire.py : instants des mots de mots_whisper.py sur toute la vidéo ; script.txt en autant de paragraphes que voulu)
 #
 # Lit :
 #   <travail>/voix/p1.json … p6.json   instants réels des mots dits (écrits par voix.py : [mot, début, fin], secondes du plan)
@@ -137,22 +139,34 @@ def nettoyer(w):
 
 def main():
     a = sys.argv[1:]
-    opt = {k: a[a.index(k) + 1] for k in ('--theme', '--y', '--x') if k in a}
+    opt = {k: a[a.index(k) + 1] for k in ('--theme', '--y', '--x', '--global') if k in a}
     travail, entree, sortie = [x for i, x in enumerate(a) if not x.startswith('--') and (i == 0 or a[i - 1] not in opt)][:3]
     y = int(opt.get('--y', 1500)); x = int(opt.get('--x', 500))
     src = os.path.join(travail, 'script.txt')
     if not os.path.exists(src):
         src = os.path.join(travail, 'voix.txt'); print('NOTE : pas de script.txt, texte de voix.txt (nombres en lettres)')
     plans = paragraphes(src)
-    if len(plans) != 6: sys.exit(f'{src} : {len(plans)} paragraphes au lieu de 6')
-    debut, lignes = 0.0, []
-    for n in range(1, 7):
-        dits = json.load(open(os.path.join(travail, 'voix', f'p{n}.json'), encoding='utf-8'))['mots']
-        temps = caler(plans[n - 1], dits)
-        mots = [(w, debut + t0, debut + t1) for w, (t0, t1) in zip(plans[n - 1], temps)]
-        duree = float(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration',
-                                      '-of', 'csv=p=0', os.path.join(travail, 'out', f'p{n}', f'p{n}_final.mp4')],
-                                     capture_output=True, text=True, check=True).stdout)
+    if '--global' in opt:   # montage fini (Canva) : instants des mots sur TOUTE la vidéo (mots_whisper.py), paragraphes calés d'un bloc
+        dits = json.load(open(opt['--global'], encoding='utf-8'))['mots']
+        temps = caler([w for p in plans for w in p], dits)
+        total = float(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration',
+                                      '-of', 'csv=p=0', entree], capture_output=True, text=True, check=True).stdout)
+        blocs, i = [], 0
+        for p in plans:
+            blocs.append([(w, t0, t1) for w, (t0, t1) in zip(p, temps[i:i + len(p)])]); i += len(p)
+        blocs = [(b, 0.0, total) for b in blocs]
+    else:
+        if len(plans) != 6: sys.exit(f'{src} : {len(plans)} paragraphes au lieu de 6')
+        blocs, debut = [], 0.0
+        for n in range(1, 7):
+            dits = json.load(open(os.path.join(travail, 'voix', f'p{n}.json'), encoding='utf-8'))['mots']
+            temps = caler(plans[n - 1], dits)
+            duree = float(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration',
+                                          '-of', 'csv=p=0', os.path.join(travail, 'out', f'p{n}', f'p{n}_final.mp4')],
+                                         capture_output=True, text=True, check=True).stdout)
+            blocs.append(([(w, debut + t0, debut + t1) for w, (t0, t1) in zip(plans[n - 1], temps)], debut, duree)); debut += duree
+    lignes = []
+    for mots, debut, duree in blocs:
         groupes = grouper(mots)
         for gi, g in enumerate(groupes):
             fin_g = groupes[gi + 1][0][1] if gi + 1 < len(groupes) else min(g[-1][2] + 0.6, debut + duree)
@@ -172,7 +186,6 @@ def main():
                 pop = (f'\\fscx{LARGEUR - 6}\\fscy94\\t(0,140,\\fscx{LARGEUR + 3}\\fscy103)\\t(140,240,\\fscx{LARGEUR}\\fscy100)'
                        if wi == 0 else f'\\fscx{LARGEUR}')
                 lignes.append(f'Dialogue: 0,{ts(e0)},{ts(e1)},Mot,,0,0,0,,{{\\an5\\pos({x},{y})\\fs{taille}{pop}}}' + ' '.join(txt))
-        debut += duree
     tete = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080

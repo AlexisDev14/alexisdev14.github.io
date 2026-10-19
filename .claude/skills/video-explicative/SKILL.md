@@ -254,7 +254,7 @@ La couverture n'est plus un prompt pour un générateur externe : c'est **une im
 Toi : regarde l'affiche entière et réduite (≈ 270 × 480), vérifie la liste de `MEMO-AFFICHE.md` §2 ; un défaut → une demande précise à l'agent (SendMessage), une seule fois. En session, montre l'affiche à l'utilisateur avec la vidéo.
 
 ### Remontage d'une ancienne vidéo
-Pour donner le montage actuel (vidéo complète, sous-titres, conclusion) à une vidéo déjà livrée sans refaire ses plans ni sa voix : suivre `REMONTAGE.md` (outils `drive_recup.py`, `mots_whisper.py`, `voix_montage.py`, `raccourcir.py` ; la voix de référence est celle du montage Canva de l'utilisateur).
+Pour donner les nouveaux sous-titres à une vidéo déjà livrée : suivre `REMONTAGE.md`. La version officielle est le montage Canva de l'utilisateur (son et minutage gardés) ; `reconstruire.py` en retire sous-titres et logo en refaisant chaque image depuis les plans propres du Drive, puis `soustitres.py --global` pose les nouveaux (outils `drive_recup.py`, `mots_whisper.py`, `remontages.py`).
 
 ### Livraison
 - Chaque plan est envoyé dans la conversation dès qu'il a passé ton contrôle ; à la fin, envoie la **vidéo complète sous-titrée** (`<Sujet> — vidéo complète sous-titrée.mp4`).
