@@ -4,7 +4,7 @@
 
 ## 1. Format
 - 1080 × 1920, 30 im/s, **chaque plan dure exactement sa voix** (`durees.json`, ≈ 9 à 11 s ; `DUREE` dans `duree.js`), H.264 yuv420p + AAC stéréo 192 kb/s.
-- Voix off ElevenLabs : **incluse dans chaque plan** par `produire.sh` (`<video>/voix/pN.mp3` à 0 s, −14 LUFS, crête −1 dBFS ; les bruitages gardent leurs niveaux, sous la voix). Les 6 plans sont mis bout à bout en une vidéo complète par `assembler.sh`. Sous-titres, carton de fin et logo : ajoutés par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
+- Voix off ElevenLabs : **incluse dans chaque plan** par `produire.sh` (`<video>/voix/pN.mp3` à 0 s, −14 LUFS, crête −1 dBFS ; les bruitages gardent leurs niveaux, sous la voix). Les 6 plans sont mis bout à bout en une vidéo complète par `assembler.sh`, puis `soustitres.py` en fait une version sous-titrée (seule exception au « aucun texte », dans ce seul fichier). Carton de fin et logo : ajoutés par l'utilisateur. **Aucun texte, lettre, chiffre ou logo dans l'image.** Seule exception : un texte explicitement demandé par l'utilisateur (ex. le titre d'un journal à l'image, « LE PETIT RÂLEUR »), orthographe exacte, police serif grasse d'époque.
 
 ## 2. Le théâtre (fourni par le kit, ne pas redessiner)
 - Petit théâtre de papier vu de face, caméra fixe : cadre de scène en bois sombre et moulures dorées, lambrequin de velours à franges, rampe de lampes à huile (flammes qui vacillent), coquille du souffleur, plancher en lattes avec **deux fentes** (arrière `ST.slotB`, avant `ST.slotF`) d'où sortent les tiges.

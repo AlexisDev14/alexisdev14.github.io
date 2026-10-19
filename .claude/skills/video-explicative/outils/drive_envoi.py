@@ -3,7 +3,7 @@
 #   "<Sujet>" peut être « id:<id du dossier> » pour déposer dans un dossier existant précis (lien du registre).
 #   Le type MIME suit toujours l'extension (.png → image/png, .txt → text/plain…), y compris pour le 2e argument.
 # Rangement dans le dossier du sujet : sous-dossier « Plans » (plans pN_final.mp4), sous-dossier « Audio » (.mp3, .wav) ; le reste
-# (vidéo complète d'assembler.sh, fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
+# (vidéos complètes d'assembler.sh et soustitres.py, fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
 # Renvoi sans doublon : un fichier de même nom déjà présent dans le dossier est REMPLACÉ (nouvelle version du même
 # fichier, même lien), jamais dupliqué ni mis à la corbeille. Relancer le script après une correction est donc sans risque.
 # Identifiants : secret réseau « GOOGLE_DRIVE » (type Body parameter, site oauth2.googleapis.com, chemin /token,
