@@ -45,7 +45,8 @@
   const shinCalf = (len, kt, ak, g) => ep(0, 0, kt, kt, 10, PI, TAU).concat([[kt - 1, len * 0.3], [ak + 2.5, len * 0.74], [ak + 0.5, len - 4]], ep(0, len, ak, ak, 10, 0, PI),
     [[-ak - 1, len - 6], [-ak - 3, len * 0.8], [-kt - g * 0.55, len * 0.6], [-kt - g, len * 0.4], [-kt - g * 0.75, len * 0.22], [-kt + 1, 5]]);
   const FOOT = (ak, len) => ep(0, 0, ak, ak, 8, PI, TAU).concat([[ak + 2, 2], [len * 0.62, 4], [len * 0.92, 8], [len, 14, 1], [-15, 16, 1], [-15, 6]]);
-  // IK deux segments (bras) dans le repère du torse ; pick 'bas' (coude le plus bas), 'avant', 'arriere'
+  // IK deux segments (bras) dans le repère du torse. Le coude plie TOUJOURS dans le sens anatomique (avant-bras qui tourne vers
+  // l'avant, b ≤ 0) ; pick ('bas', 'avant', 'arriere') ne départage que les cas ambigus (bras presque tendu).
   function ik2(S, T, pick) {
     const vx = T[0] - S[0], vy = T[1] - S[1];
     const d = clamp(Math.hypot(vx, vy), Math.abs(LA - LB) + 1, LA + LB - 0.5), tv = Math.atan2(-vx, vy);
@@ -54,8 +55,8 @@
     for (const sg of [1, -1]) {
       const a = tv + sg * a1, E = [S[0] - LA * Math.sin(a), S[1] + LA * Math.cos(a)];
       const cAbs = Math.atan2(-(T[0] - E[0]), T[1] - E[1]) - PHI;
-      const sc = pick === 'avant' ? E[0] : pick === 'arriere' ? -E[0] : E[1];
-      if (!best || sc > best.sc) best = { a: normA(a), b: normA(cAbs - a), sc };
+      const b = normA(cAbs - a), sc = (b <= 0.02 ? 1e4 : 0) + (pick === 'avant' ? E[0] : pick === 'arriere' ? -E[0] : E[1]);
+      if (!best || sc > best.sc) best = { a: normA(a), b, sc };
     }
     return best;
   }
@@ -262,8 +263,11 @@
   // ---------------------------------------------------------------- gâteau tenu : o.vue 'debout' (défaut) | 'plat' ; o.incl ; o.etat ; o.croque ; prises 20° sous l'horizontale de chaque côté
   const GRIP_A = 0.35;
   const gSq = (o) => lerp(1, 0.36, clamp(o.incl != null ? o.incl : (o.vue === 'plat' ? 1 : 0)));
-  function gGrip(o) { const sq = gSq(o); if (o.prise === 'bord') return [-PB.R * 0.9, PB.R * 0.3 * sq]; return [PB.R * 0.94 * Math.cos(GRIP_A), PB.R * 0.94 * Math.sin(GRIP_A) * sq]; }
-  function gP2(o) { const sq = gSq(o); if (o.prise === 'bord') return [-PB.R * 0.94, -PB.R * 0.28 * sq]; const g = gGrip(o); return [-g[0], g[1]]; }
+  // prises du gâteau : défaut 'roue' (main avant sur le haut de l'anneau, main arrière sur le bord proche, vers 8 h : les deux mains DEVANT le corps) ;
+  // 'bouche' (croque : main avant vers 4 h, main arrière vers 7 h) ; 'bord' (couronne : deux mains sur le bord proche de l'anneau à plat)
+  const rimPt = (a, sq) => [PB.R * 0.94 * Math.cos(a), PB.R * 0.94 * Math.sin(a) * sq];
+  function gGrip(o) { const sq = gSq(o); if (o.prise === 'bord') return [-PB.R * 0.9, PB.R * 0.3 * sq]; if (o.prise === 'bouche') return rimPt(GRIP_A, sq); return rimPt(-PI / 2, sq); }
+  function gP2(o) { const sq = gSq(o); if (o.prise === 'bord') return [-PB.R * 0.94, -PB.R * 0.28 * sq]; if (o.prise === 'bouche') return rimPt(PI - 1.0, sq); return rimPt(PI - 0.55, sq); }
 
   const OBJ = {
     //  draw(o) dessine l'objet à l'échelle 1, origine = (0,0) de son repère ; grip = point de prise ; p2 = seconde prise (deuxMains) ; pts = points nommés ; base = point posé
@@ -292,7 +296,7 @@
       doigts: { parent: 'armF_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 2, pts: (p) => (doig(p.tenu) && p.tenu !== 'pincee' ? DOIGTS : OFFP), paint: doigtsPaint },
       objetB: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: '#000', seed: seed + 3, pts: OFFP, extra: (p) => { if (has(p.tenuB)) heldDraw(p.tenuB, p.tenuBO, p); } },
       doigtsB: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 4, pts: (p) => (doig(p.tenuB) ? DOIGTS : OFFP), paint: doigtsPaint },
-      doigtsB2: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 5, pts: (p) => (p._deux && !p._deuxPaume && !has(p.tenuB) ? DOIGTS : OFFP), paint: doigtsPaint },   // seconde main posée sur l'objet avant : par-dessus
+      doigtsB2: { parent: 'armB_lo', at: [4, 96], noRivet: true, base: skin, seed: seed + 5, pts: (p) => ((p._deux && !p._deuxPaume && !has(p.tenuB)) || p._jointes ? DOIGTS : OFFP), paint: doigtsPaint },   // seconde main posée sur l'objet avant : par-dessus
     };
   }
   // point nommé de l'objet tenu, en coordonnées écran : r renvoyé par une marionnette
@@ -305,10 +309,12 @@
   // =====================================================================
   // POSES — préparation commune (objets tenus, seconde main, marche, assis)
   // =====================================================================
+  const REPOS = { armF_up: -0.06, armF_lo: -0.12, armB_up: -0.2, armB_lo: -0.18 };
   const BANC_H = 112;                                                         // hauteur du siège du banc (local, × s à l'écran)
   function prep(p) {
     p = p || {}; const q = Object.assign({}, p, { ang: Object.assign({}, p.ang), hide: Object.assign({}, p.hide), face: Object.assign({}, p.face) });
     const A = q.ang;
+    for (const k in REPOS) if (A[k] == null) A[k] = REPOS[k];                  // repos : bras pendants, mains un peu devant la cuisse, coude plié vers l'avant
     if (A.legF != null) { A.legF_up = (A.legF_up || 0) + A.legF; delete A.legF; }
     if (A.legB != null) { A.legB_up = (A.legB_up || 0) + A.legB; delete A.legB; }
     return q;
@@ -461,7 +467,7 @@
     if (br > 0) {
       if (q.tenu == null) { q.tenu = 'journal'; q.tenuO = Object.assign({ etat: 'deplie' }, q.tenuO); }
       blend(q, 'armF_up', -2.45 + 0.08 * Math.sin(t * 7), br); blend(q, 'armF_lo', -0.5, br); A.head = (A.head || 0) - 0.12 * br;
-      blend(q, 'armB_up', 0.15, br); blend(q, 'armB_lo', -0.35, br);
+      blend(q, 'armB_up', -0.08, br); blend(q, 'armB_lo', -0.3, br);
     }
     if (tr > 0 || ec > 0) {                                                    // crayon : la pointe va sur la cible
       if (q.tenu == null) q.tenu = 'crayon';
@@ -526,7 +532,7 @@
           hatch([[-30, -60], [6, -60], [6, 152], [-30, 152]], 0.75, 4.2, 0.22); shade(60, 0, -20, 0, 0.2);
         } },
       noeud: { parent: 'torso', at: [-40, -64], noRivet: true, base: DU.tablierD, seed: 8103,
-        pts: [[0, -4], [-14, -14], [-20, -6], [-12, 2], [-18, 22], [-10, 24], [-4, 6], [2, 26], [8, 22], [4, 4]], paint: () => hatch(null, 0.6, 3.2, 0.25) },
+        pts: [[3, -5], [12, -11], [15, -3], [9, 1], [14, 16, 1], [9, 18, 1], [5, 5], [3, 18, 1], [-1, 16, 1], [1, 3]], paint: () => { strokePts([[3, 0], [12, -6]], 'rgba(90,75,45,0.6)', 1.2); hatch(null, 0.6, 3.2, 0.3); } },   // nœud du tablier, plaqué dans le dos (ne dépasse pas : il se lisait comme une main)
       armB_up: upDef([-10, -146], DU.blancD, 8104),
       armB_lo: foreDef('armB_up', DU.blancD, DU.peauD, true, 8105, { cuff: '#c9c3b2' }),
       head: { parent: 'torso', at: [6, -170], pts: X.NAP_HEAD, base: DU.peau, seed: 8106, noRivet: true, paint: (p) => {
@@ -580,14 +586,19 @@
     }
     if (ac > 0) {                                                              // accepte : main sur le cœur + petite révérence
       plier(q, 0.22 * ac); A.head = (A.head || 0) + 0.18 * ac;
-      armTo(q, 'armF', [26, -112], 'bas', ac); if (!has(q.tenu)) q.handF = 'open';
-      blend(q, 'armB_up', 0.35, ac); blend(q, 'armB_lo', -0.2, ac); if (!q.face.mouth) q.face.mouth = 'smile';
+      armTo(q, 'armF', [30, -110], 'bas', ac); if (!has(q.tenu)) q.handF = 'open';               // main sur le cœur, coude devant
+      blend(q, 'armB_up', -0.06, ac); blend(q, 'armB_lo', -0.12, ac); if (!q.face.mouth) q.face.mouth = 'smile';   // bras arrière pendant
     }
     if (de > 0) {                                                              // le gâteau debout à deux mains, comme une roue
       if (q.tenu == null) { q.tenu = 'gateau'; q.tenuO = Object.assign({ vue: 'debout' }, q.tenuO); }
-      const g = gGrip(heldOpts('gateau', q.tenuO, q)), Cc = [18, -40];
+      const g = gGrip(heldOpts('gateau', q.tenuO, q)), Cc = [120, -40];         // anneau devant lui : main avant sur le haut, main arrière sur le bord proche
       armTo(q, 'armF', [Cc[0] + g[0], Cc[1] + g[1]], 'bas', de); q.deuxMains = q.deuxMains !== false; q.deuxK = de;
       A.head = (A.head || 0) - 0.08 * de;
+    }
+    const fi = k01(q.fier);
+    if (fi > 0) {                                                              // fier : mains jointes devant le tablier, buste bombé, menton levé
+      armTo(q, 'armF', [78, -28], 'bas', fi); armTo(q, 'armB', [72, -22], 'bas', fi); if (fi > 0.5) q._jointes = true;   // main arrière posée sur la main avant
+      q.tilt = (q.tilt || 0) - 0.04 * fi; A.head = (A.head || 0) - 0.16 * fi; if (!q.face.mouth) q.face.mouth = 'smile';
     }
     if (co >= 0) {                                                             // couronne : soulève l'anneau à plat et le passe par-dessus la tête de la cible
       if (q.tenu == null) q.tenu = 'gateau';
@@ -762,11 +773,16 @@
     if (vi > 0) { blend(q, 'armF_up', -2.75, vi); blend(q, 'armF_lo', -0.3, vi); A.head = (A.head || 0) - 0.22 * vi; if (!q.face.mouth) q.face.mouth = 'smile'; }
     if (es > 0) { armTo(q, 'armF', headPt(q, -16, -92), 'avant', es); if (!has(q.tenu)) q.handF = 'open'; A.head = (A.head || 0) + 0.06 * es; if (!q.face.eyes) q.face.eyes = 'half'; }
     if (ve > 0) { armTo(q, 'armF', [44, -36 + 5 * Math.max(0, Math.sin(t * 12))], 'bas', ve); if (!has(q.tenu)) q.handF = 'open'; if (!q.face.mouth) q.face.mouth = 'smile'; }
+    const tg = k01(q.tientGuidon);
+    if (tg > 0) {                                                              // à côté du vélo (dessiné derrière lui), main avant sur la poignée du guidon devant lui
+      const dxv = q.veloDx == null ? 10 : q.veloDx;
+      armTo(q, 'armF', [dxv + VE.gripF[0], VE.gripF[1] + HIP - (q.dy || 0)], 'bas', tg);
+    }
     if (q.croque != null) {                                                    // le gâteau debout à deux mains, la bouche contre le bord du haut
       const k = q.porte == null ? 1 : k01(q.porte);
       A.head = (A.head || 0) + 0.24 * k;
       if (q.tenu == null) q.tenu = 'gateau';
-      q.tenuO = Object.assign({ vue: 'debout' }, q.tenuO, { croque: clamp(q.croque), croqueA: -PI / 2 });
+      q.tenuO = Object.assign({ vue: 'debout' }, q.tenuO, { croque: clamp(q.croque), croqueA: -PI / 2, prise: 'bouche' });
       const m = headPt(q, 31, -26), Cc = [lerp(110, m[0], k), lerp(-10, m[1] + PB.R - 2, k)], g = gGrip(q.tenuO);
       armTo(q, 'armF', [Cc[0] + g[0], Cc[1] + g[1]], 'bas', 1); q.deuxMains = q.deuxMains !== false;
       if (!q.face.mouth) q.face.mouth = 'o';
@@ -781,6 +797,10 @@
   };
   PBR.terront = (pose, x, y, s, o) => {
     s = s == null ? 0.9 : s; o = o || {}; const env = { def: CH.pbrTerront, x, y, s, dir: o.dir || 1 };
+    if (pose && pose.tientGuidon && o.velo !== false) {                         // le vélo, même sens, derrière lui : pédalier à x + veloDx·s·dir
+      const dxv = pose.veloDx == null ? 10 : pose.veloDx;
+      PBR.velo(x + dxv * s * env.dir, y, s, { dir: env.dir, phase: pose.phase || 0, roue: pose.roue, cast: o.cast });
+    }
     return run(CH.pbrTerront, PBR.terrontPose(Object.assign({}, pose), env), x, y, s, o);
   };
   // coureur à vélo : (x,y) = sol sous le pédalier ; pose.phase (tours de pédalier), pose.roue (rad, défaut d'après la phase), victoire, sueur, fatigue, barbe

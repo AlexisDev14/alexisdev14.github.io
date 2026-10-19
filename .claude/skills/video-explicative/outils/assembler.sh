@@ -37,12 +37,12 @@ g = VOIX_LUFS - sonie(brut)
 fin = ['-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-movflags', '+faststart', sortie]
 if os.path.exists(concl):   # plans ramenés à −14 LUFS, puis la conclusion à la suite (image réencodée une fois, crf 18)
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-i', concl, '-filter_complex',
-                    f'[0:a]volume={g:.2f}dB,alimiter=limit=0.891:level=false,aresample=48000[a0];'
-                    f'[1:a]volume={VOIX_LUFS - sonie(concl):.2f}dB,alimiter=limit=0.891:level=false,aresample=48000,aformat=channel_layouts=stereo[a1];[0:v]setsar=1[v0];'
+                    f'[0:a]volume={g:.2f}dB,alimiter=limit=0.87:level=false,aresample=48000[a0];'
+                    f'[1:a]volume={VOIX_LUFS - sonie(concl):.2f}dB,alimiter=limit=0.87:level=false,aresample=48000,aformat=channel_layouts=stereo[a1];[0:v]setsar=1[v0];'
                     '[1:v]scale=1080:1920,fps=30,setsar=1,format=yuv420p[v1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]',
                     '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p'] + fin, check=True)
 else:
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-af', f'volume={g:.2f}dB,alimiter=limit=0.891:level=false', '-c:v', 'copy'] + fin, check=True)
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', brut, '-af', f'volume={g:.2f}dB,alimiter=limit=0.87:level=false', '-c:v', 'copy'] + fin, check=True)
 print(f'→ {sortie} (6 plans bout à bout, voix off incluse, gain {g:+.2f} dB' + (', conclusion Clark à la fin)' if os.path.exists(concl) else ')'))" "$OUT" "$TMP/brut.mkv" "$S" "$CONCL"
 AVEC_VOIX=1 "$OUT/verifier.sh" "$S" "$ATTENDU"
 # Fluidité de bout en bout : conduite du rideau (durées) et les 5 coupes (aucun saut d'image). Un ÉCHEC se corrige avant la livraison.
