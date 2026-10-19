@@ -7,12 +7,26 @@ refait une voix dans son montage sans remplacer le pN.mp3 du Drive. Validé sur 
 Interdits : modifier un design Canva (lecture et export seulement) ; appeler ElevenLabs ; remplacer ou supprimer un fichier existant du Drive
 (on AJOUTE les fichiers « — vidéo complète… » et « — sources.zip ») ; toucher Firestore ; pousser des rendus dans git ; Fable.
 
+## Choix de la vidéo (routine « Remontage vidéos », une vidéo par exécution)
+1. `python3 -I OUTILS/remontages.py etat` : ids déjà « fait » ou « impossible » (à écarter), et « en cours » (à écarter si posé il y a
+   moins de 2 h : une autre exécution y travaille ; au-delà, exécution interrompue, à reprendre).
+2. Firestore `video_slots` (LECTURE SEULE, `list_documents`, masque : subject, driveFolderUrl, queued, queuedAt, validation.at,
+   publications.tiktok.state) : candidates = encore à publier (`queued` true, aucune publication à l'état « publie »), non écartées.
+3. Ordre = ordre de publication du BO (file `queuedAt` croissant, 2 par jour depuis video_planner/config) : d'abord les vidéos validées
+   (`validation.at` présent), par `queuedAt` croissant ; puis les non validées, même ordre. Prendre la première.
+4. `python3 -I OUTILS/remontages.py debut <id> "<Sujet>"` AVANT tout travail. À la fin : `fait <id> "<voix reprises, durée>"`, ou
+   `impossible <id> "<cause>"` (plans ou voix absents du Drive, design Canva introuvable, plans contenant déjà une voix retouchée…).
+   Une vidéo dont le dossier Drive a déjà « <Sujet> — vidéo complète sous-titrée.mp4 » est marquée « fait » (« déjà faite »), sans travail.
+
 ## Étapes (une vidéo ; `OUTILS` = `.claude/skills/video-explicative/outils`, `T` = `<scratchpad>/<slug>/travail`)
 1. **Registre** : la ligne de la vidéo dans `videos-realisees.md` donne le sujet et le lien du dossier Drive (id après `folders/`).
    Si ce dossier contient déjà « <Sujet> — vidéo complète sous-titrée.mp4 », la vidéo est faite : passer.
 2. **Drive** : `python3 -I OUTILS/drive_recup.py <id> <scratchpad>/<slug>/drive` → plans (`Plans/pN_final.mp4` ou à la racine),
    voix (`Audio/pN.mp3` ou à la racine), éventuellement le montage de l'utilisateur (`<Sujet>.mp4`). Copier les pN.mp3 dans `T/voix/`.
-   Si les pN_final.mp4 contiennent déjà la voix (sonie > −30 LUFS), la vidéo est récente : assembler.sh + soustitres.py suffisent.
+   Plans ou voix manquants (anciennes vidéos importées) : « impossible ».
+   Si les pN_final.mp4 contiennent déjà la voix (sonie > −30 LUFS), la vidéo est récente : copier les plans dans `T/out/pN/`, faire
+   les étapes 3 à 5 en diagnostic seulement (sans --appliquer) ; si une voix a été retouchée dans Canva, « impossible » (la voix est
+   dans l'image du plan) ; sinon `mots_whisper.py` sur les pN.mp3, puis directement l'étape 7.
 3. **Canva** (connecteur Canva) : `search-designs` avec le titre du sujet → le design (1 page, 1080×1920).
    - `read-design` (design_content) = le texte des sous-titres de l'utilisateur = **le texte final dit**. En faire `T/script.txt` :
      6 paragraphes séparés par une ligne vide, un par plan (découper d'après les pN.mp3), chiffres en chiffres, sans le carton de fin.
