@@ -29,9 +29,11 @@ sous-titrée.mp4 » et « <Sujet> — sources.zip » (rien d'autre remplacé ni 
      où il a supprimé les sous-titres), l'exporter de même → `T/propre.mp4` : c'est déjà l'image ET le son officiels. Le texte vient
      toujours du design d'origine. Sauter alors les étapes 2 et 3 : `ffmpeg -i T/propre.mp4 -af "volume=<−14 − sonie>dB,alimiter=limit=0.891:level=false"`
      (sonie mesurée par `sfx_lib.sonie`, vidéo copiée) → « T/<Sujet> — vidéo complète.mp4 », et `mots_whisper.py` sur T/propre.mp4.
-2. **Plans propres** : `python3 -I OUTILS/drive_recup.py <id du dossier Drive (driveFolderUrl)> T/drive` ; garder tous les mp4 du
-   dossier qui ne sont PAS un montage (pN_final.mp4, mN.mp4… dans « Plans » ou à la racine ; exclure « <Sujet>.mp4 » et les « — vidéo
-   complète… »). Aucun plan → « impossible » (les sous-titres Canva resteraient).
+2. **Plans propres** : `python3 -I OUTILS/drive_recup.py <id du dossier Drive (driveFolderUrl)> T/drive` ; ne garder QUE les plans
+   nommés `pN_final.mp4` (dans « Plans » ou à la racine). ⛔ Jamais un montage (« Mercedes.mp4 », « Le tandem.mp4 », « <Sujet>.mp4 »,
+   « — vidéo complète… ») : il porte des sous-titres et serait recopié avec eux. Aucun pN_final.mp4 (vidéos importées : Arc de triomphe,
+   Monsieur Poubelle, Reblochon, Téflon) et pas de copie Canva « — sans sous-titres » → « impossible » (« copie Canva sans sous-titres
+   à préparer par l'utilisateur »).
 3. **Image sans sous-titres** : `python3 -I OUTILS/reconstruire.py T/canva.mp4 "T/<Sujet> — vidéo complète.mp4" <les plans>`.
    Il dit quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) et des fondus d'une
    fraction de seconde sont normaux. Plus de 1 s gardée AVANT le carton (plan retouché dans Canva, absent du Drive) : regarder ces
