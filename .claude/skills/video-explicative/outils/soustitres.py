@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Sous-titres animés, calés mot à mot sur la voix, incrustés dans la vidéo complète.
-#   python3 -I soustitres.py <travail> <video_complete.mp4> <sortie.mp4> [--theme ART] [--y 1500] [--x 500]
+#   python3 -I soustitres.py <travail> <video_complete.mp4> <sortie.mp4> [--y 1500] [--x 500]   (--theme accepté et ignoré)
 #
 # Lit :
 #   <travail>/voix/p1.json … p6.json   instants réels des mots dits (écrits par voix.py : [mot, début, fin], secondes du plan)
@@ -13,19 +13,23 @@
 #   - 1 à 3 mots à la fois (≤ 16 lettres), coupure à chaque ponctuation et à chaque pause ; un petit mot (« de », « la »)
 #     reste avec le mot qui le suit ;
 #   - chaque groupe entre avec un « pop » discret (94 % → 103 % → 100 % en 0,24 s) ;
-#   - le mot en train d'être dit passe à la couleur du thème, les nombres y restent ;
+#   - texte blanc (contour bleu nuit) ; dès que la voix passe sur un mot, il se remplit du dégradé bleu du logo Clark,
+#     #13335D au début du groupe → #030A16 à la fin, lettre par lettre (contour blanc), et le reste jusqu'au groupe suivant ;
 #   - le dernier groupe de chaque plan (la chute) est plus gros ;
-#   - Inter Display Black (polices/), 70 px, casse du script (pas tout en capitales), lettres resserrées (92 %), blanc crème,
-#     contour brun, ombre ; centré sur x = 500 (un peu à gauche du milieu, souhait de l'utilisateur), y = 1500 par défaut
+#   - Inter Display Black (polices/), 70 px, casse du script (pas tout en capitales), lettres resserrées (92 %), ombre ; centré sur x = 500 (un peu à gauche du milieu, souhait de l'utilisateur), y = 1500 par défaut
 #     (plancher de la scène, sous les pieds des marionnettes, au-dessus de la zone des boutons TikTok).
 # Écrit aussi <sortie>.ass (le fichier de sous-titres) ; l'image est réencodée (crf 18), le son recopié tel quel ;
 # puis verifier.sh sur la sortie (même durée que l'entrée, voix incluse) : son code de sortie est celui du script.
 import difflib, json, os, re, subprocess, sys, unicodedata
 
 ICI = os.path.dirname(os.path.abspath(__file__))
-THEMES = {'HIST': '#C2410C', 'GEO': '#22C55E', 'SCI': '#06B6D4', 'ART': '#E879F9', 'MUS': '#A78BFA', 'POP': '#FCAF3C',
-          'SPORT': '#F97316', 'VIE': '#F472B6', 'ECO': '#94A3B8', 'LANG': '#84CC16', 'ACTU': '#EF4444'}   # versions claires, lisibles sur la scène
-CREME, BRUN = '#FFF6E0', '#2A1A0C'
+BLANC, CONTOUR = '#FFFFFF', '#030A16'
+BLEU_DEBUT, BLEU_FIN = '#13335D', '#030A16'   # dégradé du fond du logo Clark (souhait de l'utilisateur)
+
+
+def degrade(k):
+    a, b = BLEU_DEBUT.lstrip('#'), BLEU_FIN.lstrip('#')
+    return '#' + ''.join(f'{round(int(a[i:i + 2], 16) * (1 - k) + int(b[i:i + 2], 16) * k):02X}' for i in (0, 2, 4))
 TAILLE, TAILLE_CHUTE = 70, 78
 LARGEUR = 92                   # % : lettres un peu resserrées (le texte ne doit pas s'étaler)
 MAX_MOTS, MAX_LETTRES, PAUSE = 3, 14, 0.35
@@ -135,7 +139,7 @@ def main():
     a = sys.argv[1:]
     opt = {k: a[a.index(k) + 1] for k in ('--theme', '--y', '--x') if k in a}
     travail, entree, sortie = [x for i, x in enumerate(a) if not x.startswith('--') and (i == 0 or a[i - 1] not in opt)][:3]
-    accent = THEMES.get(opt.get('--theme', 'ART'), THEMES['ART']); y = int(opt.get('--y', 1500)); x = int(opt.get('--x', 500))
+    y = int(opt.get('--y', 1500)); x = int(opt.get('--x', 500))
     src = os.path.join(travail, 'script.txt')
     if not os.path.exists(src):
         src = os.path.join(travail, 'voix.txt'); print('NOTE : pas de script.txt, texte de voix.txt (nombres en lettres)')
@@ -157,10 +161,14 @@ def main():
             for wi, (w, t0, t1) in enumerate(g):                      # un événement par mot : le mot dit en couleur
                 e0 = g[0][1] if wi == 0 else t0
                 e1 = g[wi + 1][1] if wi + 1 < len(g) else fin_g
-                txt = []
+                txt, total, k = [], max(sum(len(nettoyer(m2[0])) for m2 in g) - 1, 1), 0
                 for wj, (w2, _, _) in enumerate(g):
-                    c = accent if wj == wi or re.search(r'\d', w2) else CREME
-                    txt.append(f'{{\\c{ass_couleur(c)}}}{nettoyer(w2)}')
+                    w2 = nettoyer(w2)
+                    if wj <= wi:   # déjà dit : dégradé bleu Clark, du début à la fin du groupe, lettre par lettre
+                        txt.append(''.join(f'{{\\c{ass_couleur(degrade((k + i) / total))}\\3c{ass_couleur(BLANC)}\\bord4}}{ch}' for i, ch in enumerate(w2)))
+                    else:
+                        txt.append(f'{{\\c{ass_couleur(BLANC)}\\3c{ass_couleur(CONTOUR)}\\bord6}}{w2}')
+                    k += len(w2)
                 pop = (f'\\fscx{LARGEUR - 6}\\fscy94\\t(0,140,\\fscx{LARGEUR + 3}\\fscy103)\\t(140,240,\\fscx{LARGEUR}\\fscy100)'
                        if wi == 0 else f'\\fscx{LARGEUR}')
                 lignes.append(f'Dialogue: 0,{ts(e0)},{ts(e1)},Mot,,0,0,0,,{{\\an5\\pos({x},{y})\\fs{taille}{pop}}}' + ' '.join(txt))
@@ -174,7 +182,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Mot,Inter Display Black,{TAILLE},{ass_couleur(CREME)},{ass_couleur(CREME)},{ass_couleur(BRUN)},&H96000000&,0,0,0,0,100,100,2,0,1,7,4,5,60,60,0,1
+Style: Mot,Inter Display Black,{TAILLE},{ass_couleur(BLANC)},{ass_couleur(BLANC)},{ass_couleur(CONTOUR)},&H96000000&,0,0,0,0,100,100,3,0,1,6,3,5,60,60,0,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
