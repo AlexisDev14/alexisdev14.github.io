@@ -29,13 +29,36 @@ def lecteur(f):
 
 vm = vignettes(M)
 vp = [vignettes(p) for p in PLANS]
+# Chemin le plus probable (Viterbi) plutôt que la meilleure image isolée : sur un décor immobile, des images de plans différents
+# se ressemblent à 0,1 près (ex. fin du plan 4 et début du plan 5 sur le même décor), et le choix image par image saute d'un plan
+# à l'autre ou fige l'image. Dans un plan, on avance d'une image par image du montage (tenir ou sauter une image : petit coût) ;
+# changer de plan ou de position (coupe de Canva) coûte SAUT ; l'état « sans équivalent » (carton, fondu) coûte SEUIL.
+SAUT, PAS = 30.0, 0.3
+debuts = np.cumsum([0] + [len(p) for p in vp])
+toutes = np.concatenate(vp)                   # états 0..N-1 : images des plans ; état N : sans équivalent
+N, T = len(toutes), len(vm)
+debut_plan = np.zeros(N, bool); debut_plan[debuts[:-1]] = True
+dist = np.empty((T, N + 1), np.float32)
+for t in range(T):
+    dist[t, :N] = np.abs(toutes - vm[t]).mean(axis=(1, 2)); dist[t, N] = SEUIL
+cout = dist[0].copy(); retour = np.zeros((T, N + 1), np.int32)
+for t in range(1, T):
+    j = int(cout.argmin()); cands = [(np.full(N + 1, cout[j] + SAUT, np.float32), np.full(N + 1, j))]                 # coupe : depuis le meilleur état
+    tenir = cout + PAS; tenir[N] = cout[N]; cands.append((tenir, np.arange(N + 1)))     # tenir l'image (ou rester sans équivalent)
+    for s, c in ((1, 0.0), (2, PAS)):                                                  # avancer d'une ou deux images dans le plan
+        a = np.full(N + 1, np.inf, np.float32); a[s:N] = cout[:N - s] + c
+        for q in range(s): a[:N][np.roll(debut_plan, q)] = np.inf                       # pas de passage d'un plan à l'autre
+        src = np.arange(N + 1) - s; cands.append((a, src))
+    vals = np.stack([c for c, _ in cands]); k = vals.argmin(axis=0)
+    retour[t] = np.stack([s for _, s in cands])[k, np.arange(N + 1)]
+    cout = vals[k, np.arange(N + 1)] + dist[t]
+chemin = [int(cout.argmin())]
+for t in range(T - 1, 0, -1): chemin.append(int(retour[t, chemin[-1]]))
+chemin.reverse()
 choix = []                                    # par image du montage : (plan, image) ou None
-for t in range(len(vm)):
-    best = (1e9, None, None)
-    for i, p in enumerate(vp):
-        d = np.abs(p - vm[t]).mean(axis=(1, 2)); k = int(d.argmin())
-        if d[k] < best[0]: best = (float(d[k]), i, k)
-    choix.append((best[1], best[2]) if best[0] < SEUIL else None)
+for t, e in enumerate(chemin):
+    if e == N or dist[t, e] >= SEUIL: choix.append(None); continue
+    i = int(np.searchsorted(debuts, e, side='right') - 1); choix.append((i, int(e - debuts[i])))
 
 # Image : on parcourt le montage et chaque plan dans l'ordre, une image à la fois (mémoire faible).
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', '30', '-i', '-',
