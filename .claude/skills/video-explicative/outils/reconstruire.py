@@ -5,7 +5,8 @@
 #   minutage aussi (coupes, vitesse, ordre). Pour chaque image du montage, on retrouve l'image identique d'un plan (comparaison de
 #   vignettes sur le haut de l'image, au-dessus des sous-titres, coin du logo exclu) et on la recopie en pleine résolution : les
 #   sous-titres et le logo de Canva disparaissent. Une image sans équivalent dans les plans (carton de fin Clark, fondu, plan
-#   retouché dans Canva) est gardée telle quelle depuis le montage ; le script en donne la liste par tranches.
+#   retouché dans Canva) est gardée telle quelle depuis le montage ; le script en donne la liste par tranches. Exception : une
+#   tranche courte (≤ 1,5 s) entre deux images retrouvées est un fondu enchaîné de Canva, refait en fondu sans texte.
 # Les plans peuvent contenir ou non la voix : seule leur image sert.
 import os, subprocess, sys
 import numpy as np
@@ -49,13 +50,35 @@ def image_plan(i, k):
     while e[1] <= k:
         e[2] = e[0].stdout.read(W * H * 3); e[1] += 1
     return e[2]
-garde = []
+# Tranche courte sans équivalent ENTRE deux images retrouvées = fondu enchaîné de Canva (il montre déjà le sous-titre suivant) :
+# on la refait en fondu entre la dernière image retrouvée et la suivante, sans texte. Seules les tranches longues ou en bout
+# de vidéo (carton de fin Clark) sont gardées telles quelles du montage.
+FONDU_MAX = 45   # images (1,5 s)
+fondu = {}
+t = 0
+while t < len(choix):
+    if choix[t] is None:
+        f = t
+        while f < len(choix) and choix[f] is None: f += 1
+        if t > 0 and f < len(choix) and f - t <= FONDU_MAX:
+            for u in range(t, f): fondu[u] = (t, f)
+        t = f
+    else:
+        t += 1
+garde, fondus, precedente, cible = [], 0, None, None
 for t, c in enumerate(choix):
     im_m = lm.stdout.read(W * H * 3)
-    if c is None:
-        enc.stdin.write(im_m); garde.append(t)
+    if t in fondu:
+        a, b = fondu[t]
+        if t == a: cible = np.frombuffer(image_plan(*choix[b]), np.uint8).astype(np.float32)
+        x = (t - a + 1) / (b - a + 1)
+        im = ((1 - x) * np.frombuffer(precedente, np.uint8).astype(np.float32) + x * cible).round().astype(np.uint8).tobytes()
+        fondus += 1
+    elif c is None:
+        im = im_m; garde.append(t)
     else:
-        enc.stdin.write(image_plan(*c))
+        im = image_plan(*c)
+    enc.stdin.write(im); precedente = im
 enc.stdin.close(); enc.wait(); lm.kill()
 for e in etat.values(): e[0].kill()
 
@@ -67,8 +90,8 @@ subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', SORTIE + '.image.mp4', '-i'
 os.remove(SORTIE + '.image.mp4')
 tranches, debut = [], None
 for t in range(len(choix) + 1):
-    dedans = t < len(choix) and choix[t] is None
+    dedans = t < len(choix) and choix[t] is None and t not in fondu
     if dedans and debut is None: debut = t
     if not dedans and debut is not None: tranches.append((debut / 30, t / 30)); debut = None
-print(f'→ {SORTIE} : {len(choix)} images, {len(choix) - len(garde)} refaites depuis les plans, {len(garde)} gardées du montage'
+print(f'→ {SORTIE} : {len(choix)} images, {len(choix) - len(garde) - fondus} refaites depuis les plans, {fondus} en fondu refait, {len(garde)} gardées du montage'
       + ''.join(f'\n   gardé du montage : {a:.2f}–{b:.2f} s' for a, b in tranches) + f'\n   son du montage, gain {g:+.2f} dB')

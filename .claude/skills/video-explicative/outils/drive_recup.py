@@ -20,6 +20,9 @@ def tirer(pid, dest):
         if f['mimeType'].startswith('application/vnd.google-apps'):
             continue
         _, b = appel(tok, f"{API}/{f['id']}?alt=media&supportsAllDrives=true")
-        open(os.path.join(dest, f['name']), 'wb').write(b)
-        print(os.path.relpath(os.path.join(dest, f['name']), sys.argv[2]), len(b))
+        nom, n = f['name'], 2
+        while os.path.exists(os.path.join(dest, nom)):   # deux fichiers de même nom (ex. deux p3_final.mp4) : on garde les deux
+            base, ext = os.path.splitext(f['name']); nom = f'{base}_{n}{ext}'; n += 1
+        open(os.path.join(dest, nom), 'wb').write(b)
+        print(os.path.relpath(os.path.join(dest, nom), sys.argv[2]), len(b))
 tirer(sys.argv[1], sys.argv[2])

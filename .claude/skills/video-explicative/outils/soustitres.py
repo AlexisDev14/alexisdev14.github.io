@@ -22,7 +22,7 @@
 #     (plancher de la scène, sous les pieds des marionnettes, au-dessus de la zone des boutons TikTok).
 # Écrit aussi <sortie>.ass (le fichier de sous-titres) ; l'image est réencodée (crf 18), le son recopié tel quel ;
 # puis verifier.sh sur la sortie (même durée que l'entrée, voix incluse) : son code de sortie est celui du script.
-import difflib, json, os, re, subprocess, sys, unicodedata
+import difflib, json, os, re, shutil, subprocess, sys, tempfile, unicodedata
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 BLANC, CONTOUR = '#FFFFFF', '#030A16'
@@ -203,8 +203,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     ass = sortie + '.ass'
     open(ass, 'w', encoding='utf-8').write(tete + '\n'.join(lignes) + '\n')
     echap = lambda p: p.replace('\\', '\\\\').replace(':', '\\:').replace("'", "\\'")
+    tmp = tempfile.mkdtemp()   # chemin sans apostrophe pour le filtre ass (« L'étoile… » cassait l'échappement)
+    shutil.copy(ass, os.path.join(tmp, 'st.ass'))
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', entree, '-vf',
-                    f"ass=filename='{echap(ass)}':fontsdir='{echap(os.path.join(ICI, 'polices'))}'",
+                    f"ass=filename='{echap(os.path.join(tmp, 'st.ass'))}':fontsdir='{echap(os.path.join(ICI, 'polices'))}'",
                     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'copy',
                     '-movflags', '+faststart', sortie], check=True)
     print(f'→ {sortie} ({len(lignes)} événements, sous-titres {ass})')

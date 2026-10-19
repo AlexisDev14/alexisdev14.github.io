@@ -63,13 +63,13 @@ Dans le doute, garder le texte tel quel. Lister les corrections dans le résumé
      toujours du design d'origine. Sauter alors les étapes 2 et 3 : `ffmpeg -i T/propre.mp4 -af "volume=<−14 − sonie>dB,alimiter=limit=0.891:level=false"`
      (sonie mesurée par `sfx_lib.sonie`, vidéo copiée) → « T/<Sujet> — vidéo complète.mp4 », et `mots_whisper.py` sur T/propre.mp4.
 2. **Plans propres** : `python3 -I OUTILS/drive_recup.py <id du dossier Drive (driveFolderUrl)> T/drive` ; ne garder QUE les plans
-   nommés `pN_final.mp4` (dans « Plans » ou à la racine). ⛔ Jamais un montage (« Mercedes.mp4 », « Le tandem.mp4 », « <Sujet>.mp4 »,
+   nommés `pN_final.mp4` (dans « Plans » ou à la racine ; deux versions d'un même plan → `pN_final_2.mp4`, les passer toutes les deux). ⛔ Jamais un montage (« Mercedes.mp4 », « Le tandem.mp4 », « <Sujet>.mp4 »,
    « — vidéo complète… ») : il porte des sous-titres et serait recopié avec eux. Aucun pN_final.mp4 (vidéos importées : Arc de triomphe,
    Monsieur Poubelle, Reblochon, Téflon) et pas de copie Canva « — sans sous-titres » → « impossible » (« copie Canva sans sous-titres
    à préparer par l'utilisateur »).
 3. **Image sans sous-titres** : `python3 -I OUTILS/reconstruire.py T/canva.mp4 "T/<Sujet> — vidéo complète.mp4" <les plans>`.
-   Il dit quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) et des fondus d'une
-   fraction de seconde sont normaux. Plus de 1 s gardée AVANT le carton (plan retouché dans Canva, absent du Drive) : regarder ces
+   Il dit quelles tranches sont « gardées du montage » : seul le carton de fin Clark (les ~5 dernières secondes) est normal
+   (les fondus enchaînés de Canva entre deux plans, qui montrent déjà le sous-titre suivant, sont refaits en fondu sans texte). Plus de 1 s gardée AVANT le carton (plan retouché dans Canva, absent du Drive) : regarder ces
    instants (planche.sh --de A --a B) ; s'il y reste des sous-titres Canva → « impossible » avec les instants.
 4. **Instants des mots** (venv une fois : `python3 -m venv <scratchpad>/venv-fw && <scratchpad>/venv-fw/bin/pip install -q faster-whisper`) :
    `<scratchpad>/venv-fw/bin/python OUTILS/mots_whisper.py T/canva.mp4` → `T/canva.json`.
