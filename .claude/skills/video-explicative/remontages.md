@@ -23,3 +23,4 @@ Tenu par `outils/remontages.py` (routine « Remontage vidéos »). Une vidéo «
 | v_20261016_0849 | L'autruche qui avalait la clé de son enclos | fait | 2026-10-19 15:24 | 64,33 s ; 1715 images refaites depuis les plans, 51 en fondu refait ; gardé du montage : 58,87–64,33 s (carton de fin) |
 | v_20261017_0548 | Fleming | fait | 2026-10-19 15:29 | Canva (DAHYQqNZQ7M) ; 68,57 s ; fluidité OK (6 images figées, 0 bond) ; gardé du montage 62,87–68,57 s (fermeture du rideau + carton Clark), logo Canva retiré sur 62,87–63,63 s |
 | v_20261016_1449 | Le Swoosh de Nike, payé 35 dollars | en cours | 2026-10-19 15:29 |  |
+| v_20261017_0049 | Léonard de Vinci | en cours | 2026-10-19 15:30 |  |
