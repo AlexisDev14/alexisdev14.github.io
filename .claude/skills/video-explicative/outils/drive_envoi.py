@@ -1,5 +1,5 @@
-# Envoi d'une vidéo terminée sur le Drive Clark : dossier « <Sujet> » dans « Vidéos », 6 plans MP4 + fichier texte.
-# Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <p6_final.mp4>   (« - » : pas de fichier texte)
+# Envoi d'une vidéo terminée sur le Drive Clark : dossier « <Sujet> » dans « Vidéos », ses plans MP4 (4 à 10), voix, affiche, vidéo sous-titrée, sources.
+# Usage : python3 -I drive_envoi.py "<Sujet>" <fichier_texte.txt | -> <p1_final.mp4> … <pN_final.mp4>   (« - » : pas de fichier texte)
 #   "<Sujet>" peut être « id:<id du dossier> » pour déposer dans un dossier existant précis (lien du registre).
 #   Le type MIME suit toujours l'extension (.png → image/png, .txt → text/plain…), y compris pour le 2e argument.
 # Rangement dans le dossier du sujet : sous-dossier « Plans » (plans pN_final.mp4), sous-dossier « Audio » (.mp3, .wav), sous-dossier « Sources » (.zip de sources.sh) ; le reste
