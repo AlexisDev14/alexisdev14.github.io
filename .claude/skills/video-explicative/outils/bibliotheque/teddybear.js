@@ -1301,7 +1301,7 @@
 // Pré-rendus dans M.ted.init_casting (lancé par M.ted.init()). Fonctions pures de t (ambiances en temps global), aucun texte ni chiffre.
 (function () {
   'use strict';
-  const D = M.dec, TAU = M.TAU, PI = Math.PI;
+  const D = M.ted, TAU = M.TAU, PI = Math.PI;
   const { fillPts, strokePts, dot, hatch, shade, piece, lerp, clamp, smooth, hash } = M;
   const W = M.W, BACK = M.ST.back;
   const cx_ = () => M.ctx();
