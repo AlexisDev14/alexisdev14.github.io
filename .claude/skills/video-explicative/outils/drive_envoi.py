@@ -4,6 +4,8 @@
 #   Le type MIME suit toujours l'extension (.png → image/png, .txt → text/plain…), y compris pour le 2e argument.
 # Rangement dans le dossier du sujet : sous-dossier « Plans » (plans pN_final.mp4), sous-dossier « Audio » (.mp3, .wav), sous-dossier « Sources » (.zip de sources.sh) ; le reste
 # (vidéos complètes d'assembler.sh et soustitres.py, fichier texte, .json, .md, .png) à la racine du dossier. Les sous-dossiers sont créés au besoin, ou retrouvés.
+# ⛔ La vidéo complète SANS sous-titres (« … — vidéo complète.mp4 ») n'est jamais déposée (souhait de l'utilisateur, 20/10) :
+# le script l'ignore ; seule la version sous-titrée va sur le Drive. Elle reste en local pour refaire les sous-titres.
 # Renvoi sans doublon : un fichier de même nom déjà présent dans le dossier est REMPLACÉ (nouvelle version du même
 # fichier, même lien), jamais dupliqué ni mis à la corbeille. Relancer le script après une correction est donc sans risque.
 # Identifiants : secret réseau « GOOGLE_DRIVE » (type Body parameter, site oauth2.googleapis.com, chemin /token,
@@ -73,6 +75,8 @@ if __name__ == '__main__':
     sous = {}
     if texte != '-': fichiers = [texte] + fichiers     # le type suit l'extension (une image passée là reste une image)
     for f in fichiers:
+        if os.path.basename(f).endswith('— vidéo complète.mp4'):
+            print('ignoré (pas de vidéo sans sous-titres sur le Drive) :', os.path.basename(f)); continue
         ext = os.path.splitext(f)[1].lower()
         nom = RANGEMENT.get(ext)
         if ext == '.mp4' and not re.fullmatch(r'p\d+(_final)?\.mp4', os.path.basename(f)): nom = None   # vidéo complète : à la racine

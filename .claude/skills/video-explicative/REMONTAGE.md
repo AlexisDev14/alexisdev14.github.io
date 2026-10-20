@@ -7,8 +7,8 @@ Les sous-titres Canva sont incrustés dans l'export et la page vidéo n'est pas 
 chaque image du montage à partir de l'image identique des plans propres (Drive), et garde le son du montage. Validé sur La boussole.
 
 Interdits : modifier, copier, déplacer ou supprimer un design Canva (lecture et export seulement) ; appeler ElevenLabs ; toucher
-Firestore autrement qu'en lecture ; sur le Drive, ne déposer QUE « <Sujet> — vidéo complète.mp4 », « <Sujet> — vidéo complète
-sous-titrée.mp4 » et « <Sujet> — sources.zip » (rien d'autre remplacé ni supprimé) ; pousser des rendus dans git ; Fable.
+Firestore autrement qu'en lecture ; sur le Drive, ne déposer QUE « <Sujet> — vidéo complète
+sous-titrée.mp4 » et « <Sujet> — sources.zip » (jamais la vidéo sans sous-titres ; <Sujet> = nom du dossier sans la date) (rien d'autre remplacé ni supprimé) ; pousser des rendus dans git ; Fable.
 
 ## Choix de la vidéo (routine « Remontage vidéos Clark », une vidéo par exécution)
 1. `python3 -I OUTILS/remontages.py etat` : ids déjà « fait » ou « impossible » (à écarter), et « en cours » (à écarter si posé il y a
@@ -95,7 +95,7 @@ design et le signaler dans le résumé.
    `python3 -I OUTILS/sauts.py T/canva.mp4` ; chaque saut de la vidéo complète doit être une coupe entre plans ou exister aussi
    dans canva.mp4 (à ± 0,3 s) ; une série de sauts rapprochés (plusieurs par seconde) = saccade → ne rien livrer.
 7. **Livraison** : `bash OUTILS/sources.sh T "T/<Sujet> — sources.zip"` (script.txt, canva.json) puis
-   `python3 -I OUTILS/drive_envoi.py id:<id> - "<complète>" "<sous-titrée>" "<sources.zip>"` (les mêmes noms sont remplacés, rien
+   `python3 -I OUTILS/drive_envoi.py id:<id> - "<sous-titrée>" "<sources.zip>"` (les mêmes noms sont remplacés, rien
    d'autre). `remontages.py fait <id> "<durée, tranches gardées du montage>"`. Le remplacement dans le BO est fait par l'utilisateur.
 
 ## Vidéo sans montage Canva (depuis le Drive ; méthode validée sur Big Ben)
