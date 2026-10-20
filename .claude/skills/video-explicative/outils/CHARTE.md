@@ -117,6 +117,7 @@
 - Long trajet montré devant un seul décor (le coureur pédale « 71 heures » de Paris à Brest devant la boulangerie : « un peu bizarre », paris-brest) → un voyage se montre par des paysages qui changent : toile panoramique qui défile derrière le personnage (ville, champs, forêt, côte…), en plus du jour et de la nuit ; on peut allonger le plan d'un silence pour laisser défiler.
 - Rideau qui ne se ferme pas complètement (`demi` pour une ellipse de temps, paris-brest) → fermeture complète (`change`), jolie et satisfaisante (§5).
 - Changement de lieu par la machinerie entre deux lieux différents (tulipomanie p6 : la taverne monte aux cintres et laisse place aux champs) → deux lieux différents = `change` au rideau ; la machinerie seulement pour changer de décor dans le même lieu ou faire apparaître un élément.
+- Arc-en-ciel « bizarre » (Niagara, vidéo et affiche : court tronçon d'arc aux bouts coupés net, bandes épaisses, posé en l'air sur le ciel et la chute comme un autocollant) → un arc-en-ciel de brume : bandes fines et un peu floues, opacité qui monte depuis zéro à chaque bout, pieds plongés dans la brume ou l'écume (dessiné avant elles), discret ; jamais un bout coupé dans le vide.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
