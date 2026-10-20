@@ -55,11 +55,16 @@ URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voix}/with-timestamps?output
 MOT = re.compile(r"[\wÀ-ÿ'’-]")
 
 
+NP = 6                                 # nombre de plans de la vidéo = nombre de paragraphes de voix.txt (6 d'ordinaire)
+
+
 def paragraphes(chemin):
     txt = open(chemin, encoding='utf-8').read().strip()
     ps = [re.sub(r'\s+', ' ', p).strip() for p in re.split(r'\n\s*\n', txt) if p.strip()]
-    if len(ps) != 6:
-        sys.exit(f'voix.txt doit contenir 6 paragraphes séparés par une ligne vide (trouvé {len(ps)}).')
+    if not 4 <= len(ps) <= 10:
+        sys.exit(f'voix.txt doit contenir de 4 à 10 paragraphes (un par plan, 6 d’ordinaire) séparés par une ligne vide (trouvé {len(ps)}).')
+    global NP
+    NP = len(ps)
     return ps
 
 
@@ -116,12 +121,12 @@ def controler(ps):
             refus.append(f'p{n} : plus d’un « … »')
         if susp == 1 and len(p) > CARS_SUSP:
             refus.append(f'p{n} : {len(p)} caractères avec un « … » (> {CARS_SUSP})')
-        est, lim = estimer(p), (EST_MAX_P6 if n == 6 else EST_MAX)
+        est, lim = estimer(p), (EST_MAX_P6 if n == NP else EST_MAX)
         if est > lim:
             refus.append(f'p{n} : durée estimée {est:.1f} s (> {lim} s)')
-        elif n == 6 and (est > 9.4 or est < 8.5):
-            print(f'NOTE p6 : durée estimée {est:.1f} s (viser 8,8 à 9,4 s : la chute finit avant la fermeture du rideau)')
-        elif n < 6 and (est > 10.4 or est < 9.0):
+        elif n == NP and (est > 9.4 or est < 8.5):
+            print(f'NOTE p{n} : durée estimée {est:.1f} s (viser 8,8 à 9,4 s : la chute finit avant la fermeture du rideau)')
+        elif n < NP and (est > 10.4 or est < 9.0):
             print(f'NOTE p{n} : durée estimée {est:.1f} s (viser 9,3 à 10,4 s ; jamais plus de 11 s en vrai)')
         nb = len(re.findall(r"[\wÀ-ÿ'’-]+", re.sub(r'\[[^\]]*\]', ' ', p)))
         if not 24 <= nb <= 31:
@@ -216,7 +221,7 @@ def decouper(d, ps, r, voix, modele):
         if i and pl['debut_son'] < plans[i - 1]['fin']:
             print(f'NOTE p{pl["n"]} : la voix enchaîne sans silence avec le plan précédent')
         milieu_av = (plans[i - 1]['fin'] + pl['debut_son']) / 2 if i else 0.0
-        milieu_ap = (pl['fin'] + plans[i + 1]['debut_son']) / 2 if i < 5 else total + 0.6
+        milieu_ap = (pl['fin'] + plans[i + 1]['debut_son']) / 2 if i < NP - 1 else total + 0.6
         pl['a'] = max(milieu_av, min(pl['debut_son'], pl['debut']) - 0.15, 0.0)
         pl['b'] = min(milieu_ap, pl['fin'] + 0.6)
     for pl in plans:
@@ -230,7 +235,7 @@ def decouper(d, ps, r, voix, modele):
         pl['duree'], pl['long'] = duree, pl['b'] - a
         print(f'{"OK  " if duree <= MAX else "NOTE"} p{n} : {duree:.2f} s, {len(mots)} mots, {len(pl["texte"])} caractères' +
               ('' if duree <= MAX else f' : plus de {MAX} s (accepté jusqu’à {PLAFOND} s ; le plan s’allonge d’autant)'))
-    for n in range(1, 7):
+    for n in range(1, NP + 1):
         if os.path.exists(os.path.join(d, f'refait_p{n}_brut.json')):
             appliquer_refait(d, n, voix, modele)
     ecrire_mots(d)
@@ -239,7 +244,7 @@ def decouper(d, ps, r, voix, modele):
 def bilan(d):
     # plans dont la voix dépasse le plafond de l'utilisateur
     trop = []
-    for n in range(1, 7):
+    for n in range(1, NP + 1):
         j = json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))
         if j['duree'] > PLAFOND:
             deja = os.path.exists(os.path.join(d, f'refait_p{n}_requete.json'))
@@ -314,7 +319,7 @@ def refaire(travail, n, voix, modele):
 
 def ecrire_mots(d):
     lignes = ['# Voix off : instants réels des mots (secondes du plan)', '']
-    for n in range(1, 7):
+    for n in range(1, NP + 1):
         j = json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))
         lignes += [f'## Plan {n} : {j["duree"]:.2f} s' + (' (refait)' if j.get('refait') else ''), ' '.join(f'{w}({a:.2f}–{b:.2f})' for w, a, b in j['mots']), '']
     open(os.path.join(d, 'MOTS.md'), 'w', encoding='utf-8').write('\n'.join(lignes))
@@ -326,14 +331,14 @@ def ecrire_durees(d):
     # durée de chaque plan = durée de son pN.mp3 (plan 6 : voix + TRAINE_P6), arrondie à l'image supérieure
     import math
     durees = []
-    for n in range(1, 7):
+    for n in range(1, NP + 1):
         mp3 = os.path.join(d, f'p{n}.mp3')
         long = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp3],
                                     capture_output=True, text=True, check=True).stdout)
-        if n == 6:
-            long = max(long, json.load(open(os.path.join(d, 'p6.json'), encoding='utf-8'))['duree'] + TRAINE_P6)
+        if n == NP:
+            long = max(long, json.load(open(os.path.join(d, f'p{NP}.json'), encoding='utf-8'))['duree'] + TRAINE_P6)
         durees.append(math.ceil(long * 30 - 1e-6) / 30)
-    debuts = [round(sum(durees[:i]), 3) for i in range(6)]
+    debuts = [round(sum(durees[:i]), 3) for i in range(NP)]
     json.dump({'durees': [round(x, 4) for x in durees], 'images': [round(x * 30) for x in durees], 'debuts': debuts,
                'total': round(sum(durees), 3)},
               open(os.path.join(os.path.dirname(d), 'durees.json'), 'w'), indent=1)
@@ -343,6 +348,7 @@ def ecrire_durees(d):
 
 
 def main():
+    global NP
     a = sys.argv[1:]
     if not a:
         print(open(__file__, encoding='utf-8').read().split('import')[0]); return
@@ -355,7 +361,8 @@ def main():
     voix, modele = opt.get('--voix', VOIX), opt.get('--modele', MODELE)
     if '--refaire' in opt:
         n = int(opt['--refaire'])
-        if not 1 <= n <= 6: sys.exit('--refaire N : N de 1 à 6.')
+        paragraphes(os.path.join(travail, 'voix.txt'))
+        if not 1 <= n <= NP: sys.exit(f'--refaire N : N de 1 à {NP}.')
         refaire(travail, n, voix, modele); return
     ps = paragraphes(os.path.join(travail, 'voix.txt'))
     texte = '\n\n'.join(ps)
@@ -375,6 +382,7 @@ def main():
             print('NOTE : voix.txt a changé depuis l’appel ; la découpe suit le texte réellement envoyé (requete.json), '
                   'aucune nouvelle voix n’est demandée.')
             ps = envoye.split('\n\n')
+            NP = len(ps)
         print('Voix déjà rendue (voix/brut.json) : découpe seule, aucun appel ElevenLabs.')
         decouper(d, ps, r, voix, modele); bilan(d); return
     if os.path.exists(req_f):

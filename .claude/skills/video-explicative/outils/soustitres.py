@@ -156,9 +156,10 @@ def main():
             blocs.append([(w, t0, t1) for w, (t0, t1) in zip(p, temps[i:i + len(p)])]); i += len(p)
         blocs = [(b, 0.0, total) for b in blocs]
     else:
-        if len(plans) != 6: sys.exit(f'{src} : {len(plans)} paragraphes au lieu de 6')
+        np_ = len([x for x in os.listdir(os.path.join(travail, 'voix')) if re.fullmatch(r'p\d+\.json', x)])
+        if len(plans) != np_: sys.exit(f'{src} : {len(plans)} paragraphes pour {np_} plans (voix/pN.json)')
         blocs, debut = [], 0.0
-        for n in range(1, 7):
+        for n in range(1, np_ + 1):
             dits = json.load(open(os.path.join(travail, 'voix', f'p{n}.json'), encoding='utf-8'))['mots']
             temps = caler(plans[n - 1], dits)
             duree = float(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration',

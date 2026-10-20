@@ -61,7 +61,7 @@ def conduite():
             mouvements.append((a, b, nom))
         elif t == 'ferme':
             ok = b - a >= 0.8
-            fin = f' ; finie {debut[-1] - b:.2f} s avant la fin du plan 6 (≥ 0,25 s)' if debut else ''
+            fin = f' ; finie {debut[-1] - b:.2f} s avant la fin du dernier plan (≥ 0,25 s)' if debut else ''
             if debut: ok = ok and debut[-1] - b >= 0.25
             ligne(ok, f'{nom} : fermeture en {b - a:.2f} s (≥ 0,8 s){fin}')
             mouvements.append((a, b, nom))
@@ -81,7 +81,7 @@ def conduite():
     mouvements.sort()
     for (a1, b1, n1), (a2, b2, n2) in zip(mouvements, mouvements[1:]):
         if n1 != n2 and a2 - b1 < 0.3: ligne(False, f'{n1} puis {n2} : {a2 - b1:.2f} s entre deux mouvements (≥ 0,3 s)')
-    if debut and not any(q.get('type') == 'ferme' for q in cues): ligne(False, 'pas de fermeture du rideau à la fin du plan 6')
+    if debut and not any(q.get('type') == 'ferme' for q in cues): ligne(False, 'pas de fermeture du rideau à la fin du dernier plan')
     if debut and not any(q.get('type') == 'ouvre' for q in cues): ligne(False, "pas d'ouverture du rideau au début du plan 1")
 
 def vignettes(f, fin=False):
@@ -114,5 +114,5 @@ if MODE == '--coupe':
 else:
     conduite()
     if MODE != '--rideau':
-        for n in range(2, 7): coupe(n)
+        for n in range(2, len(durees() or [0] * 6) + 1): coupe(n)
 sys.exit(2 if echecs else 0)

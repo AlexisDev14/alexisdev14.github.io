@@ -15,7 +15,7 @@ L=()
 for f in FICHE.md rideau.json durees.json canva.json script.txt voix.txt TEXTES.md SCRIPT.md HORODATAGE.txt persos.js persos.md voix/MOTS.md; do [ -f "$f" ] && L+=("$f"); done
 for f in voix/p[1-6].json; do [ -f "$f" ] && L+=("$f"); done
 for d in decors raccords; do [ -d "$d" ] && L+=("$d"); done
-for p in p1 p2 p3 p4 p5 p6 casting affiche; do for f in scene.js timeline.js mixage.py; do [ -f "$p/$f" ] && L+=("$p/$f"); done; done
+for p in p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 casting affiche; do for f in scene.js timeline.js mixage.py; do [ -f "$p/$f" ] && L+=("$p/$f"); done; done
 rm -f "$Z"
 python3 -I - "$Z" "${L[@]}" <<'PY'
 import os, sys, zipfile
