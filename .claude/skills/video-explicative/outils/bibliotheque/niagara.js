@@ -925,9 +925,9 @@
     c.fillStyle = '#b9ae90'; c.fillRect(0, 820, 1080, 80);
     const R = M.rng(77); for (let i = 0; i < 70; i++) { const x = R() * 1100, y = 800 + R() * 50, r = 12 + R() * 18; blob(c, x, y, r, ['#c69a5a', '#b9774a', '#cfb070', '#a8664a'][Math.floor(R() * 4)], 0.75); }
     c.fillStyle = 'rgba(237,225,196,0.45)'; c.fillRect(0, 780, 1080, 120);
-    // nuage de brume des chutes, au loin à droite, et arc-en-ciel pâle
+    // nuage de brume des chutes, au loin à droite, (l'arc-en-ciel pâle, dessiné avant, plonge dedans)
+    NIA.arcEnCiel(c, 800, 905, 280, PI * 1.07, PI * 1.93, 0.22, false, 6);
     for (let i = 0; i < 18; i++) blob(c, 760 + R() * 300, 560 + R() * 320, 40 + R() * 60, '#f6f3ec', 0.35);
-    c.save(); c.lineWidth = 6; c.globalAlpha = 0.22; ['#c0584a', '#d29a4a', '#d8cc6a', '#7aa070', '#6a8ab0', '#8a6aa0'].forEach((col, i) => { c.beginPath(); c.arc(880, 920, 250 - i * 6, PI * 1.08, PI * 1.62); c.strokeStyle = col; c.stroke(); }); c.restore();
     gradRect(c, 0, 880, 1080, 910, [[0, '#9db3b0'], [1, '#8ea7a5']]);
   }); }
   function vague(i, h, col, per, bulles) { return M.pre(1080 + per * 2, h, (c) => {
@@ -1095,6 +1095,22 @@
     pc([[-48, -46], [48, -46], [40, -56], [-40, -56]], '#e8dfc8', () => { for (let x = -40; x < 40; x += 10) fillPts(rect(x, -56, x + 5, -46), '#9b2d24'); }, 9861);
     pc(ribbon(ep(0, -50, 34, 30, 16, PI, TAU), 5, 5), '#8a6a2a', null, 9862, { drop: false });
   }), 6), 10); }
+  // arc-en-ciel de brume : bandes fines, deux passes (halo + coeur), opacité qui monte depuis zéro à chaque pied (aucun bout coupé net)
+  NIA.arcEnCiel = function (c, cx, cy, r, a0, a1, alpha, vif, e) {
+    e = e || 4;
+    const cols = vif ? ['#e0503c', '#ec9a3a', '#e8d84a', '#5fae6a', '#4a86cc', '#8a62b8'] : ['#c0584a', '#d29a4a', '#d8cc6a', '#7aa070', '#6a8ab0', '#8a6aa0'];
+    const N = 110, da = (a1 - a0) / N;
+    c.save(); c.lineCap = 'butt';
+    for (const [lw, k] of [[e * 2.5, 0.38], [e * 1.15, 1]]) {
+      c.lineWidth = lw;
+      for (let j = 0; j < N; j++) {
+        const u = (j + 0.5) / N, f = Math.min(1, 1.8 * Math.pow(Math.sin(PI * u), 1.5)); if (f < 0.01) continue;
+        c.globalAlpha = Math.min(1, alpha * k * f); const s0 = a0 + j * da, s1 = s0 + da * 1.06;
+        for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(cx, cy, r - i * e, s0, s1); c.strokeStyle = cols[i]; c.stroke(); }
+      }
+    }
+    c.restore();
+  };
   const FAN_COLS = ['#c08a32', '#9b2d24', '#e8dfc8', '#5f7a52', '#3e5872'];
   const fanY = (x) => 300 + 90 * (1 - Math.pow((x - 540) / 430, 2));
   NIA.chutes = function (t, up, o) {
@@ -1105,8 +1121,7 @@
     c.save(); c.beginPath(); FALLS.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.clip();         // stries qui descendent
     const off = (g * (230 + 120 * de)) % 300; for (let k = -1; k < 3; k++) c.drawImage(K.chStries, 0, 420 + off + k * 300);
     c.restore();
-    c.save(); c.lineWidth = 8; c.globalAlpha = 0.3 + 0.1 * Math.sin(g * 1.1) + 0.05 * Math.sin(g * 3.7);                     // arc-en-ciel qui scintille
-    ['#c0584a', '#d29a4a', '#d8cc6a', '#7aa070', '#6a8ab0', '#8a6aa0'].forEach((col, i) => { c.beginPath(); c.arc(560, 1160, 440 - i * 8, PI * 1.16, PI * 1.44); c.strokeStyle = col; c.stroke(); }); c.restore();
+    NIA.arcEnCiel(c, 540, 1010, 360, PI * 1.06, PI * 1.94, 0.22 + 0.04 * Math.sin(g * 1.1) + 0.02 * Math.sin(g * 3.7) + 0.34 * clamp(o.arcVif || 0), o.arcVif > 0);  // arc-en-ciel : pieds dans la brume, scintille
     for (const [x, sd] of [[260, 1], [430, 2], [600, 3], [790, 4]]) M.fumee(t, { x, y: 930, s: 2.1, n: 6, haut: 330 + 200 * de, vent: 20, col: '#f6f4ee', a: 0.32 + 0.3 * de, per: 6, seed: sd });
     M.oiseaux(g, { x0: 1160, x1: -80, y: 360, n: 3, s: 0.45, col: '#e9e4d8', dur: 20, boucle: true, seed: 8, brume: 0.15 });
     c.drawImage(K.chMilieu, 0, 0);
