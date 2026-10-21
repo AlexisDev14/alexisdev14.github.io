@@ -13,6 +13,8 @@
 #       une autre session a poussé entre-temps. Code de sortie 2 = déjà pris : choisir un autre sujet.
 #       Vidéo calendrier (sans question Clark) : id `calendrier-AAAA-MM-JJ` (jour visé) ; un second sujet pour le même jour
 #       est refusé (code 2). `etat` liste les jours à venir déjà pris.
+#       Vidéo d'actualité (ROUTINE.md, 1 ter) : id `actu-AAAA-MM-JJ-<mot-clé de l'actu>` (jour de la réservation) ; la même
+#       actu ne peut être prise deux fois (code 2). `etat` liste les vidéos d'actualité des 7 derniers jours.
 #
 #   python3 -I registre.py livrer "<Sujet>" "<lien du dossier Drive>" [<id du contenu au BO>]
 #       Passe la ligne du sujet à « livrée » avec le lien Drive (et l'id du contenu dans le planificateur du BO, ex.
@@ -79,6 +81,9 @@ def etat():
     cal = sorted(m.group(1) for r in rows for m in [re.search(r'calendrier-(\d{4}-\d{2}-\d{2})', r['id'])] if m)
     futurs = [c for c in cal if c >= f'{datetime.date.today():%Y-%m-%d}']
     print('Jours déjà pris par une vidéo calendrier : ' + (', '.join(futurs) if futurs else 'aucun'))
+    il_y_a_7j = f'{datetime.date.today() - datetime.timedelta(days=7):%Y-%m-%d}'
+    actus = [(m.group(1), m.group(2), r['sujet']) for r in rows for m in [re.search(r'actu-(\d{4}-\d{2}-\d{2})-(\S+)', r['id'])] if m and m.group(1) >= il_y_a_7j]
+    print("Vidéos d'actualité des 7 derniers jours : " + (' ; '.join(f'{j} {c} « {t} »' for j, c, t in actus) if actus else 'aucune'))
     en_cours = [r['sujet'] for r in rows if 'en cours' in r['statut']]
     if en_cours:
         print('En cours dans une autre session (ne pas reprendre) : ' + ' ; '.join(en_cours))

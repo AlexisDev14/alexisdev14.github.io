@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Sous-titres animés, calés mot à mot sur la voix, incrustés dans la vidéo complète.
-#   python3 -I soustitres.py <travail> <video_complete.mp4> <sortie.mp4> [--y 1500] [--x 500]   (--theme accepté et ignoré)
+#   python3 -I soustitres.py <travail> <video_complete.mp4> <sortie.mp4> [--y 1500] [--x 500] [--y-plan 7:1390]   (--theme accepté et ignoré)
+#     --y-plan N:Y[,N:Y…] : hauteur propre à un plan (ex. un objet clé posé sur le plancher, sous les sous-titres) ; les autres gardent --y
 #   python3 -I soustitres.py <travail> <montage_sans_sous_titres.mp4> <sortie.mp4> --global <montage.json>   (montage Canva refait par
 #     reconstruire.py : instants des mots de mots_whisper.py sur toute la vidéo ; script.txt en autant de paragraphes que voulu)
 #
@@ -139,9 +140,10 @@ def nettoyer(w):
 
 def main():
     a = sys.argv[1:]
-    opt = {k: a[a.index(k) + 1] for k in ('--theme', '--y', '--x', '--global') if k in a}
+    opt = {k: a[a.index(k) + 1] for k in ('--theme', '--y', '--x', '--global', '--y-plan') if k in a}
     travail, entree, sortie = [x for i, x in enumerate(a) if not x.startswith('--') and (i == 0 or a[i - 1] not in opt)][:3]
     y = int(opt.get('--y', 1500)); x = int(opt.get('--x', 500))
+    y_plan = {int(n): int(v) for n, v in (c.split(':') for c in opt['--y-plan'].split(','))} if '--y-plan' in opt else {}
     src = os.path.join(travail, 'script.txt')
     if not os.path.exists(src):
         src = os.path.join(travail, 'voix.txt'); print('NOTE : pas de script.txt, texte de voix.txt (nombres en lettres)')
@@ -154,7 +156,7 @@ def main():
         blocs, i = [], 0
         for p in plans:
             blocs.append([(w, t0, t1) for w, (t0, t1) in zip(p, temps[i:i + len(p)])]); i += len(p)
-        blocs = [(b, 0.0, total) for b in blocs]
+        blocs = [(b, 0.0, total, y) for b in blocs]
     else:
         np_ = len([x for x in os.listdir(os.path.join(travail, 'voix')) if re.fullmatch(r'p\d+\.json', x)])
         if len(plans) != np_: sys.exit(f'{src} : {len(plans)} paragraphes pour {np_} plans (voix/pN.json)')
@@ -165,9 +167,9 @@ def main():
             duree = float(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration',
                                           '-of', 'csv=p=0', os.path.join(travail, 'out', f'p{n}', f'p{n}_final.mp4')],
                                          capture_output=True, text=True, check=True).stdout)
-            blocs.append(([(w, debut + t0, debut + t1) for w, (t0, t1) in zip(plans[n - 1], temps)], debut, duree)); debut += duree
+            blocs.append(([(w, debut + t0, debut + t1) for w, (t0, t1) in zip(plans[n - 1], temps)], debut, duree, y_plan.get(n, y))); debut += duree
     lignes = []
-    for mots, debut, duree in blocs:
+    for mots, debut, duree, yb in blocs:
         groupes = grouper(mots)
         for gi, g in enumerate(groupes):
             fin_g = groupes[gi + 1][0][1] if gi + 1 < len(groupes) else min(g[-1][2] + 0.6, debut + duree)
@@ -186,7 +188,7 @@ def main():
                     k += len(w2)
                 pop = (f'\\fscx{LARGEUR - 6}\\fscy94\\t(0,140,\\fscx{LARGEUR + 3}\\fscy103)\\t(140,240,\\fscx{LARGEUR}\\fscy100)'
                        if wi == 0 else f'\\fscx{LARGEUR}')
-                lignes.append(f'Dialogue: 0,{ts(e0)},{ts(e1)},Mot,,0,0,0,,{{\\an5\\pos({x},{y})\\fs{taille}{pop}}}' + ' '.join(txt))
+                lignes.append(f'Dialogue: 0,{ts(e0)},{ts(e1)},Mot,,0,0,0,,{{\\an5\\pos({x},{yb})\\fs{taille}{pop}}}' + ' '.join(txt))
     tete = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
