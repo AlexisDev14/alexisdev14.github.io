@@ -107,9 +107,10 @@ M.passants = function (t, o = {}) {
   const R = rng(o.seed || 13), n = o.n || 3, per = o.per || 14, s = o.s || 0.45, y = o.y || 1180;
   const x0 = o.x0 ?? 150, x1 = o.x1 ?? 930, col = fCol('#3b3330', o.brume ?? 0.45);
   for (let i = 0; i < n; i++) {
-    const sens = R() < 0.5 ? 1 : -1, off = R() * per, u = (((t + off) % per) + per) % per / per;
+    // tous les tirages avant le « continue » : sinon un passant hors champ décale ceux des suivants (tenue qui change d'un coup)
+    const sens = R() < 0.5 ? 1 : -1, off = R() * per, u = (((t + off) % per) + per) % per / per, robe = o.femmes !== false && R() < 0.4, chap = R();
     if (u > 0.92) continue;
-    const x = sens > 0 ? lerp(x0, x1, u / 0.92) : lerp(x1, x0, u / 0.92), robe = o.femmes !== false && R() < 0.4, chap = R(), pas = Math.sin(t * 6 + i * 2);
+    const x = sens > 0 ? lerp(x0, x1, u / 0.92) : lerp(x1, x0, u / 0.92), pas = Math.sin(t * 6 + i * 2);
     const fade = Math.min(1, u / 0.06, (0.92 - u) / 0.06);
     c.save(); c.globalAlpha = fade; c.translate(x, y + Math.abs(pas) * -3 * s); c.scale(sens * s, s); c.fillStyle = SIL ? '#000' : col;
     for (const sg of [-1, 1]) { c.save(); c.translate(sg * 8, -240); c.rotate(sg * pas * 0.3); c.fillRect(-11, 0, 22, 240); c.fillRect(-11, 228, 34, 12); c.restore(); }
