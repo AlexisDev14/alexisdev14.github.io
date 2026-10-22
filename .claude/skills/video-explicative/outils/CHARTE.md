@@ -60,6 +60,11 @@
 - 3 à 8 bruitages par plan. Sons organiques = échantillons CC0 de `sons/` (licences dans `sons/LICENCES.md`) ; synthèse pour velours, anneaux, poulies, clacs.
 
 ## 8. Erreurs déjà commises (à vérifier à chaque plan)
+- Geste adressé à un groupe (défi, invitation) qui passe devant un autre personnage ou le touche → le geste se lit « étreinte » ou « bénédiction » ; personne sur la trajectoire du bras, bras en diagonale paume en l'air (leçon Frankenstein, Byron et Percy).
+- Objet tenu (livre, manuscrit) qui passe devant un visage, ou montré avant son mot → tenu bas à la poitrine, levé à hauteur d'épaule seulement sur son mot (leçon Frankenstein).
+- Ombres chinoises trop petites dans un écran → ≥ 70 % de la hauteur du drap, sinon illisibles sur téléphone (leçon Frankenstein).
+- Yeux d'un monstre en amande à pupille fendue → « on dirait un chat » (utilisateur) ; yeux du personnage lui-même (pupille ronde), placés à hauteur de sa tête pour qu'on comprenne d'où ils viennent (leçon Frankenstein).
+- Personnage qui s'éloigne vers le fond montré de profil → l'utilisateur le veut DE DOS ; la nuit tombe pendant qu'il s'éloigne, pas après (leçon Frankenstein).
 - Plan, carte, lettre ou tableau montré au public **vide** (on n'en voit que le dos) → il montre un dessin lisible, de face, qui dit l'histoire (plan de quartier, esquisse du projet) ; aucune lettre (leçon Pompidou).
 - Objet au rôle évident dessiné dans le mauvais sens (marteau de juge **vertical** pendu au fil) → l'objet se montre dans la position où on l'utilise : marteau de juge manche horizontal, qui s'abat (leçon Pompidou).
 - Deux personnages qui apparaissent ou réagissent avec **la même pose**, ou une énumération jouée avec le même geste répété → une posture différente pour chacun et un geste différent sur chaque mot (brandir, révérence, poing sur la hanche, tirer, bras écartés, main posée, ajuster…) (leçon Pompidou).

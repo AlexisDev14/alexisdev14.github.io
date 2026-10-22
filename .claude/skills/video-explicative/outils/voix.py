@@ -108,6 +108,10 @@ def tics(ps):
     for n, p in enumerate(ps, 1):
         if re.search(r'(^|[.!?…»]\s*|\]\s*)(la\s+)?morale\s*(:|,|de l)', p, re.I):
             refus.append(f'p{n} : « Morale : » annoncé (devenu un tic : la morale se dit sans être annoncée)')
+        if re.search(r'\[[^\]]*(whisper|chuchot|murmur)[^\]]*\]', p, re.I):
+            refus.append(f'p{n} : balise de chuchotement (l’utilisateur n’en veut aucune, 22/10 : mysterious, ominous ou dramatic à la place)')
+        if re.search(r'(^|[.!?…]\s+|\]\s*)Et\s', p):
+            refus.append(f'p{n} : phrase qui commence par « Et » (l’utilisateur n’en veut pas, 22/10 : relier autrement)')
     return refus
 
 
