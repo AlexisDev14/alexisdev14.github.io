@@ -3,6 +3,7 @@
 #
 #   python3 -I voix.py <travail> [--voix ID] [--modele eleven_v4] [--forcer]
 #   python3 -I voix.py <travail> --refaire N     (seule exception à l'appel unique : voir plus bas)
+#   python3 -I voix.py <travail> --refaire N --demande   (l'utilisateur a demandé de reformuler CE plan après coup)
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
@@ -34,6 +35,9 @@
 #     `voix.py <travail> --refaire N` refait CE SEUL plan en un appel (plus court que l'original, estimé ≤ 10,2 s ;
 #     une seule fois par plan ; fichiers voix/refait_pN_*). Une voix refaite qui dépasse encore 11 s se garde et se signale.
 #   - ne jamais accélérer la voix.
+#   --refaire N --demande : l'utilisateur a demandé EXPLICITEMENT une nouvelle formulation de ce seul plan (ex. 22/10/2026,
+#     Frankenstein p3) : un appel pour ce paragraphe de voix.txt, sans condition de durée ni de longueur (estimé ≤ EST_MAX),
+#     une seule fois par plan. Jamais de sa propre initiative ni en routine.
 #   --forcer : nouvel appel facturé malgré une voix existante. Seulement si l'utilisateur le demande, jamais en routine.
 #
 # Identifiants : secret réseau de l'environnement sur api.elevenlabs.io (en-tête xi-api-key, ajouté par le proxy) :
@@ -293,23 +297,27 @@ def appliquer_refait(d, n, voix, modele):
     print(f'{"OK  " if duree <= PLAFOND else "DÉPASSEMENT"} p{n} (refait) : {duree:.2f} s')
 
 
-def refaire(travail, n, voix, modele):
+def refaire(travail, n, voix, modele, demande=False):
     d = os.path.join(travail, 'voix')
     if not os.path.exists(os.path.join(d, 'brut.json')):
         sys.exit('--refaire : aucune voix rendue pour la vidéo (voix/brut.json) ; lance d’abord voix.py sans option.')
     if os.path.exists(os.path.join(d, f'refait_p{n}_requete.json')):
         sys.exit(f'p{n} a déjà été refait une fois : aucun autre appel. Garde-le et signale le dépassement dans le résumé.')
     j = json.load(open(os.path.join(d, f'p{n}.json'), encoding='utf-8'))
-    if j['duree'] <= PLAFOND:
+    if j['duree'] <= PLAFOND and not demande:
         sys.exit(f'p{n} dure {j["duree"]:.2f} s (≤ {PLAFOND} s) : rien à refaire, aucun appel.')
     tous = paragraphes(os.path.join(travail, 'voix.txt'))
     p = tous[n - 1]
-    if len(p) >= len(j['texte']) or estimer(p) > EST_REFAIT:
+    if p == j['texte']:
+        sys.exit(f'p{n} : voix.txt n’a pas changé pour ce plan : rien à refaire, aucun appel.')
+    if demande and estimer(p) > EST_MAX:
+        sys.exit(f'p{n} : trop long (estimé {estimer(p):.1f} s > {EST_MAX} s). Rien n’est facturé.')
+    if not demande and (len(p) >= len(j['texte']) or estimer(p) > EST_REFAIT):
         sys.exit(f'p{n} : raccourcis d’abord ce paragraphe dans voix.txt (plus court que l’original, estimé ≤ {EST_REFAIT} s ;'
                  f' actuellement {len(p)} caractères, {estimer(p):.1f} s). Rien n’est facturé.')
     refus = tics(tous)
     if refus: sys.exit('Texte refusé AVANT tout appel :\n  ' + '\n  '.join(refus))
-    print(f'Appel ElevenLabs pour le SEUL plan {n} (exception : voix > {PLAFOND} s) : {len(p)} caractères')
+    print(f'Appel ElevenLabs pour le SEUL plan {n} ({"reformulation demandée par l’utilisateur" if demande else f"exception : voix > {PLAFOND} s"}) : {len(p)} caractères')
     brut = appeler(p, voix, modele, d, f'refait_p{n}_requete.json')
     open(os.path.join(d, f'refait_p{n}_brut.json'), 'wb').write(brut)
     try:
@@ -360,14 +368,15 @@ def main():
         sys.exit('--plans n’existe plus : la voix se fait en un seul appel par vidéo, jamais plan par plan.')
     travail = os.path.abspath(a[0])
     forcer = '--forcer' in a
-    reste = [x for x in a[1:] if x != '--forcer']
+    demande = '--demande' in a
+    reste = [x for x in a[1:] if x not in ('--forcer', '--demande')]
     opt = dict(zip(reste[0::2], reste[1::2]))
     voix, modele = opt.get('--voix', VOIX), opt.get('--modele', MODELE)
     if '--refaire' in opt:
         n = int(opt['--refaire'])
         paragraphes(os.path.join(travail, 'voix.txt'))
         if not 1 <= n <= NP: sys.exit(f'--refaire N : N de 1 à {NP}.')
-        refaire(travail, n, voix, modele); return
+        refaire(travail, n, voix, modele, demande); return
     ps = paragraphes(os.path.join(travail, 'voix.txt'))
     texte = '\n\n'.join(ps)
     d = os.path.join(travail, 'voix'); os.makedirs(d, exist_ok=True)
