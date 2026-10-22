@@ -5,7 +5,7 @@ export PATH="/usr/bin:$PATH"
 # Usage : essai.sh <dossier_video>/pN [instants en secondes séparés par des virgules, ex. 4.5,8.3]
 # Images rendues : 0,30,60,… jusqu'à la dernière image du plan (durée de sa voix, duree.json) plus les instants donnés (t×30 arrondi). Sortie : <dossier_video>/out/…/planche_cles.png
 # N'affiche que les erreurs ([page], syntaxe) et une ligne finale « planche → … » ; code de sortie non nul en cas d'erreur.
-OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
+OUT="$(cd "$(dirname "$0")" && pwd)"; . "$OUT/garde.sh"; garde_dossier "$1" "$OUT"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
 LOG=$(mktemp); trap 'rm -f "$LOG"' EXIT
 if ! "$OUT/construire.sh" "$P" >"$LOG" 2>&1; then cat "$LOG"; exit 1; fi
 IMG=$(python3 -I - "${2:-}" "$P/duree.json" <<'PY'

@@ -12,7 +12,7 @@ export PATH="/usr/bin:$PATH"
 #                 (ATTENTION sans blocage ; image de comparaison out/pN/raccord.png).
 # La sortie du rendu est allégée : les lignes de progression « image k/N » de render.cjs sont filtrées (les erreurs restent).
 set -eo pipefail
-OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
+OUT="$(cd "$(dirname "$0")" && pwd)"; . "$OUT/garde.sh"; garde_dossier "$1" "$OUT"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
 "$OUT/construire.sh" "$P" >/dev/null
 NODE_PATH=${NODE_PATH:-/opt/node22/lib/node_modules} node "$OUT/render.cjs" "$P" --name "$N" --out "$V/out" --workers "${2:-3}" 2>&1 | { grep -v '^image [0-9]*/[0-9]* ' || true; }
 ( cd "$P" && python3 -I mixage.py "$OUT" sfx.wav )

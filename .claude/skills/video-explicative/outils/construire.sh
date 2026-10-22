@@ -9,7 +9,7 @@ export PATH="/usr/bin:$PATH"
 #  - durée du plan = durée de sa voix (<dossier_video>/durees.json, écrit par voix.py ; 10 s sans voix) : duree.py écrit duree.json et duree.js (DUREE, DEBUT, IMAGES) ;
 #  - écrit index.html et vérifie la syntaxe de chaque fichier.
 set -e
-OUT="$(cd "$(dirname "$0")" && pwd)"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
+OUT="$(cd "$(dirname "$0")" && pwd)"; . "$OUT/garde.sh"; garde_dossier "$1" "$OUT"; P="$(cd "$1" && pwd)"; V="$(dirname "$P")"; N="$(basename "$P")"
 if [ ! -f "$OUT/kit/marionnettes.js" ] || [ -n "$(find "$OUT/kit/src" -newer "$OUT/kit/marionnettes.js" -name "*.js")" ]; then "$OUT/kit/assemble.sh" >/dev/null; fi
 for f in scene.js timeline.js mixage.py; do [ -f "$P/$f" ] || sed "s/__PLAN__/$N/g" "$OUT/gabarits/$f" > "$P/$f"; done
 cp "$OUT/kit/marionnettes.js" "$P/marionnettes.js"

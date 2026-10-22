@@ -51,22 +51,23 @@ def conduite():
         if q.get('plan') and debut: return debut[int(q['plan']) - 1] + float(q[k])
         return float(q[k])
     cues = json.load(open(f)).get('cues', [])
+    E = 0.005                                                  # tolérance d'arrondi (Frankenstein : « ferme » de 0,80 s refusée à 0,7999…)
     mouvements = []                                            # (début, fin, nom)
     for q in cues:
         a, b, c, d = (glob(q, k) for k in 'abcd')
         nom = f"{q.get('type')} plan {q.get('plan', '?')} ({q.get('a')}–{q.get('d', q.get('b'))} s)"
         t = q.get('type')
         if t == 'ouvre':
-            ligne(0.9 <= b - a <= 1.6, f'{nom} : ouverture en {b - a:.2f} s (0,9 à 1,6 s)')
+            ligne(0.9 - E <= b - a <= 1.6 + E, f'{nom} : ouverture en {b - a:.2f} s (0,9 à 1,6 s)')
             mouvements.append((a, b, nom))
         elif t == 'ferme':
-            ok = b - a >= 0.8
+            ok = b - a >= 0.8 - E
             fin = f' ; finie {debut[-1] - b:.2f} s avant la fin du dernier plan (≥ 0,25 s)' if debut else ''
-            if debut: ok = ok and debut[-1] - b >= 0.25
+            if debut: ok = ok and debut[-1] - b >= 0.25 - E
             ligne(ok, f'{nom} : fermeture en {b - a:.2f} s (≥ 0,8 s){fin}')
             mouvements.append((a, b, nom))
         elif t == 'change':
-            ok = b - a >= 0.5 and 0.2 <= c - b <= 0.7 and d - c >= 0.5
+            ok = b - a >= 0.5 - E and 0.2 - E <= c - b <= 0.7 + E and d - c >= 0.5 - E
             coupe = ''
             if debut:
                 dedans = [x for x in debut[1:-1] if a - 0.01 < x < d + 0.01]
@@ -76,11 +77,11 @@ def conduite():
             ligne(ok, f'{nom} : ferme en {b - a:.2f} s (≥ 0,5), fermé {c - b:.2f} s (0,2 à 0,7), rouvre en {d - c:.2f} s (≥ 0,5){coupe}')
             mouvements += [(a, b, nom), (c, d, nom)]
         elif t == 'demi':
-            ligne(b - a >= 0.45 and d - c >= 0.45, f'{nom} : se resserre en {b - a:.2f} s, se rouvre en {d - c:.2f} s (≥ 0,45 s chacun)')
+            ligne(b - a >= 0.45 - E and d - c >= 0.45 - E, f'{nom} : se resserre en {b - a:.2f} s, se rouvre en {d - c:.2f} s (≥ 0,45 s chacun)')
             mouvements += [(a, b, nom), (c, d, nom)]
     mouvements.sort()
     for (a1, b1, n1), (a2, b2, n2) in zip(mouvements, mouvements[1:]):
-        if n1 != n2 and a2 - b1 < 0.3: ligne(False, f'{n1} puis {n2} : {a2 - b1:.2f} s entre deux mouvements (≥ 0,3 s)')
+        if n1 != n2 and a2 - b1 < 0.3 - E: ligne(False, f'{n1} puis {n2} : {a2 - b1:.2f} s entre deux mouvements (≥ 0,3 s)')
     if debut and not any(q.get('type') == 'ferme' for q in cues): ligne(False, 'pas de fermeture du rideau à la fin du dernier plan')
     if debut and not any(q.get('type') == 'ouvre' for q in cues): ligne(False, "pas d'ouverture du rideau au début du plan 1")
 

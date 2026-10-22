@@ -4,6 +4,8 @@
 #   python3 -I voix.py <travail> [--voix ID] [--modele eleven_v4] [--forcer]
 #   python3 -I voix.py <travail> --refaire N     (seule exception à l'appel unique : voir plus bas)
 #   python3 -I voix.py <travail> --refaire N --demande   (l'utilisateur a demandé de reformuler CE plan après coup)
+#   python3 -I voix.py <travail> --resserrer N   (gratuit : resserre les silences d'une voix > 11 s, sans l'accélérer)
+#   python3 -I voix.py <travail> --durees        (gratuit : réécrit MOTS.md et <travail>/durees.json d'après les pN.mp3)
 #
 # Lit <travail>/voix.txt : la version ElevenLabs du script, UN paragraphe par plan (6 paragraphes séparés par une ligne vide,
 # balises d'intention entre crochets permises : [deadpan], [sighs]…).
@@ -31,13 +33,19 @@
 #   - si requete.json existe sans brut.json (appel parti, réponse perdue), il refuse : la voix est peut-être déjà facturée ;
 #   - aucun nouvel essai une fois la requête partie, sauf un refus 429 ou 503 (rien n'a été rendu) ;
 #   - une voix > 10,5 s est signalée NOTE (le plan s'allonge d'autant ; l'utilisateur accepte jusqu'à 11 s de voix) ;
-#   - une voix > 11 s (plafond de l'utilisateur) est la SEULE exception : raccourcis ce paragraphe dans voix.txt, puis
+#   - une voix > 11 s (plafond de l'utilisateur) : D'ABORD `voix.py <travail> --resserrer N` (gratuit, hors ligne) ramène
+#     à 10,7 s les silences entre les mots de ce plan (chacun gardé ≥ 0,18 s, plus longs d'abord ; jamais la voix accélérée,
+#     jamais un mot coupé ; une fois par plan ; original rangé dans voix/avant_resserrer_pN/ ; leçon Frankenstein p3, 11,19 → 10,64 s).
+#     S'il ne suffit pas (il le dit), c'est la SEULE exception à l'appel unique : raccourcis ce paragraphe dans voix.txt, puis
 #     `voix.py <travail> --refaire N` refait CE SEUL plan en un appel (plus court que l'original, estimé ≤ 10,2 s ;
 #     une seule fois par plan ; fichiers voix/refait_pN_*). Une voix refaite qui dépasse encore 11 s se garde et se signale.
 #   - ne jamais accélérer la voix.
 #   --refaire N --demande : l'utilisateur a demandé EXPLICITEMENT une nouvelle formulation de ce seul plan (ex. 22/10/2026,
 #     Frankenstein p3) : un appel pour ce paragraphe de voix.txt, sans condition de durée ni de longueur (estimé ≤ EST_MAX),
 #     une seule fois par plan. Jamais de sa propre initiative ni en routine.
+#   Après TOUT changement d'une voix (--resserrer, --refaire) : durees.json change, et avec lui le temps global (M.tg) de tous
+#     les plans suivants : relance produire.sh sur ce plan ET sur chaque plan suivant, dans l'ordre, puis fluidite.py.
+#   Après une retouche manuelle d'un pN.mp3 (à éviter) : `voix.py <travail> --durees`, sinon durees.json reste périmé.
 #   --forcer : nouvel appel facturé malgré une voix existante. Seulement si l'utilisateur le demande, jamais en routine.
 #
 # Identifiants : secret réseau de l'environnement sur api.elevenlabs.io (en-tête xi-api-key, ajouté par le proxy) :
@@ -90,6 +98,11 @@ def estimer(p):
     return len(dit) / 17.5 + 0.5 * (p.count('…') + p.count('...'))
 
 
+# Une année dite dans un paragraphe (en lettres dans voix.txt : « mille huit cent seize », « deux mille trois » ; ou en chiffres)
+ANNEE = re.compile(r"\b(mille|mil)( [a-zé-]+)? cents?\b|\bdeux mille( et)? (un|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|"
+                   r"treize|quatorze|quinze|seize|vingt)\b|\b(1[0-9]|20)[0-9]{2}\b", re.I)
+
+
 # Tics de fin de phrase (« Évidemment. », « Modestement. ») : jugés agaçants par l'utilisateur.
 TICS = {'évidemment', 'modestement', 'logique', 'naturellement', 'forcément', 'bien sûr', 'toujours', 'discrètement',
         'sobrement', 'humblement', 'pratique', 'normal', 'classique', 'rassurant', 'charmant', 'simple', 'tout simplement'}
@@ -116,6 +129,12 @@ def tics(ps):
             refus.append(f'p{n} : balise de chuchotement (l’utilisateur n’en veut aucune, 22/10 : mysterious, ominous ou dramatic à la place)')
         if re.search(r'(^|[.!?…]\s+|\]\s*)Et\s', p):
             refus.append(f'p{n} : phrase qui commence par « Et » (l’utilisateur n’en veut pas, 22/10 : relier autrement)')
+    dates = [bool(ANNEE.search(re.sub(r'\[[^\]]*\]', ' ', p))) for p in ps]
+    for n in range(1, len(ps)):
+        if dates[n - 1] and dates[n]:
+            refus.append(f'p{n} et p{n + 1} donnent chacun une année : on croit à deux époques (l’utilisateur, 22/10, Frankenstein '
+                         f'« avril 1815 … juin 1816 ») ; le second enchaîne par un lien (« Cet été-là », « L’année suivante », '
+                         f'« Trois ans plus tard »)')
     return refus
 
 
@@ -259,7 +278,9 @@ def bilan(d):
             trop.append(n)
             print(f'DÉPASSEMENT p{n} : {j["duree"]:.2f} s (> {PLAFOND} s, plafond de l’utilisateur). ' +
                   ('Déjà refait une fois : garde-le et signale-le dans le résumé.' if deja else
-                   f'Raccourcis le paragraphe {n} dans voix.txt (estimé ≤ {EST_REFAIT} s), puis `voix.py <travail> --refaire {n}`.'))
+                   ('Resserre d’abord ses silences, gratuit : `voix.py <travail> --resserrer ' + str(n) + '`.'
+                    if not j.get('pauses_resserrees') else
+                    f'Raccourcis le paragraphe {n} dans voix.txt (estimé ≤ {EST_REFAIT} s), puis `voix.py <travail> --refaire {n}`.')))
     return trop
 
 
@@ -329,6 +350,53 @@ def refaire(travail, n, voix, modele, demande=False):
     bilan(d)
 
 
+RESSERRE_CIBLE = 10.7                  # secondes visées par --resserrer (sous le plafond de 11 s, avec une marge)
+PAUSE_MIN = 0.18                       # secondes gardées au moins dans chaque silence resserré (souffle naturel)
+
+
+def resserrer(travail, n):
+    # Ramène sous le plafond une voix trop longue SANS appel ni accélération : raccourcit les silences entre les mots
+    # (les plus longs d'abord, chacun gardé ≥ PAUSE_MIN), en coupant au milieu du silence. Une fois par plan.
+    d = os.path.join(travail, 'voix')
+    jf = os.path.join(d, f'p{n}.json')
+    if not os.path.exists(jf): sys.exit(f'--resserrer : voix/p{n}.json introuvable (lance d’abord voix.py).')
+    j = json.load(open(jf, encoding='utf-8'))
+    if j.get('pauses_resserrees'): sys.exit(f'p{n} : silences déjà resserrés une fois ; rien de plus.')
+    if j['duree'] <= PLAFOND: sys.exit(f'p{n} dure {j["duree"]:.2f} s (≤ {PLAFOND} s) : rien à resserrer.')
+    mots, besoin = j['mots'], j['duree'] - RESSERRE_CIBLE
+    trous = sorted(((mots[i + 1][1] - mots[i][2], mots[i][2], mots[i + 1][1]) for i in range(len(mots) - 1)), reverse=True)
+    trous = [t for t in trous if t[0] > PAUSE_MIN + 0.04]
+    if sum(g - PAUSE_MIN for g, _, _ in trous) < besoin:
+        sys.exit(f'p{n} : même resserrés, les silences ne suffisent pas ({j["duree"]:.2f} s, il faudrait {besoin:.2f} s) : '
+                 f'raccourcis le paragraphe {n} dans voix.txt puis `voix.py <travail> --refaire {n}`.')
+    coupes, reste = [], besoin
+    for g, a, b in trous:                                  # les plus longs d'abord
+        if reste <= 0.005: break
+        c = min(g - PAUSE_MIN, reste); m = (a + b) / 2
+        coupes.append((round(m - c / 2, 3), round(m + c / 2, 3))); reste -= c
+    coupes.sort()
+    arch = os.path.join(d, f'avant_resserrer_p{n}'); os.makedirs(arch, exist_ok=True)
+    for f in (f'p{n}.mp3', f'p{n}.json'): shutil.copy2(os.path.join(d, f), arch)
+    src = os.path.join(arch, f'p{n}.mp3')
+    bornes, t0 = [], 0.0
+    for a, b in coupes: bornes.append((t0, a)); t0 = b
+    bornes.append((t0, None))
+    filt = ''.join(f'[0]atrim=start={a:.3f}' + (f':end={b:.3f}' if b is not None else '') + f',asetpts=PTS-STARTPTS[s{i}];'
+                   for i, (a, b) in enumerate(bornes))
+    filt += ''.join(f'[s{i}]' for i in range(len(bornes))) + f'concat=n={len(bornes)}:v=0:a=1[o]'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-filter_complex', filt, '-map', '[o]', '-b:a', '192k',
+                    os.path.join(d, f'p{n}.mp3')], check=True)
+    def decale(t): return round(t - sum(b - a for a, b in coupes if b <= t + 1e-6), 2)
+    j['mots'] = [[w, decale(a), decale(b)] for w, a, b in mots]
+    avant = j['duree']; j['duree'] = decale(j['duree'])
+    j['pauses_resserrees'] = [[a, b] for a, b in coupes]
+    json.dump(j, open(jf, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f'p{n} : {len(coupes)} silence(s) resserré(s), {avant:.2f} → {j["duree"]:.2f} s, voix non accélérée '
+          f'(original : voix/avant_resserrer_p{n}/). Écoute-le, puis relance produire.sh sur p{n} et chaque plan suivant.')
+    ecrire_mots(d)
+    bilan(d)
+
+
 def ecrire_mots(d):
     lignes = ['# Voix off : instants réels des mots (secondes du plan)', '']
     for n in range(1, NP + 1):
@@ -353,7 +421,7 @@ def ecrire_durees(d):
     debuts = [round(sum(durees[:i]), 3) for i in range(NP)]
     json.dump({'durees': [round(x, 4) for x in durees], 'images': [round(x * 30) for x in durees], 'debuts': debuts,
                'total': round(sum(durees), 3)},
-              open(os.path.join(os.path.dirname(d), 'durees.json'), 'w'), indent=1)
+              open(os.path.join(os.path.dirname(os.path.abspath(d)), 'durees.json'), 'w'), indent=1)
     print('DURÉES DES PLANS (= voix ; à reporter dans la fiche) : ' +
           ' · '.join(f'p{n} {x:.2f} s (début {debuts[n - 1]:.2f})' for n, x in enumerate(durees, 1)).replace('.', ',') +
           f' — total {sum(durees):.1f} s'.replace('.', ','))
@@ -369,9 +437,16 @@ def main():
     travail = os.path.abspath(a[0])
     forcer = '--forcer' in a
     demande = '--demande' in a
-    reste = [x for x in a[1:] if x not in ('--forcer', '--demande')]
+    reste = [x for x in a[1:] if x not in ('--forcer', '--demande', '--durees')]
     opt = dict(zip(reste[0::2], reste[1::2]))
     voix, modele = opt.get('--voix', VOIX), opt.get('--modele', MODELE)
+    if '--durees' in a or '--resserrer' in opt:
+        paragraphes(os.path.join(travail, 'voix.txt'))
+        if '--resserrer' in opt:
+            n = int(opt['--resserrer'])
+            if not 1 <= n <= NP: sys.exit(f'--resserrer N : N de 1 à {NP}.')
+            resserrer(travail, n); return
+        ecrire_mots(os.path.join(travail, 'voix')); bilan(os.path.join(travail, 'voix')); return
     if '--refaire' in opt:
         n = int(opt['--refaire'])
         paragraphes(os.path.join(travail, 'voix.txt'))
