@@ -21,3 +21,8 @@ Avant d'ajouter un nouveau son : `python3 ../freesound_cc0.py "mots clés"`, ouv
 | sabots_neige.mp3 | https://freesound.org/s/479735/ | sabots étouffés dans la neige | chevaux |
 | vent.mp3, ressac.mp3 | https://freesound.org/s/117136/ | vent (filtré : ressac doux) | ambiance visible (neige, mer) |
 | vent_herbe.mp3 | https://freesound.org/s/176252/ (strangy) | vent dans l'herbe | ambiance de campagne |
+| pluie.mp3 | https://freesound.org/s/158692/ (RutgerMuller) | pluie contre une fenêtre entrouverte (0–24 s), sans voix | pluie dehors vue de l'intérieur (Frankenstein) |
+| orage_loin.mp3 | https://freesound.org/s/158692/ (RutgerMuller) | tonnerre lointain qui roule sous la pluie (24–44 s), sans voix | orage au loin (Frankenstein) |
+| tonnerre.mp3 | https://freesound.org/s/267550/ (Yoyodaman234) | coup de tonnerre proche et son roulement, attaque calée au début, sans voix | éclair visible (Frankenstein) |
+| volcan.mp3 | https://freesound.org/s/385098/ (morganpurkis) | grondement et souffle de volcan (lave), sans voix | éruption (Frankenstein) |
+| vent_glace.mp3 | https://freesound.org/s/405601/ (DBlover) | vent glacial qui hurle par rafales, sans voix | banquise, tempête (Frankenstein) |
