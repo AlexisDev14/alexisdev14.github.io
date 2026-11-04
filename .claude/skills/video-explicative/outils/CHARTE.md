@@ -134,6 +134,10 @@
 
 - Objet de décor juste derrière le dos d'un personnage (extincteur rouge, panneau ovale) → il se lit comme un sac à dos ou un badge porté ; et objet tenu devant la zone du gag (plateau garni devant le ventre mesuré) → le gag disparaît. Décaler l'un ou l'autre de ≥ 120 px, dégager la zone du gag (leçon Ronald, relecture).
 - Personnage qui se tient juste devant une caméra ou une machine, mains dessus → il passe pour son opérateur : laisser un vide net entre lui et l'objet d'un autre (leçon Ronald, relecture).
+- Animal qui « retrouve » quelqu'un mais creuse à 300 px de lui, sauvé qui émerge caché derrière un autre personnage (saint-bernard p3) → le chien creuse AU PIED de la cachette, tête contre elle, et la personne sort juste devant sa tête, sans personne entre eux ni devant.
+- Défilé de figurants en silhouettes pâles sans détail (« des i ou des quilles », saint-bernard p4, relecture : grave) → ombres chinoises FONCÉES, chacune différente (coiffe, cape, sac, bâton, enfant), tête, manteau et jambes qui marchent, espacées, au-dessus des têtes et derrière personne.
+- Personnage dessiné dans une vignette dont la tête dépasse de l'ovale (Landseer, saint-bernard p5) → toute la tête et le visage dans l'ovale ; ce qu'il peint ou écrit se voit en petit dans la vignette.
+- État physique clé (gel, rougeur) rendu par une simple nuance du visage, invisible sur téléphone (saint-bernard p6) → teinte franche sur toute la marionnette, givre, buée, tremblement : le contraste avec l'état précédent saute aux yeux.
 
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
