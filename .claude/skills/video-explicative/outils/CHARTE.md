@@ -132,6 +132,9 @@
 - Rideau qui ne se ferme pas complètement (`demi` pour une ellipse de temps, paris-brest) → fermeture complète (`change`), jolie et satisfaisante (§5).
 - Changement de lieu par la machinerie entre deux lieux différents (tulipomanie p6 : la taverne monte aux cintres et laisse place aux champs) → deux lieux différents = `change` au rideau ; la machinerie seulement pour changer de décor dans le même lieu ou faire apparaître un élément.
 
+- Objet de décor juste derrière le dos d'un personnage (extincteur rouge, panneau ovale) → il se lit comme un sac à dos ou un badge porté ; et objet tenu devant la zone du gag (plateau garni devant le ventre mesuré) → le gag disparaît. Décaler l'un ou l'autre de ≥ 120 px, dégager la zone du gag (leçon Ronald, relecture).
+- Personnage qui se tient juste devant une caméra ou une machine, mains dessus → il passe pour son opérateur : laisser un vide net entre lui et l'objet d'un autre (leçon Ronald, relecture).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
