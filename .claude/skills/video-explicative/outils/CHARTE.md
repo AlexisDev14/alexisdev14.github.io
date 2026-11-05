@@ -142,6 +142,9 @@
 - Haussement d'épaules joué de profil (Cocotte-Minute p1, deux essais) → illisible (« il mange », « il présente ») ; dire l'indifférence ou l'ignorance par une action : il se détourne et retourne à son ouvrage (relecture Cocotte-Minute).
 - Petit objet clé d'un mot-clé posé sur un meuble dès l'image 0 (soupape sur la table) → il surgit à la coupe et se voit avant son mot : le faire sortir d'une poche ou d'un coffret sur son mot, et le dessiner ≥ 120 px (levier ≈ 150 px), jet ou effet du gag nettement plus grand que l'effet ordinaire (relecture Cocotte-Minute p3).
 
+- Chute « volontaire » (se laisser tomber, abandonner) jouée raide en 1–2 images puis immobile → se lit « évanoui » ou « mort » ; la jouer lente et par étapes (s'asseoir, s'allonger en arrière), puis un signe de vie (bras levé qui retombe mollement) (relecture Drap d'Or p6).
+- Personnage qui garde le bras tendu vers l'objet tenu par un autre (coupe d'Henri) → on croit qu'il veut le prendre ; une surenchère se joue sans viser l'autre : bras en V vers le haut, objet montré sur soi (relecture Drap d'Or p3).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
