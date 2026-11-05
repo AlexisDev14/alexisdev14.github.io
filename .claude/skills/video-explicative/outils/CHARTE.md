@@ -139,6 +139,9 @@
 - Personnage dessiné dans une vignette dont la tête dépasse de l'ovale (Landseer, saint-bernard p5) → toute la tête et le visage dans l'ovale ; ce qu'il peint ou écrit se voit en petit dans la vignette.
 - État physique clé (gel, rougeur) rendu par une simple nuance du visage, invisible sur téléphone (saint-bernard p6) → teinte franche sur toute la marionnette, givre, buée, tremblement : le contraste avec l'état précédent saute aux yeux.
 
+- Haussement d'épaules joué de profil (Cocotte-Minute p1, deux essais) → illisible (« il mange », « il présente ») ; dire l'indifférence ou l'ignorance par une action : il se détourne et retourne à son ouvrage (relecture Cocotte-Minute).
+- Petit objet clé d'un mot-clé posé sur un meuble dès l'image 0 (soupape sur la table) → il surgit à la coupe et se voit avant son mot : le faire sortir d'une poche ou d'un coffret sur son mot, et le dessiner ≥ 120 px (levier ≈ 150 px), jet ou effet du gag nettement plus grand que l'effet ordinaire (relecture Cocotte-Minute p3).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
