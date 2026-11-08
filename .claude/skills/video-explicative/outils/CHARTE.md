@@ -145,6 +145,12 @@
 - Chute « volontaire » (se laisser tomber, abandonner) jouée raide en 1–2 images puis immobile → se lit « évanoui » ou « mort » ; la jouer lente et par étapes (s'asseoir, s'allonger en arrière), puis un signe de vie (bras levé qui retombe mollement) (relecture Drap d'Or p6).
 - Personnage qui garde le bras tendu vers l'objet tenu par un autre (coupe d'Henri) → on croit qu'il veut le prendre ; une surenchère se joue sans viser l'autre : bras en V vers le haut, objet montré sur soi (relecture Drap d'Or p3).
 
+- Animaux dans une cage à barreaux (montgolfière p4) → têtes brouillées derrière les barreaux, gag illisible sur téléphone ; les dessiner DEVANT les barreaux, perchés sur le bord, chacun ≥ 130 px ; un couvercle ouvert dressé se lit comme une plume ou une aile dorée : le poser à plat au sol (relecture montgolfière).
+- Objet couvert d'un drap plat inscrit dans son cadre (cage du plan 1) → se lit comme une tête de lit ou un placard ; le drap est jeté PAR-DESSUS, épouse la forme et retombe en plis, la base reconnaissable (osier) reste visible.
+- Torche de paille dessinée en ovale lisse au bout d'un manche → raquette ou louche ; une botte de brins ébouriffés, liée de ficelles, plus large que le manche.
+- « Ils cousent » joué avec une feuille tenue devant le ventre, loin de l'objet → incompréhensible ; la feuille est plaquée SUR l'objet et la main tire un long fil visible, points qui apparaissent (relecture montgolfière p2).
+- Action lointaine clé (petit ballon qui se pose au loin) réduite à 60 px derrière un décor → invisible ; ≥ 120 px, zone dégagée, rien devant.
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
