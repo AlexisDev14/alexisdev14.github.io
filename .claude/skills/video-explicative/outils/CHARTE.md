@@ -151,6 +151,10 @@
 - « Ils cousent » joué avec une feuille tenue devant le ventre, loin de l'objet → incompréhensible ; la feuille est plaquée SUR l'objet et la main tire un long fil visible, points qui apparaissent (relecture montgolfière p2).
 - Action lointaine clé (petit ballon qui se pose au loin) réduite à 60 px derrière un décor → invisible ; ≥ 120 px, zone dégagée, rien devant.
 
+- Étendard ou enseigne romaine marqué de barres « III » → se lit comme un chiffre romain, donc du texte ; motifs sans trait droit répété : couronne, disque, croissant (relecture Panem p4, grave).
+- Chars de course qui roulent à hauteur des pieds de la foule (quadriges « dans » les spectateurs du premier gradin) → l'arène se montre en contrebas, séparée du gradin, chars plus bas et plus petits, aucun recouvrement des corps (relecture Panem p4, grave).
+- Colère jouée « mains jointes devant la poitrine » → se lit « prière » ou « garde de boxeur » ; poings serrés levés AU-DESSUS des épaules, sourcils froncés, menton en avant (Panem p1).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
