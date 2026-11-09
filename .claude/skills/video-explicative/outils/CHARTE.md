@@ -155,6 +155,8 @@
 - Chars de course qui roulent à hauteur des pieds de la foule (quadriges « dans » les spectateurs du premier gradin) → l'arène se montre en contrebas, séparée du gradin, chars plus bas et plus petits, aucun recouvrement des corps (relecture Panem p4, grave).
 - Colère jouée « mains jointes devant la poitrine » → se lit « prière » ou « garde de boxeur » ; poings serrés levés AU-DESSUS des épaules, sourcils froncés, menton en avant (Panem p1).
 
+- Objet clé d'une matière inconnue du public (caoutchouc brut, cube de gomme, gomme mie de pain) dessiné rond, brun ou gris, plus gros qu'une tête → il se lit comme ce qui lui ressemble dans la scène (petit pain, seau, galet, souris) ; lui donner une forme qui ne ressemble à rien d'autre du plan (bloc sombre luisant aux bords bosselés, cube de 3/4 à faces nettes), une couleur différente des voisins, une taille ≤ la tête, et MONTRER SON USAGE (il efface un trait) (relecture gomme p3, p5, p6).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
