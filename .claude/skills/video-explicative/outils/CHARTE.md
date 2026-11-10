@@ -157,6 +157,10 @@
 
 - Objet clé d'une matière inconnue du public (caoutchouc brut, cube de gomme, gomme mie de pain) dessiné rond, brun ou gris, plus gros qu'une tête → il se lit comme ce qui lui ressemble dans la scène (petit pain, seau, galet, souris) ; lui donner une forme qui ne ressemble à rien d'autre du plan (bloc sombre luisant aux bords bosselés, cube de 3/4 à faces nettes), une couleur différente des voisins, une taille ≤ la tête, et MONTRER SON USAGE (il efface un trait) (relecture gomme p3, p5, p6).
 
+- Petit objet lumineux clé (lumignon, bougie) dessiné plus large que la tête du personnage → il se lit « seau » ou « lanterne », et posé il bouche une fenêtre comme une vitre allumée ; même taille tenu et posé, ≈ la hauteur de la tête, flamme bien au-dessus du bord (Fête des Lumières p1, p5).
+- Personnage qui chante joué en marchant, dos tourné ou main tendue vers un autre → « il parle » ; arrêtés, en groupe, bouche franchement ronde, menton levé, un geste différent chacun, aucune main tendue vers quelqu'un (Fête des Lumières p5).
+- Accessoire qui s'efface par fondu au lieu d'être emporté (bâche tirée qui disparaît) ou qui flotte au-dessus des mains → il reste tenu, puis tombe et reste là où on le lâche (relecture Fête des Lumières p2).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
