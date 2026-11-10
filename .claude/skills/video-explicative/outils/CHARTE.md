@@ -161,6 +161,9 @@
 - Personnage qui chante joué en marchant, dos tourné ou main tendue vers un autre → « il parle » ; arrêtés, en groupe, bouche franchement ronde, menton levé, un geste différent chacun, aucune main tendue vers quelqu'un (Fête des Lumières p5).
 - Accessoire qui s'efface par fondu au lieu d'être emporté (bâche tirée qui disparaît) ou qui flotte au-dessus des mains → il reste tenu, puis tombe et reste là où on le lâche (relecture Fête des Lumières p2).
 
+- Objet brandi par la main ARRIÈRE de profil (botte de dynamite levée au-dessus de la tête) → le bras passe derrière la tête et l'objet semble léviter ; le brandir de la main AVANT, coude plié vers l'avant et le bas, objet devant la poitrine, avant-bras et poing entiers (Nobel p2, deux corrections).
+- Écrin ou objet tenu à deux mains trop grand (disque d'or qui couvre buste et menton) → on croit qu'elle tient un tableau ; tenu bas à la taille, ≤ la largeur du torse, visage et cou dégagés (Nobel p1).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
