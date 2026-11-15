@@ -170,3 +170,6 @@
 3. `verifier.sh` tout « OK » (format, durée = celle de la voix, son : voix incluse à −14 LUFS et crête ≤ −1 dBFS, ou bruitages seuls à crête ≤ −22 sans voix).
 4. Raccord : première image du plan = dernière image du plan précédent (rideau, poses, objets, décor, lumière) ; `raccord.sh` affiche la ligne `fluidite.py` « coupe pN-1 → pN », qui doit être OK.
 5. Aucune ligne « ATTENTION » de `sauts.py` (objet qui surgit, disparaît ou saute en une image ; fond nu de la scène) ni de `raccord.sh` (SSIM < 0,92 avec la fin du plan précédent) laissée sans correction ou sans justification écrite. Ces deux contrôles tournent dans `produire.sh` ; au Téflon, `sauts.py` aurait relevé 13 sauts réels (porte du frigo qui claque d'une image à l'autre, bocal et spatule qui disparaissent, poêle qui apparaît d'un coup).
+
+- Vieillard à grande barbe blanche fournie coiffé d'un bonnet rouge bordé de blanc (camauro du pape) → se lit « Père Noël » sur téléphone, surtout en décembre ; calotte blanche, barbe courte taillée (casting Sainte-Luce).
+- Glissement d'un repère de quelques crans sur une roue (≈ 150 px) → illisible ; faire tourner tout l'objet (roue entière) sous un repère fixe (Sainte-Luce p2).
