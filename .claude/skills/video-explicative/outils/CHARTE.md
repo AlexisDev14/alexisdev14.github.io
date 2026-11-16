@@ -164,6 +164,9 @@
 - Objet brandi par la main ARRIÈRE de profil (botte de dynamite levée au-dessus de la tête) → le bras passe derrière la tête et l'objet semble léviter ; le brandir de la main AVANT, coude plié vers l'avant et le bas, objet devant la poitrine, avant-bras et poing entiers (Nobel p2, deux corrections).
 - Écrin ou objet tenu à deux mains trop grand (disque d'or qui couvre buste et menton) → on croit qu'elle tient un tableau ; tenu bas à la taille, ≤ la largeur du torse, visage et cou dégagés (Nobel p1).
 
+- Personnages à moins de 130 px qui gesticulent (héros face à face poings levés, avant-bras qui balance jusqu'au cou du voisin, héroïne aux bras tendus entre deux autres) → se lit « bagarre » ou « agression » ; ≥ 160 px entre voisins, deux frimeurs dos à dos, aucun bras qui atteint un autre personnage (relecture Wonder Woman p4, p5, grave).
+- Objet tenu par la main ARRIÈRE dont l'avant-bras est caché par le torse (poire, pile de fascicules) → l'objet semble flotter ; le tenir de la main avant, ou le poser (relecture Wonder Woman p2, p4).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
