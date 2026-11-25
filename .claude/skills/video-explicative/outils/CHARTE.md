@@ -167,6 +167,9 @@
 - Personnages à moins de 130 px qui gesticulent (héros face à face poings levés, avant-bras qui balance jusqu'au cou du voisin, héroïne aux bras tendus entre deux autres) → se lit « bagarre » ou « agression » ; ≥ 160 px entre voisins, deux frimeurs dos à dos, aucun bras qui atteint un autre personnage (relecture Wonder Woman p4, p5, grave).
 - Objet tenu par la main ARRIÈRE dont l'avant-bras est caché par le torse (poire, pile de fascicules) → l'objet semble flotter ; le tenir de la main avant, ou le poser (relecture Wonder Woman p2, p4).
 
+- Personnage qui passe d'assis à debout par un fondu enchaîné (mots croisés p4 : double translucide du personnage et de son livre pendant 0,3 s) → aucun fondu de marionnette : le personnage garde sa posture tout le plan, ou se lève par étapes de pose, jamais par transparence (relecture mots croisés).
+- Journal ou feuille « tenu » avec le poing posé à côté du bord (mots croisés p1, p7 : on croit voir une affiche au mur) → la main ENTOURE le bord, doigts par-dessus, journal à hauteur de poitrine jamais devant le visage (relecture mots croisés, grave).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.

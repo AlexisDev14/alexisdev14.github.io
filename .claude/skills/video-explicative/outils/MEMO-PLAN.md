@@ -52,6 +52,8 @@ Ce mémo remplace la lecture complète de `CHARTE.md`, `API.md` et des exemples.
 - Un voyage (trajet, course, traversée) se montre par des paysages qui défilent (toile panoramique), pas devant un seul décor.
 - Un personnage garde la même tenue toute la vidéo ; coude toujours sous la ligne épaule–main quand il écrit, tend ou tient (sinon l'autre `bendSign` de `M.ik`).
 
+- Jamais de fondu (transparence) sur une marionnette pour changer de posture : double translucide (mots croisés p4). Journal ou feuille tenu : la main entoure le bord, jamais un poing posé à côté (p1, p7).
+
 ## 6. Bruitages (`mixage.py`)
 - Garder `m.rideau_conduite()` (son du rideau automatique). **Au moins une ambiance du lieu** très basse sur tout le plan (`m.ambiance('interieur' | 'machine' | 'horloge' | 'feu' | 'eau' | 'vent' | 'ressac' | …)` ; `Mix.verifier()` signale son absence), plus les actions **visibles**, 3 à 8 par plan, préréglages calibrés (ne pas monter les niveaux). **`python3 -I OUTILS/sfx_lib.py --aide`** donne en 17 lignes tous les préréglages, leurs paramètres et la structure de `mixage.py` : ne lis pas `sfx_lib.py`.
 - Aucun début de son dans un mot-clé (`ATTENTION` de `Mix.verifier()`) : décaler juste après. Faune lointaine muette.
