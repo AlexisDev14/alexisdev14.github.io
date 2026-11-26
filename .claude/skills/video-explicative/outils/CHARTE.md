@@ -176,6 +176,9 @@
 - Objet noir posé sur un vêtement bleu nuit (étiquette sur la casquette) ou voiture crème devant une façade crème → invisible sur téléphone ; contraste franc avec ce qui est derrière, l'objet du gag pendu sur un fond clair (Black Friday p2, p6).
 - Bras qui passe devant le visage d'un autre pour poser un objet sur sa tête → la main passe AU-DESSUS de la tête et descend par l'arrière ; après le geste, poing serré devant la poitrine, jamais la main vide levée tout droit (Black Friday p6).
 
+- Réaction au bruit jouée « mains sur les oreilles » de profil (avant-bras en travers du visage), écoute au casque main à l'oreille, ou mains jointes devant la poitrine → se lit « il se cache », « il pleure » ou « il prie » ; de profil, le bruit se joue par un recul du buste, yeux fermés, mains agrippées à ce qu'il tient ; le ravissement par un sourire, yeux mi-clos, bras bas, visage dégagé (leçon Chewbacca, relecture).
+- Plus de 5 animaux ou figurants serrés au fond, ou une silhouette décorative qui passe sur eux → illisible sur téléphone ; 5 au plus, en une rangée surélevée (estrade), aucune tête cachée par un personnage du premier plan (leçon Chewbacca p6).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
