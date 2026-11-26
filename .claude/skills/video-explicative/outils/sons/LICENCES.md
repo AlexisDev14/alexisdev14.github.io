@@ -26,3 +26,6 @@ Avant d'ajouter un nouveau son : `python3 ../freesound_cc0.py "mots clés"`, ouv
 | tonnerre.mp3 | https://freesound.org/s/267550/ (Yoyodaman234) | coup de tonnerre proche et son roulement, attaque calée au début, sans voix | éclair visible (Frankenstein) |
 | volcan.mp3 | https://freesound.org/s/385098/ (morganpurkis) | grondement et souffle de volcan (lave), sans voix | éruption (Frankenstein) |
 | vent_glace.mp3 | https://freesound.org/s/405601/ (DBlover) | vent glacial qui hurle par rafales, sans voix | banquise, tempête (Frankenstein) |
+| ours_grogne.mp3 | https://freesound.org/s/519599/ (Nivatius, CC0) | grognement de grizzly (extrait 9–14 s), sans voix | ours enregistré (Chewbacca) |
+| lion_rugit.mp3 | https://freesound.org/s/559600/ (Podcapocalipsis, CC0) | rugissement de lion (extrait 0–2,3 s), sans voix | lion enregistré (Chewbacca) |
+| phoque_cri.mp3 | https://freesound.org/s/680733/ (nifvimp, CC0) | cri bref d'otarie (0,7 s), sans voix | phoque enregistré (Chewbacca) |
