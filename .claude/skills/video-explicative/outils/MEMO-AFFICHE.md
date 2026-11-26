@@ -23,7 +23,8 @@ Exemples validés par l'utilisateur (à lire avant d'écrire) : `OUTILS/exemples
 - Coffres, couvercles, objets orientés : vérifier qu'ils s'ouvrent vers le centre et ne sortent pas du cadre (`dir`).
 
 ## 3. Le titre (`affiche.py`)
-`python3 -I OUTILS/affiche.py <travail>/out/affiche/still_0042.png "<travail>/out/<Sujet> — affiche.png" <THEME> "LIGNE 1" "petite ligne" "LIGNE 3"`
+`/usr/bin/python3 -I OUTILS/affiche.py <travail>/out/affiche/still_0042.png "<travail>/out/<Sujet> — affiche.png" <THEME> "LIGNE 1" "petite ligne" "LIGNE 3"`
+- Si `python3` du PATH n'a pas PIL (`ImportError: _imaging`), lancer avec `/usr/bin/python3`.
 - Trois lignes : **deux grandes en capitales**, une **petite en minuscules** au milieu (liaison, entre deux filets). Chaque ligne est ajustée à la largeur de l'enseigne : le titre ne déborde jamais.
 - La couleur de l'enseigne suit `<THEME>` (`theme_code` de la question : HIST, GEO, SCI, ART, MUS, POP, SPORT, VIE, ECO, LANG, ACTU), assourdie pour la palette du théâtre.
 - **Le titre intrigue, il ne répète pas l'évidence** : « Barbe Noire, le pirate qui fumait » a été refusé (« qui fumait, on s'en doute ») ; refusé aussi : « LE PRÉFET — qui finit à — LA POUBELLE » ; validés : « BARBE NOIRE — qui jouait — LA TERREUR », « LE FROMAGE — de la — FRAUDE », « L'ÉTOILE — née sur une — CARTE POSTALE ». Il fait sentir le retournement sans le dévoiler.

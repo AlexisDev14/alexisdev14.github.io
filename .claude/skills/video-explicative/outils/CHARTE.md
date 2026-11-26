@@ -170,6 +170,12 @@
 - Personnage qui passe d'assis à debout par un fondu enchaîné (mots croisés p4 : double translucide du personnage et de son livre pendant 0,3 s) → aucun fondu de marionnette : le personnage garde sa posture tout le plan, ou se lève par étapes de pose, jamais par transparence (relecture mots croisés).
 - Journal ou feuille « tenu » avec le poing posé à côté du bord (mots croisés p1, p7 : on croit voir une affiche au mur) → la main ENTOURE le bord, doigts par-dessus, journal à hauteur de poitrine jamais devant le visage (relecture mots croisés, grave).
 
+- Jet ou lancer d'un objet par un personnage tourné vers un autre (le marchand qui jette la feuille arrachée : bras tendu jusqu'au front de la marchande) → se lit « il la frappe » ; un objet jeté part vers le BAS ou vers le côté vide, main jamais au-dessus de l'épaule ni à moins de 120 px d'un autre personnage (relecture Black Friday p4, grave).
+- Réaction de surprise jouée bras tendus à l'horizontale vers le voisin → « il le pousse » ; la surprise vise l'objet du gag : tête levée vers lui, bras le long du corps, buste qui recule (Black Friday p4).
+- Fumée de klaxon ou d'échappement dessinée devant un personnage ou partant de son flanc → on croit qu'elle sort de lui ; elle naît au capot ou au pot, derrière les personnages (Black Friday p2, p3).
+- Objet noir posé sur un vêtement bleu nuit (étiquette sur la casquette) ou voiture crème devant une façade crème → invisible sur téléphone ; contraste franc avec ce qui est derrière, l'objet du gag pendu sur un fond clair (Black Friday p2, p6).
+- Bras qui passe devant le visage d'un autre pour poser un objet sur sa tête → la main passe AU-DESSUS de la tête et descend par l'arrière ; après le geste, poing serré devant la poitrine, jamais la main vide levée tout droit (Black Friday p6).
+
 ## 9. Contrôle avant livraison d'un plan
 1. `planche.png` (16 images sur tout le plan) regardée en entier ; gros plans (`planche.sh --de A --a B --crop …`) sur le geste clé, la chute, les mains, les tiges, les bords.
 2. Chaque point de la section 8 vérifié.
